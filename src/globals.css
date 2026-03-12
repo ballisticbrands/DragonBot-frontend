@@ -1,0 +1,46 @@
+@import url('https://api.fontshare.com/v2/css?f[]=clash-display@200,300,400,500,600,700&f[]=satoshi@300,400,500,700&display=swap');
+
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root {
+  --primary: #2F7D4F;
+  --primary-light: #98CC65;
+  --dark: #0F3D2E;
+  --accent: #D63C3C;
+  --text: #1A1A1A;
+  --white: #FFFFFF;
+}
+
+body {
+  font-family: 'Satoshi', sans-serif;
+  color: var(--text);
+  background: var(--white);
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+h1, h2, h3, h4, h5, h6, .font-clash {
+  font-family: 'Clash Display', sans-serif;
+}
+
+.font-satoshi {
+  font-family: 'Satoshi', sans-serif;
+}
+
+/* Custom scrollbar */
+::-webkit-scrollbar {
+  width: 6px;
+}
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+::-webkit-scrollbar-thumb {
+  background: #ccc;
+  border-radius: 3px;
+}
+
+html {
+  scroll-behavior: smooth;
+}
