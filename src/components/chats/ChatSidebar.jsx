@@ -17,7 +17,7 @@ export default function ChatSidebar({ sessions, activeKey, dark, onSelect, onNew
     <div className={`w-72 flex flex-col h-full border-r ${dark ? 'bg-[#1a1a1a] border-white/10' : 'bg-white border-gray-200'}`}>
       {/* Header */}
       <div className={`px-4 py-3 border-b flex items-center gap-2 ${dark ? 'border-white/10' : 'border-gray-100'}`}>
-        <img src="/DragonBot-frontend/logos/dragonbot_fire.png" alt="DragonBot" className="w-6 h-6" />
+        <img src="/logos/dragonbot_fire.png" alt="DragonBot" className="w-6 h-6" />
         <span className={`font-clash font-semibold text-base flex-1 ${dark ? 'text-white' : 'text-[#1A1A1A]'}`}>
           DragonBot
         </span>

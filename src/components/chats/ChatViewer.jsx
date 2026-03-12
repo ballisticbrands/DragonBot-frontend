@@ -190,7 +190,7 @@ export default function ChatViewer({
               {showName && (
                 <div className={`flex items-center gap-1.5 mb-1 px-1 ${isUser ? 'flex-row-reverse' : ''}`}>
                   {!isUser && (
-                    <img src="/DragonBot-frontend/logos/dragonbot_fire.png" alt="" className="w-4 h-4" />
+                    <img src="/logos/dragonbot_fire.png" alt="" className="w-4 h-4" />
                   )}
                   <span className={`text-xs font-satoshi font-medium ${dark ? 'text-white/40' : 'text-[#1A1A1A]/50'}`}>
                     {isUser ? 'You' : 'DragonBot'}

@@ -42,7 +42,7 @@ export default function Login() {
       <div className={`w-full max-w-sm rounded-2xl border p-8 shadow-xl ${dark ? 'bg-[#1a1a1a] border-white/10' : 'bg-white border-gray-200'}`}>
         {/* Logo */}
         <div className="flex items-center gap-2.5 mb-8">
-          <img src="/DragonBot-frontend/logos/dragonbot_fire.png" alt="DragonBot" className="w-8 h-8" />
+          <img src="/logos/dragonbot_fire.png" alt="DragonBot" className="w-8 h-8" />
           <span className={`font-clash font-semibold text-xl ${dark ? 'text-white' : 'text-[#1A1A1A]'}`}>
             DragonBot
           </span>
