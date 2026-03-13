@@ -33,8 +33,7 @@ export class GatewayClient {
   readonly url: string;
 
   constructor(private opts: GatewayClientOptions) {
-    const port = opts.port ?? 18889;
-    this.url = `ws://${opts.ip}:${port}`;
+    this.url = `wss://api.dragonsellerbot.com/gateway`;
   }
 
   start(): void {
