@@ -158,7 +158,7 @@ export class GatewayClient {
       minProtocol: 3,
       maxProtocol: 3,
       client: {
-        id: 'dragonbot-web',
+        id: 'webchat-ui',
         version: '1.0.0',
         platform: 'web',
         mode: 'webchat',
