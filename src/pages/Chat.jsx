@@ -55,17 +55,19 @@ export default function Chat() {
         includeDerivedTitles: true,
         includeLastMessage: true,
       });
-      const list = (result?.sessions ?? []).map((s) => ({
-        key: s.key,
-        label: s.label,
-        title: s.derivedTitle ?? s.title ?? s.label ?? s.key,
-        lastMessage: s.lastMessage?.content
-          ? (typeof s.lastMessage.content === 'string'
-              ? s.lastMessage.content
-              : extractMessageText(s.lastMessage))
-            .slice(0, 60)
-          : undefined,
-      }));
+      const list = (result?.sessions ?? [])
+        .filter((s) => !s.channel || s.channel === 'webchat')
+        .map((s) => ({
+          key: s.key,
+          label: s.label,
+          title: s.derivedTitle ?? s.title ?? s.label ?? s.key,
+          lastMessage: s.lastMessage?.content
+            ? (typeof s.lastMessage.content === 'string'
+                ? s.lastMessage.content
+                : extractMessageText(s.lastMessage))
+              .slice(0, 60)
+            : undefined,
+        }));
       setSessions(list);
       return list;
     } catch (err) {
