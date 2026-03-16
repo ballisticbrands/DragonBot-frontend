@@ -6,6 +6,23 @@ import ChatSidebar from '../components/chats/ChatSidebar.jsx';
 import ChatViewer, { extractMessageText } from '../components/chats/ChatViewer.jsx';
 import { GatewayClient } from '../gateway/client.ts';
 
+// Strip openclaw inbound envelope from stored user messages:
+// - Leading "System: ..." event lines
+// - "(untrusted ...)" metadata blocks (```json ... ```)
+function stripInboundEnvelope(text) {
+  if (!text) return text;
+  let s = text;
+  // Strip leading "System: ..." block (one or more lines, followed by blank line)
+  s = s.replace(/^(?:System:[ \t][^\n]*\n)+\n?/, '');
+  // Strip "(untrusted ...): \n```json\n...\n```\n\n" blocks (repeat until none left)
+  let prev;
+  do {
+    prev = s;
+    s = s.replace(/^[^\n]*\(untrusted[^)]*\)[^\n]*\n```(?:json)?\n[\s\S]*?\n```\n\n?/, '');
+  } while (s !== prev);
+  return s.trim();
+}
+
 function getSession() {
   try {
     return JSON.parse(localStorage.getItem('dragonbot_session') ?? 'null');
@@ -80,10 +97,11 @@ export default function Chat() {
   const loadHistory = useCallback(async (client, key) => {
     try {
       const result = await client.request('chat.history', { sessionKey: key });
-      const msgs = (result?.messages ?? []).map((m) => ({
-        role: m.role,
-        content: typeof m.content === 'string' ? m.content : extractMessageText(m),
-      })).filter((m) => m.content);
+      const msgs = (result?.messages ?? []).map((m) => {
+        const raw = typeof m.content === 'string' ? m.content : extractMessageText(m);
+        const content = m.role === 'user' ? stripInboundEnvelope(raw) : raw;
+        return { role: m.role, content };
+      }).filter((m) => m.content);
       setMessagesByKey((prev) => ({ ...prev, [key]: msgs }));
     } catch (err) {
       console.error('[chat] chat.history failed:', err);
