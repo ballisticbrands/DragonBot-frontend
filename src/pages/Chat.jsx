@@ -115,7 +115,11 @@ export default function Chat() {
       const p = evt.payload;
       if (!p) return;
 
-      if (p.state === 'delta' && p.sessionKey === activeKeyRef.current) {
+      // Gateway canonicalizes session keys to "agent:<id>:<key>"; match either form
+      const eventKey = p.sessionKey;
+      const keyMatches = (k) => eventKey === k || eventKey?.endsWith(':' + k);
+
+      if (p.state === 'delta' && keyMatches(activeKeyRef.current)) {
         setIsStreaming(true);
         const delta = typeof p.message?.content === 'string'
           ? p.message.content
@@ -124,7 +128,7 @@ export default function Chat() {
         setStreamingText(streamBufferRef.current);
       }
 
-      if ((p.state === 'final' || p.state === 'aborted' || p.state === 'error') && p.sessionKey === activeKeyRef.current) {
+      if ((p.state === 'final' || p.state === 'aborted' || p.state === 'error') && keyMatches(activeKeyRef.current)) {
         const finalText = streamBufferRef.current;
         streamBufferRef.current = '';
         setStreamingText('');
