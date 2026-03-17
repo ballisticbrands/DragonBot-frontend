@@ -155,7 +155,10 @@ export default function Chat() {
 
   // Bootstrap gateway on mount
   useEffect(() => {
-    if (!session) return;
+    if (!session || !session.gatewayUrl) {
+      navigate('/login', { replace: true });
+      return;
+    }
 
     const client = new GatewayClient({
       gatewayUrl: session.gatewayUrl,
