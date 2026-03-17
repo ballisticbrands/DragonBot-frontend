@@ -15,8 +15,7 @@ type PendingRequest = {
 };
 
 export type GatewayClientOptions = {
-  ip: string;
-  port?: number;
+  gatewayUrl: string;
   token: string;
   onConnected?: (hello: HelloOkPayload) => void;
   onDisconnected?: (code: number, reason: string) => void;
@@ -33,7 +32,7 @@ export class GatewayClient {
   readonly url: string;
 
   constructor(private opts: GatewayClientOptions) {
-    this.url = `wss://api.dragonsellerbot.com/gateway`;
+    this.url = opts.gatewayUrl;
   }
 
   start(): void {

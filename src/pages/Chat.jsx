@@ -158,7 +158,7 @@ export default function Chat() {
     if (!session) return;
 
     const client = new GatewayClient({
-      ip: session.dragonBotIp,
+      gatewayUrl: session.gatewayUrl,
       token: session.gatewayToken,
       onConnected: async (hello) => {
         console.log('[gateway] connected, protocol', hello.protocol);
