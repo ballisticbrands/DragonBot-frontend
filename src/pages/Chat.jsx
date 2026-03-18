@@ -9,6 +9,7 @@ import { GatewayClient } from '../gateway/client.ts';
 // Strip openclaw inbound envelope from stored user messages:
 // - Leading "System: ..." event lines
 // - "(untrusted ...)" metadata blocks (```json ... ```)
+// - Leading "[DayOfWeek YYYY-MM-DD HH:MM UTC] " timestamp prefix
 function stripInboundEnvelope(text) {
   if (!text) return text;
   let s = text;
@@ -20,6 +21,8 @@ function stripInboundEnvelope(text) {
     prev = s;
     s = s.replace(/^[^\n]*\(untrusted[^)]*\)[^\n]*\n```(?:json)?\n[\s\S]*?\n```\n\n?/, '');
   } while (s !== prev);
+  // Strip leading "[DayOfWeek YYYY-MM-DD HH:MM UTC] " timestamp prefix
+  s = s.replace(/^\[\w{3} \d{4}-\d{2}-\d{2} \d{2}:\d{2} UTC\] /, '');
   return s.trim();
 }
 
@@ -129,7 +132,9 @@ export default function Chat() {
       }
 
       if ((p.state === 'final' || p.state === 'aborted' || p.state === 'error') && keyMatches(activeKeyRef.current)) {
-        const finalText = streamBufferRef.current;
+        // Prefer message content from the final event (complete) over stream buffer (may be truncated)
+        const msgText = typeof p.message?.content === 'string' ? p.message.content : extractMessageText(p.message ?? {});
+        const finalText = msgText || streamBufferRef.current;
         streamBufferRef.current = '';
         setStreamingText('');
         setIsStreaming(false);
