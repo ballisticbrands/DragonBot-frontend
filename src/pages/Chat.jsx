@@ -136,12 +136,12 @@ export default function Chat() {
         if (finalText && p.state === 'final') {
           setMessagesByKey((prev) => ({
             ...prev,
-            [p.sessionKey]: [...(prev[p.sessionKey] ?? []), { role: 'assistant', content: finalText }],
+            [activeKeyRef.current]: [...(prev[activeKeyRef.current] ?? []), { role: 'assistant', content: finalText }],
           }));
         } else if (p.state === 'final') {
           // Reload history in case we missed deltas
           if (clientRef.current?.isConnected) {
-            loadHistory(clientRef.current, p.sessionKey);
+            loadHistory(clientRef.current, activeKeyRef.current);
           }
         }
       }

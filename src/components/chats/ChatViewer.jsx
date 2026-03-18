@@ -144,7 +144,7 @@ export default function ChatViewer({
   }
 
   const allMessages = [...messages];
-  if (streamingText) {
+  if (isStreaming || streamingText) {
     allMessages.push({ role: 'assistant', content: streamingText, _streaming: true });
   }
 
