@@ -124,8 +124,8 @@ export default function Chat() {
         const delta = typeof p.message?.content === 'string'
           ? p.message.content
           : extractMessageText(p.message ?? {});
-        streamBufferRef.current += delta;
-        setStreamingText(streamBufferRef.current);
+        streamBufferRef.current = delta;
+        setStreamingText(delta);
       }
 
       if ((p.state === 'final' || p.state === 'aborted' || p.state === 'error') && keyMatches(activeKeyRef.current)) {
