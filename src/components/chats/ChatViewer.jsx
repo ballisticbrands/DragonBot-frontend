@@ -1,53 +1,7 @@
 import { useState, useRef, useEffect } from 'react';
 import { Sun, Moon, Monitor, Send } from 'lucide-react';
-
-const urlRegex = /(https?:\/\/[^\s]+|[a-zA-Z0-9][-a-zA-Z0-9]*(?:\.[a-zA-Z0-9][-a-zA-Z0-9]*)*\.[a-zA-Z]{2,}(?:\/[^\s]*)?)/g;
-const mdLinkRegex = /\[([^\]]+)\]\(([^)]+)\)/g;
-
-function boldify(text, keyPrefix) {
-  const parts = text.split(/\*\*(.+?)\*\*/g);
-  if (parts.length === 1) return text;
-  return parts.map((part, j) =>
-    j % 2 === 1 ? <strong key={`${keyPrefix}-b${j}`}>{part}</strong> : part
-  );
-}
-
-function linkifyPlain(text, isUser, dark, linkClass, keyPrefix) {
-  const parts = text.split(urlRegex);
-  return parts.map((part, i) => {
-    if (urlRegex.test(part)) {
-      urlRegex.lastIndex = 0;
-      const href = part.startsWith('http') ? part : `https://${part}`;
-      return (
-        <a key={`${keyPrefix}-${i}`} href={href} target="_blank" rel="noopener noreferrer" className={linkClass}>
-          {part}
-        </a>
-      );
-    }
-    return boldify(part, `${keyPrefix}-${i}`);
-  });
-}
-
-function formatText(text, isUser, dark) {
-  const linkClass = `underline ${isUser ? 'text-white/80 hover:text-white' : dark ? 'text-[#4ADE80] hover:text-[#86EFAC]' : 'text-[#2F7D4F] hover:text-[#256B42]'}`;
-  const mdParts = text.split(mdLinkRegex);
-  const elements = [];
-  for (let i = 0; i < mdParts.length; i++) {
-    if (i % 3 === 1) {
-      const label = mdParts[i];
-      const href = mdParts[i + 1];
-      elements.push(
-        <a key={`md-${i}`} href={href} target="_blank" rel="noopener noreferrer" className={linkClass}>
-          {label}
-        </a>
-      );
-      i++;
-    } else {
-      elements.push(...linkifyPlain(mdParts[i], isUser, dark, linkClass, i));
-    }
-  }
-  return elements;
-}
+import ReactMarkdown from 'react-markdown';
+import remarkGfm from 'remark-gfm';
 
 function ThemeDropdown({ dark, theme, onSetTheme, onClose }) {
   const ref = useRef(null);
@@ -197,19 +151,45 @@ export default function ChatViewer({
                   </span>
                 </div>
               )}
-              <div className={`max-w-[80%] px-4 py-2.5 text-sm leading-relaxed font-satoshi whitespace-pre-line break-words ${
+              <div className={`max-w-[80%] px-4 py-2.5 text-sm leading-relaxed font-satoshi break-words ${
                 isUser
-                  ? 'bg-[#2F7D4F] text-white rounded-2xl rounded-br-md'
+                  ? 'bg-[#2F7D4F] text-white rounded-2xl rounded-br-md whitespace-pre-line'
                   : dark
                     ? 'bg-[#1e1e1e] text-white/90 rounded-2xl rounded-bl-md'
                     : 'bg-[#f0f0f0] text-[#1A1A1A] rounded-2xl rounded-bl-md'
               }`}>
-                {text ? formatText(text, isUser, dark) : (
+                {!text ? (
                   <span className={`inline-flex gap-1 ${dark ? 'text-white/30' : 'text-gray-400'}`}>
                     <span className="animate-bounce" style={{ animationDelay: '0ms' }}>·</span>
                     <span className="animate-bounce" style={{ animationDelay: '150ms' }}>·</span>
                     <span className="animate-bounce" style={{ animationDelay: '300ms' }}>·</span>
                   </span>
+                ) : isUser ? text : (
+                  <ReactMarkdown
+                    remarkPlugins={[remarkGfm]}
+                    components={{
+                      p: ({ children }) => <p className="mb-2 last:mb-0">{children}</p>,
+                      h1: ({ children }) => <h1 className="text-base font-bold mt-3 mb-1">{children}</h1>,
+                      h2: ({ children }) => <h2 className="text-sm font-bold mt-3 mb-1">{children}</h2>,
+                      h3: ({ children }) => <h3 className="text-sm font-semibold mt-2 mb-1">{children}</h3>,
+                      ul: ({ children }) => <ul className="list-disc pl-4 mb-2 space-y-0.5">{children}</ul>,
+                      ol: ({ children }) => <ol className="list-decimal pl-4 mb-2 space-y-0.5">{children}</ol>,
+                      li: ({ children }) => <li>{children}</li>,
+                      strong: ({ children }) => <strong className="font-semibold">{children}</strong>,
+                      em: ({ children }) => <em className="italic">{children}</em>,
+                      code: ({ inline, children }) => inline
+                        ? <code className={`px-1 py-0.5 rounded text-xs font-mono ${dark ? 'bg-white/10' : 'bg-black/8'}`}>{children}</code>
+                        : <pre className={`p-3 rounded-xl text-xs font-mono overflow-x-auto my-2 ${dark ? 'bg-black/40' : 'bg-black/6'}`}><code>{children}</code></pre>,
+                      a: ({ href, children }) => <a href={href} target="_blank" rel="noopener noreferrer" className={`underline ${dark ? 'text-[#4ADE80] hover:text-[#86EFAC]' : 'text-[#2F7D4F] hover:text-[#256B42]'}`}>{children}</a>,
+                      table: ({ children }) => <div className="overflow-x-auto my-2"><table className="text-xs border-collapse w-full">{children}</table></div>,
+                      th: ({ children }) => <th className={`border px-2 py-1 text-left font-semibold ${dark ? 'border-white/20 bg-white/5' : 'border-gray-300 bg-gray-100'}`}>{children}</th>,
+                      td: ({ children }) => <td className={`border px-2 py-1 ${dark ? 'border-white/10' : 'border-gray-200'}`}>{children}</td>,
+                      blockquote: ({ children }) => <blockquote className={`border-l-2 pl-3 my-2 italic ${dark ? 'border-white/30 text-white/60' : 'border-gray-400 text-gray-600'}`}>{children}</blockquote>,
+                      hr: () => <hr className={`my-3 ${dark ? 'border-white/10' : 'border-gray-200'}`} />,
+                    }}
+                  >
+                    {text}
+                  </ReactMarkdown>
                 )}
               </div>
             </div>
