@@ -56,7 +56,7 @@ export default function SignIn() {
               Sign in with your Slack account to get started.
             </p>
             <a
-              href="https://dragonsellerbot.com/api/slack/signin"
+              href="https://api.dragonsellerbot.com/api/slack/signin"
               className={`flex items-center justify-center gap-3 w-full py-2.5 rounded-xl text-sm font-satoshi font-medium transition-colors border ${
                 dark
                   ? 'bg-white/5 border-white/10 text-white hover:bg-white/10'

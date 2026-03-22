@@ -5,7 +5,7 @@ import GettingStarted from './pages/GettingStarted.jsx';
 import Dashboard from './pages/Dashboard.jsx';
 import Chat from './pages/Chat.jsx';
 
-const BACKEND_URL = import.meta.env.VITE_BACKEND_URL ?? 'https://dragonsellerbot.com';
+const BACKEND_URL = import.meta.env.VITE_BACKEND_URL ?? 'https://api.dragonsellerbot.com';
 
 function PrivateRoute({ children }) {
   const token = localStorage.getItem('dragonbot_token');

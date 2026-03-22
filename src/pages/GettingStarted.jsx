@@ -2,7 +2,7 @@ import { useState, useEffect, useMemo, useCallback } from 'react';
 import { useSearchParams, useNavigate } from 'react-router-dom';
 import { Check, Search } from 'lucide-react';
 
-const BACKEND_URL = import.meta.env.VITE_BACKEND_URL ?? 'https://dragonsellerbot.com';
+const BACKEND_URL = import.meta.env.VITE_BACKEND_URL ?? 'https://api.dragonsellerbot.com';
 
 const STEPS = ['add-to-slack', 'select-channels', 'complete'];
 
