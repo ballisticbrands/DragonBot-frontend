@@ -161,7 +161,7 @@ export default function Chat() {
   // Bootstrap gateway on mount
   useEffect(() => {
     if (!session || !session.gatewayUrl) {
-      navigate('/login', { replace: true });
+      navigate('/signin', { replace: true });
       return;
     }
 

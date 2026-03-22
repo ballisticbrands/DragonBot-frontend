@@ -5,8 +5,9 @@ export default function ChatSidebar({ sessions, activeKey, dark, onSelect, onNew
   const navigate = useNavigate();
 
   function handleLogout() {
+    localStorage.removeItem('dragonbot_token');
     localStorage.removeItem('dragonbot_session');
-    navigate('/login', { replace: true });
+    navigate('/signin', { replace: true });
   }
 
   function handleSelect(key) {
