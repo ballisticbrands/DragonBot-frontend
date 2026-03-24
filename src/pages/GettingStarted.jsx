@@ -1,6 +1,7 @@
 import { useState, useEffect, useMemo, useCallback } from 'react';
-import { useSearchParams, useNavigate } from 'react-router-dom';
+import { useSearchParams } from 'react-router-dom';
 import { Check, Search, Plug, X } from 'lucide-react';
+import { createFrontendClient } from '@pipedream/sdk/browser';
 
 const BACKEND_URL = import.meta.env.VITE_BACKEND_URL ?? 'https://api.dragonsellerbot.com';
 
@@ -96,7 +97,7 @@ function ConnectTools({ dark, onComplete }) {
   async function handleConnect(tool) {
     setConnecting(tool.slug);
     try {
-      // Try Pipedream flow first
+      // Get a connect token from our backend
       const tokenRes = await fetch(`${BACKEND_URL}/api/connect/token`, {
         method: 'POST',
         headers: {
@@ -106,55 +107,54 @@ function ConnectTools({ dark, onComplete }) {
         body: JSON.stringify({ app_slug: tool.slug }),
       });
 
-      if (tokenRes.ok) {
-        const { token } = await tokenRes.json();
-        // Open Pipedream connect flow in a popup
-        const popup = window.open(
-          `https://pipedream.com/connect/${token}`,
-          'pipedream-connect',
-          'width=600,height=700,popup=yes'
-        );
-
-        // Poll for popup close
-        const interval = setInterval(async () => {
-          if (!popup || popup.closed) {
-            clearInterval(interval);
-            // Refresh connections
-            const connsRes = await fetch(`${BACKEND_URL}/api/connections`, {
-              headers: { Authorization: `Bearer ${getToken()}` },
-            });
-            if (connsRes.ok) {
-              const data = await connsRes.json();
-              setConnections(data.connections ?? []);
-            }
-            setConnecting(null);
-          }
-        }, 1000);
+      if (!tokenRes.ok) {
+        const err = await tokenRes.json().catch(() => ({}));
+        console.error('Connect token failed:', err);
+        setConnecting(null);
         return;
       }
 
-      // Pipedream not available — save as a placeholder connection
-      const saveRes = await fetch(`${BACKEND_URL}/api/connections`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          Authorization: `Bearer ${getToken()}`,
-        },
-        body: JSON.stringify({
-          provider: tool.slug,
-          name: tool.name,
-          authType: tool.authType,
-          credentials: {},
-        }),
+      const tokenData = await tokenRes.json();
+
+      // Use Pipedream SDK to open the OAuth flow
+      const pd = createFrontendClient({
+        externalUserId: tokenData.externalUserId || 'user',
+        tokenCallback: async () => tokenData,
       });
 
-      if (saveRes.ok) {
-        const conn = await saveRes.json();
-        setConnections((prev) => [...prev, conn]);
-      }
+      await pd.connectAccount({
+        app: tool.slug,
+        token: tokenData.token,
+        onSuccess: async (result) => {
+          // Save the connection to our DB with the Pipedream account ID
+          const saveRes = await fetch(`${BACKEND_URL}/api/connections`, {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json',
+              Authorization: `Bearer ${getToken()}`,
+            },
+            body: JSON.stringify({
+              provider: tool.slug,
+              name: tool.name,
+              pipedreamAccountId: result.id,
+            }),
+          });
+          if (saveRes.ok) {
+            const conn = await saveRes.json();
+            setConnections((prev) => [...prev, conn]);
+          }
+          setConnecting(null);
+        },
+        onError: (err) => {
+          console.error('Pipedream connect error:', err);
+          setConnecting(null);
+        },
+        onClose: () => {
+          setConnecting(null);
+        },
+      });
     } catch (err) {
       console.error('Connect failed:', err);
-    } finally {
       setConnecting(null);
     }
   }
