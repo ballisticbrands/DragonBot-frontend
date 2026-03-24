@@ -216,7 +216,11 @@ function Complete({ dark }) {
       </p>
       <div className="flex flex-col gap-3">
         <a
-          href="https://slack.com/open"
+          href={`slack://open`}
+          onClick={(e) => {
+            // Try native app first, fall back to web
+            setTimeout(() => { window.location.href = 'https://app.slack.com/client'; }, 500);
+          }}
           target="_blank"
           rel="noopener noreferrer"
           className="w-full inline-flex items-center justify-center py-2.5 rounded-xl bg-[#2F7D4F] hover:bg-[#256B42] text-white text-sm font-satoshi font-medium transition-colors shadow-lg shadow-[#2F7D4F]/20"
