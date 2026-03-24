@@ -1,10 +1,10 @@
 import { useState, useEffect, useMemo, useCallback } from 'react';
 import { useSearchParams, useNavigate } from 'react-router-dom';
-import { Check, Search } from 'lucide-react';
+import { Check, Search, Plug, X } from 'lucide-react';
 
 const BACKEND_URL = import.meta.env.VITE_BACKEND_URL ?? 'https://api.dragonsellerbot.com';
 
-const STEPS = ['add-to-slack', 'select-channels', 'complete'];
+const STEPS = ['add-to-slack', 'connect-tools', 'select-channels', 'complete'];
 
 function getToken() {
   return localStorage.getItem('dragonbot_token') ?? '';
@@ -52,6 +52,214 @@ function AddToSlack({ dark }) {
     </div>
   );
 }
+
+// ─── Connect Tools step ──────────────────────────────────────────────
+
+function ConnectTools({ dark, onComplete }) {
+  const [tools, setTools] = useState([]);
+  const [connections, setConnections] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [connecting, setConnecting] = useState(null); // slug currently being connected
+
+  useEffect(() => {
+    (async () => {
+      try {
+        const [toolsRes, connsRes] = await Promise.all([
+          fetch(`${BACKEND_URL}/api/connect/available`, {
+            headers: { Authorization: `Bearer ${getToken()}` },
+          }),
+          fetch(`${BACKEND_URL}/api/connections`, {
+            headers: { Authorization: `Bearer ${getToken()}` },
+          }),
+        ]);
+        if (toolsRes.ok) {
+          const data = await toolsRes.json();
+          setTools(data.tools ?? []);
+        }
+        if (connsRes.ok) {
+          const data = await connsRes.json();
+          setConnections(data.connections ?? []);
+        }
+      } catch (err) {
+        console.error('Failed to load tools:', err);
+      } finally {
+        setLoading(false);
+      }
+    })();
+  }, []);
+
+  const connectedSlugs = useMemo(
+    () => new Set(connections.map((c) => c.provider)),
+    [connections]
+  );
+
+  async function handleConnect(tool) {
+    setConnecting(tool.slug);
+    try {
+      // Try Pipedream flow first
+      const tokenRes = await fetch(`${BACKEND_URL}/api/connect/token`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          Authorization: `Bearer ${getToken()}`,
+        },
+        body: JSON.stringify({ app_slug: tool.slug }),
+      });
+
+      if (tokenRes.ok) {
+        const { token } = await tokenRes.json();
+        // Open Pipedream connect flow in a popup
+        const popup = window.open(
+          `https://pipedream.com/connect/${token}`,
+          'pipedream-connect',
+          'width=600,height=700,popup=yes'
+        );
+
+        // Poll for popup close
+        const interval = setInterval(async () => {
+          if (!popup || popup.closed) {
+            clearInterval(interval);
+            // Refresh connections
+            const connsRes = await fetch(`${BACKEND_URL}/api/connections`, {
+              headers: { Authorization: `Bearer ${getToken()}` },
+            });
+            if (connsRes.ok) {
+              const data = await connsRes.json();
+              setConnections(data.connections ?? []);
+            }
+            setConnecting(null);
+          }
+        }, 1000);
+        return;
+      }
+
+      // Pipedream not available — save as a placeholder connection
+      const saveRes = await fetch(`${BACKEND_URL}/api/connections`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          Authorization: `Bearer ${getToken()}`,
+        },
+        body: JSON.stringify({
+          provider: tool.slug,
+          name: tool.name,
+          authType: tool.authType,
+          credentials: {},
+        }),
+      });
+
+      if (saveRes.ok) {
+        const conn = await saveRes.json();
+        setConnections((prev) => [...prev, conn]);
+      }
+    } catch (err) {
+      console.error('Connect failed:', err);
+    } finally {
+      setConnecting(null);
+    }
+  }
+
+  async function handleDisconnect(tool) {
+    const conn = connections.find((c) => c.provider === tool.slug);
+    if (!conn) return;
+
+    try {
+      await fetch(`${BACKEND_URL}/api/connections/${conn.id}`, {
+        method: 'DELETE',
+        headers: { Authorization: `Bearer ${getToken()}` },
+      });
+      setConnections((prev) => prev.filter((c) => c.id !== conn.id));
+    } catch (err) {
+      console.error('Disconnect failed:', err);
+    }
+  }
+
+  return (
+    <div className="text-center">
+      <div className={`inline-flex items-center justify-center w-16 h-16 rounded-2xl mb-6 ${dark ? 'bg-white/5' : 'bg-gray-100'}`}>
+        <Plug size={32} className={dark ? 'text-white/60' : 'text-[#1A1A1A]/50'} />
+      </div>
+      <h1 className={`font-clash font-semibold text-2xl mb-3 ${dark ? 'text-white' : 'text-[#1A1A1A]'}`}>
+        Connect your tools
+      </h1>
+      <p className={`text-sm font-satoshi mb-6 leading-relaxed max-w-md mx-auto ${dark ? 'text-white/50' : 'text-[#1A1A1A]/50'}`}>
+        Give DragonBot access to your business tools so it can pull data, run reports, and take actions on your behalf. You can always add more later.
+      </p>
+
+      {loading ? (
+        <p className={`text-sm font-satoshi ${dark ? 'text-white/40' : 'text-[#1A1A1A]/40'}`}>Loading...</p>
+      ) : (
+        <div className="grid grid-cols-2 gap-3 mb-6 text-left">
+          {tools.map((tool) => {
+            const isConnected = connectedSlugs.has(tool.slug);
+            const isConnecting = connecting === tool.slug;
+            return (
+              <div
+                key={tool.slug}
+                className={`relative rounded-xl border p-4 transition-colors ${
+                  isConnected
+                    ? dark
+                      ? 'border-[#2F7D4F]/50 bg-[#2F7D4F]/10'
+                      : 'border-[#2F7D4F]/30 bg-[#2F7D4F]/5'
+                    : dark
+                      ? 'border-white/10 hover:border-white/20'
+                      : 'border-gray-200 hover:border-gray-300'
+                }`}
+              >
+                <div className="flex items-start justify-between mb-2">
+                  <span className="text-2xl">{tool.icon}</span>
+                  {isConnected && (
+                    <button
+                      onClick={() => handleDisconnect(tool)}
+                      className={`p-1 rounded-lg transition-colors ${
+                        dark ? 'hover:bg-white/10 text-white/40' : 'hover:bg-gray-100 text-gray-400'
+                      }`}
+                      title="Disconnect"
+                    >
+                      <X size={14} />
+                    </button>
+                  )}
+                </div>
+                <h3 className={`text-sm font-satoshi font-medium mb-1 ${dark ? 'text-white' : 'text-[#1A1A1A]'}`}>
+                  {tool.name}
+                </h3>
+                <p className={`text-xs font-satoshi mb-3 leading-relaxed ${dark ? 'text-white/40' : 'text-[#1A1A1A]/40'}`}>
+                  {tool.description}
+                </p>
+                {isConnected ? (
+                  <span className="inline-flex items-center gap-1 text-xs font-satoshi font-medium text-[#2F7D4F]">
+                    <Check size={12} /> Connected
+                  </span>
+                ) : (
+                  <button
+                    onClick={() => handleConnect(tool)}
+                    disabled={isConnecting}
+                    className={`text-xs font-satoshi font-medium px-3 py-1.5 rounded-lg transition-colors ${
+                      dark
+                        ? 'bg-white/10 text-white hover:bg-white/15'
+                        : 'bg-gray-100 text-[#1A1A1A] hover:bg-gray-200'
+                    } disabled:opacity-50`}
+                  >
+                    {isConnecting ? 'Connecting...' : 'Connect'}
+                  </button>
+                )}
+              </div>
+            );
+          })}
+        </div>
+      )}
+
+      <button
+        onClick={onComplete}
+        className="w-full py-2.5 rounded-xl bg-[#2F7D4F] hover:bg-[#256B42] text-white text-sm font-satoshi font-medium transition-colors shadow-lg shadow-[#2F7D4F]/20"
+      >
+        {connections.length > 0 ? 'Continue' : 'Skip for now'}
+      </button>
+    </div>
+  );
+}
+
+// ─── Select Channels step ────────────────────────────────────────────
 
 function SelectChannels({ dark, onComplete }) {
   const [channels, setChannels] = useState([]);
@@ -202,6 +410,8 @@ function SelectChannels({ dark, onComplete }) {
   );
 }
 
+// ─── Complete step ───────────────────────────────────────────────────
+
 function Complete({ dark }) {
   return (
     <div className="text-center">
@@ -217,8 +427,7 @@ function Complete({ dark }) {
       <div className="flex flex-col gap-3">
         <a
           href={`slack://open`}
-          onClick={(e) => {
-            // Try native app first, fall back to web
+          onClick={() => {
             setTimeout(() => { window.location.href = 'https://app.slack.com/client'; }, 500);
           }}
           target="_blank"
@@ -238,17 +447,14 @@ function Complete({ dark }) {
   );
 }
 
+// ─── Main ────────────────────────────────────────────────────────────
+
 export default function GettingStarted() {
   const [searchParams, setSearchParams] = useSearchParams();
-  const navigate = useNavigate();
   const step = searchParams.get('step') ?? 'add-to-slack';
 
   const [systemDark] = useState(() => window.matchMedia('(prefers-color-scheme: dark)').matches);
   const dark = systemDark;
-
-  function handleChannelsComplete() {
-    setSearchParams({ step: 'complete' });
-  }
 
   return (
     <div className={`min-h-screen flex items-center justify-center px-4 ${dark ? 'bg-[#0f0f0f]' : 'bg-[#fafafa]'}`}>
@@ -256,7 +462,12 @@ export default function GettingStarted() {
         <StepIndicator currentStep={step} dark={dark} />
 
         {step === 'add-to-slack' && <AddToSlack dark={dark} />}
-        {step === 'select-channels' && <SelectChannels dark={dark} onComplete={handleChannelsComplete} />}
+        {step === 'connect-tools' && (
+          <ConnectTools dark={dark} onComplete={() => setSearchParams({ step: 'select-channels' })} />
+        )}
+        {step === 'select-channels' && (
+          <SelectChannels dark={dark} onComplete={() => setSearchParams({ step: 'complete' })} />
+        )}
         {step === 'complete' && <Complete dark={dark} />}
       </div>
     </div>
