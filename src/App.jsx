@@ -4,6 +4,7 @@ import SignIn from './pages/SignIn.jsx';
 import GettingStarted from './pages/GettingStarted.jsx';
 import Dashboard from './pages/Dashboard.jsx';
 import Chat from './pages/Chat.jsx';
+import Usage from './pages/Usage.jsx';
 
 const BACKEND_URL = import.meta.env.VITE_BACKEND_URL ?? 'https://api.dragonsellerbot.com';
 
@@ -74,6 +75,14 @@ export default function App() {
             element={
               <PrivateRoute>
                 <Chat />
+              </PrivateRoute>
+            }
+          />
+          <Route
+            path="/usage"
+            element={
+              <PrivateRoute>
+                <Usage />
               </PrivateRoute>
             }
           />
