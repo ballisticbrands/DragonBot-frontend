@@ -63,8 +63,8 @@ export default function Skills({ dark }) {
     ...filtered.filter(s => s.type === 'core' && s.hasExtension),
     ...filtered.filter(s => s.type === 'extension'),
   ];
-  // Core section: plain core skills without extensions
-  const coreSectionSkills = filtered.filter(s => s.type === 'core' && !s.hasExtension);
+  // Core section: ALL core skills (extended ones marked with badge)
+  const coreSectionSkills = filtered.filter(s => s.type === 'core');
 
   return (
     <div className={`min-h-screen px-4 py-8 md:px-8 ${c('bg-[#0f0f0f]', 'bg-[#fafafa]')}`}>
