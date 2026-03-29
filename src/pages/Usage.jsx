@@ -1,5 +1,5 @@
 import { useState, useEffect, useMemo } from 'react';
-import { BarChart3, AlertCircle, Clock, Zap, ArrowLeft } from 'lucide-react';
+import { BarChart3, AlertCircle, Clock, Zap } from 'lucide-react';
 
 const BACKEND_URL = import.meta.env.VITE_BACKEND_URL ?? 'https://api.dragonsellerbot.com';
 
@@ -50,16 +50,11 @@ export default function Usage() {
       <div className="max-w-4xl mx-auto">
         {/* Header */}
         <div className="flex items-center justify-between mb-8">
-          <div className="flex items-center gap-3">
-            <a href="#/" className={`p-2 rounded-lg transition-colors ${c('', 'hover:bg-white/5', 'hover:bg-gray-100')}`}>
-              <ArrowLeft size={20} className={c('', 'text-white/50', 'text-gray-400')} />
-            </a>
-            <div>
-              <h1 className={`font-clash font-semibold text-2xl ${c('', 'text-white', 'text-[#1A1A1A]')}`}>Usage</h1>
-              <p className={`text-sm font-satoshi ${c('', 'text-white/40', 'text-[#1A1A1A]/40')}`}>
-                API calls and tool usage for your DragonBot
-              </p>
-            </div>
+          <div>
+            <h1 className={`font-clash font-semibold text-2xl ${c('', 'text-white', 'text-[#1A1A1A]')}`}>Usage</h1>
+            <p className={`text-sm font-satoshi ${c('', 'text-white/40', 'text-[#1A1A1A]/40')}`}>
+              API calls and tool usage for your DragonBot
+            </p>
           </div>
           <div className="flex gap-2">
             {[7, 30, 90].map((d) => (

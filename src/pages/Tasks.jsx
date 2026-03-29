@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { ArrowLeft, Clock, Play, Pause, Calendar, Timer } from 'lucide-react';
+import { Clock, Play, Pause, Calendar, Timer } from 'lucide-react';
 
 const BACKEND_URL = import.meta.env.VITE_BACKEND_URL ?? 'https://api.dragonsellerbot.com';
 
@@ -67,19 +67,14 @@ export default function Tasks() {
   const c = (dv, lv) => dark ? dv : lv;
 
   return (
-    <div className={`min-h-screen px-4 py-8 ${c('bg-[#0f0f0f]', 'bg-[#fafafa]')}`}>
+    <div className={`min-h-screen px-4 py-8 md:px-8 ${c('bg-[#0f0f0f]', 'bg-[#fafafa]')}`}>
       <div className="max-w-3xl mx-auto">
         {/* Header */}
-        <div className="flex items-center gap-3 mb-8">
-          <a href="#/" className={`p-2 rounded-lg transition-colors ${c('hover:bg-white/5', 'hover:bg-gray-100')}`}>
-            <ArrowLeft size={20} className={c('text-white/50', 'text-gray-400')} />
-          </a>
-          <div>
-            <h1 className={`font-clash font-semibold text-2xl ${c('text-white', 'text-[#1A1A1A]')}`}>Scheduled Tasks</h1>
-            <p className={`text-sm font-satoshi ${c('text-white/40', 'text-[#1A1A1A]/40')}`}>
-              Cron jobs running on your DragonBot
-            </p>
-          </div>
+        <div className="mb-8">
+          <h1 className={`font-clash font-semibold text-2xl ${c('text-white', 'text-[#1A1A1A]')}`}>Scheduled Tasks</h1>
+          <p className={`text-sm font-satoshi ${c('text-white/40', 'text-[#1A1A1A]/40')}`}>
+            Cron jobs running on your DragonBot
+          </p>
         </div>
 
         {loading ? (
