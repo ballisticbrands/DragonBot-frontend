@@ -58,9 +58,13 @@ export default function Skills({ dark }) {
       )
     : skills;
 
-  const extendedCoreSkills = filtered.filter(s => s.type === 'core' && s.hasExtension);
-  const plainCoreSkills = filtered.filter(s => s.type === 'core' && !s.hasExtension);
-  const customSkills = filtered.filter(s => s.type === 'extension');
+  // Custom section: workspace-only skills + core skills that have extensions
+  const customSectionSkills = [
+    ...filtered.filter(s => s.type === 'core' && s.hasExtension),
+    ...filtered.filter(s => s.type === 'extension'),
+  ];
+  // Core section: plain core skills without extensions
+  const coreSectionSkills = filtered.filter(s => s.type === 'core' && !s.hasExtension);
 
   return (
     <div className={`min-h-screen px-4 py-8 md:px-8 ${c('bg-[#0f0f0f]', 'bg-[#fafafa]')}`}>
@@ -104,17 +108,13 @@ export default function Skills({ dark }) {
           </div>
         ) : (
           <>
-            {extendedCoreSkills.length > 0 && (
-              <SkillSection title="Extended Core Skills" icon={<Layers size={16} />}
-                skills={extendedCoreSkills} dark={dark} onSelect={handleSelectSkill} />
-            )}
-            {customSkills.length > 0 && (
+            {customSectionSkills.length > 0 && (
               <SkillSection title="Custom Skills" icon={<Box size={16} />}
-                skills={customSkills} dark={dark} onSelect={handleSelectSkill} />
+                skills={customSectionSkills} dark={dark} onSelect={handleSelectSkill} />
             )}
-            {plainCoreSkills.length > 0 && (
+            {coreSectionSkills.length > 0 && (
               <SkillSection title="Core Skills" icon={<Sparkles size={16} />}
-                skills={plainCoreSkills} dark={dark} onSelect={handleSelectSkill} defaultCollapsed />
+                skills={coreSectionSkills} dark={dark} onSelect={handleSelectSkill} defaultCollapsed />
             )}
             {filtered.length === 0 && search && (
               <p className={`text-sm font-satoshi text-center py-8 ${c('text-white/30', 'text-[#1A1A1A]/30')}`}>
@@ -189,7 +189,7 @@ function SkillCard({ skill, dark, onClick }) {
             {skill.hasExtension && (
               <span className="flex items-center gap-0.5 text-[10px] font-satoshi px-1.5 py-0.5 rounded bg-[#2F7D4F]/10 text-[#2F7D4F]">
                 <Layers size={10} />
-                custom extension
+                Extended core skill
               </span>
             )}
           </div>
