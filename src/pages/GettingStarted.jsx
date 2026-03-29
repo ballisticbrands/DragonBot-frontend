@@ -1,6 +1,6 @@
 import { useState, useEffect, useMemo, useCallback } from 'react';
 import { useSearchParams } from 'react-router-dom';
-import { Check, Search, Plug, X } from 'lucide-react';
+import { Check, Search, Plug, Trash2 } from 'lucide-react';
 import { createFrontendClient } from '@pipedream/sdk/browser';
 
 const BACKEND_URL = import.meta.env.VITE_BACKEND_URL ?? 'https://api.dragonsellerbot.com';
@@ -60,115 +60,92 @@ function ConnectTools({ dark, onComplete }) {
   const [tools, setTools] = useState([]);
   const [connections, setConnections] = useState([]);
   const [loading, setLoading] = useState(true);
-  const [connecting, setConnecting] = useState(null); // slug currently being connected
+  const [connecting, setConnecting] = useState(null);
+  const [search, setSearch] = useState('');
+  const [error, setError] = useState('');
+
+  async function loadTools(q = '') {
+    try {
+      const res = await fetch(`${BACKEND_URL}/api/connect/available?q=${encodeURIComponent(q)}`, {
+        headers: { Authorization: `Bearer ${getToken()}` },
+      });
+      if (res.ok) setTools((await res.json()).tools ?? []);
+    } catch (err) {
+      console.error('Failed to load tools:', err);
+    }
+  }
+
+  async function loadConnections() {
+    try {
+      const res = await fetch(`${BACKEND_URL}/api/connections`, {
+        headers: { Authorization: `Bearer ${getToken()}` },
+      });
+      if (res.ok) setConnections((await res.json()).connections ?? []);
+    } catch (err) {
+      console.error('Failed to load connections:', err);
+    }
+  }
 
   useEffect(() => {
-    (async () => {
-      try {
-        const [toolsRes, connsRes] = await Promise.all([
-          fetch(`${BACKEND_URL}/api/connect/available`, {
-            headers: { Authorization: `Bearer ${getToken()}` },
-          }),
-          fetch(`${BACKEND_URL}/api/connections`, {
-            headers: { Authorization: `Bearer ${getToken()}` },
-          }),
-        ]);
-        if (toolsRes.ok) {
-          const data = await toolsRes.json();
-          setTools(data.tools ?? []);
-        }
-        if (connsRes.ok) {
-          const data = await connsRes.json();
-          setConnections(data.connections ?? []);
-        }
-      } catch (err) {
-        console.error('Failed to load tools:', err);
-      } finally {
-        setLoading(false);
-      }
-    })();
+    Promise.all([loadTools(), loadConnections()]).finally(() => setLoading(false));
   }, []);
 
-  const connectedSlugs = useMemo(
-    () => new Set(connections.map((c) => c.provider)),
-    [connections]
-  );
+  useEffect(() => {
+    const timer = setTimeout(() => loadTools(search), 300);
+    return () => clearTimeout(timer);
+  }, [search]);
 
   async function handleConnect(tool) {
     setConnecting(tool.slug);
+    setError('');
     try {
-      // Get a connect token from our backend
       const tokenRes = await fetch(`${BACKEND_URL}/api/connect/token`, {
         method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          Authorization: `Bearer ${getToken()}`,
-        },
+        headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${getToken()}` },
         body: JSON.stringify({ app_slug: tool.slug }),
       });
-
       if (!tokenRes.ok) {
-        const err = await tokenRes.json().catch(() => ({}));
-        console.error('Connect token failed:', err);
+        setError((await tokenRes.json().catch(() => ({}))).error || 'Failed');
         setConnecting(null);
         return;
       }
-
       const tokenData = await tokenRes.json();
-
-      // Use Pipedream SDK to open the OAuth flow
       const pd = createFrontendClient({
         externalUserId: tokenData.externalUserId || 'user',
         tokenCallback: async () => tokenData,
       });
-
       await pd.connectAccount({
         app: tool.slug,
         token: tokenData.token,
         onSuccess: async (result) => {
-          // Save the connection to our DB with the Pipedream account ID
           const saveRes = await fetch(`${BACKEND_URL}/api/connections`, {
             method: 'POST',
-            headers: {
-              'Content-Type': 'application/json',
-              Authorization: `Bearer ${getToken()}`,
-            },
-            body: JSON.stringify({
-              provider: tool.slug,
-              name: tool.name,
-              pipedreamAccountId: result.id,
-            }),
+            headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${getToken()}` },
+            body: JSON.stringify({ provider: tool.slug, name: tool.name, pipedreamAccountId: result.id }),
           });
-          if (saveRes.ok) {
-            const conn = await saveRes.json();
-            setConnections((prev) => [...prev, conn]);
+          if (!saveRes.ok) {
+            setError((await saveRes.json().catch(() => ({}))).error || 'Failed to save');
+          } else {
+            await loadConnections();
           }
           setConnecting(null);
         },
-        onError: (err) => {
-          console.error('Pipedream connect error:', err);
-          setConnecting(null);
-        },
-        onClose: () => {
-          setConnecting(null);
-        },
+        onError: (err) => { setError(err.message || 'Failed'); setConnecting(null); },
+        onClose: () => { setConnecting(null); },
       });
     } catch (err) {
-      console.error('Connect failed:', err);
+      setError(err.message || 'Failed');
       setConnecting(null);
     }
   }
 
-  async function handleDisconnect(tool) {
-    const conn = connections.find((c) => c.provider === tool.slug);
-    if (!conn) return;
-
+  async function handleDisconnect(connId) {
     try {
-      await fetch(`${BACKEND_URL}/api/connections/${conn.id}`, {
+      await fetch(`${BACKEND_URL}/api/connections/${connId}`, {
         method: 'DELETE',
         headers: { Authorization: `Bearer ${getToken()}` },
       });
-      setConnections((prev) => prev.filter((c) => c.id !== conn.id));
+      setConnections((prev) => prev.filter((c) => c.id !== connId));
     } catch (err) {
       console.error('Disconnect failed:', err);
     }
@@ -186,64 +163,75 @@ function ConnectTools({ dark, onComplete }) {
         Give DragonBot access to your business tools so it can pull data, run reports, and take actions on your behalf. You can always add more later.
       </p>
 
+      {/* Connected tools */}
+      {connections.length > 0 && (
+        <div className="mb-6 text-left space-y-2">
+          {connections.map((conn) => (
+            <div key={conn.id} className={`flex items-center justify-between p-3 rounded-xl border ${dark ? 'border-[#2F7D4F]/50 bg-[#2F7D4F]/10' : 'border-[#2F7D4F]/30 bg-[#2F7D4F]/5'}`}>
+              <div className="flex items-center gap-3 min-w-0">
+                {conn.appImgSrc ? (
+                  <img src={conn.appImgSrc} alt={conn.name} className="w-6 h-6 rounded object-contain flex-shrink-0" />
+                ) : (
+                  <Plug size={14} className="text-[#2F7D4F] flex-shrink-0" />
+                )}
+                <span className={`text-sm font-satoshi font-medium truncate ${dark ? 'text-white' : 'text-[#1A1A1A]'}`}>{conn.name}</span>
+                {conn.accountName && <span className={`text-xs font-satoshi ${dark ? 'text-white/40' : 'text-[#1A1A1A]/40'}`}>({conn.accountName})</span>}
+              </div>
+              <button onClick={() => handleDisconnect(conn.id)} className={`p-1 rounded-lg ${dark ? 'hover:bg-white/10 text-white/40' : 'hover:bg-gray-100 text-gray-400'}`}>
+                <Trash2 size={14} />
+              </button>
+            </div>
+          ))}
+        </div>
+      )}
+
+      {error && <div className="mb-4 px-4 py-2.5 rounded-xl bg-red-500/10 text-red-400 text-sm font-satoshi">{error}</div>}
+
+      {/* Search */}
+      <div className={`relative mb-4 ${dark ? 'text-white/50' : 'text-[#1A1A1A]/40'}`}>
+        <Search size={16} className="absolute left-3 top-1/2 -translate-y-1/2" />
+        <input
+          type="text"
+          value={search}
+          onChange={(e) => setSearch(e.target.value)}
+          placeholder="Search 2000+ apps..."
+          className={`w-full rounded-xl pl-9 pr-4 py-2.5 text-sm font-satoshi outline-none border transition-colors ${
+            dark
+              ? 'bg-white/5 border-white/10 text-white placeholder:text-white/30 focus:border-[#4ADE80]/50'
+              : 'bg-gray-50 border-gray-200 text-[#1A1A1A] placeholder:text-gray-400 focus:border-[#2F7D4F]/50'
+          }`}
+        />
+      </div>
+
       {loading ? (
         <p className={`text-sm font-satoshi ${dark ? 'text-white/40' : 'text-[#1A1A1A]/40'}`}>Loading...</p>
       ) : (
-        <div className="grid grid-cols-2 gap-3 mb-6 text-left">
+        <div className="grid grid-cols-3 gap-3 mb-6 text-left max-h-60 overflow-y-auto">
           {tools.map((tool) => {
-            const isConnected = connectedSlugs.has(tool.slug);
             const isConnecting = connecting === tool.slug;
             return (
-              <div
+              <button
                 key={tool.slug}
-                className={`relative rounded-xl border p-4 transition-colors ${
-                  isConnected
-                    ? dark
-                      ? 'border-[#2F7D4F]/50 bg-[#2F7D4F]/10'
-                      : 'border-[#2F7D4F]/30 bg-[#2F7D4F]/5'
-                    : dark
-                      ? 'border-white/10 hover:border-white/20'
-                      : 'border-gray-200 hover:border-gray-300'
+                onClick={() => handleConnect(tool)}
+                disabled={isConnecting}
+                className={`flex flex-col items-center gap-2 p-3 rounded-xl border text-center transition-colors disabled:opacity-50 ${
+                  dark
+                    ? 'border-white/10 hover:border-white/20 hover:bg-white/5'
+                    : 'border-gray-200 hover:border-gray-300 hover:bg-gray-50'
                 }`}
               >
-                <div className="flex items-start justify-between mb-2">
-                  <span className="text-2xl">{tool.icon}</span>
-                  {isConnected && (
-                    <button
-                      onClick={() => handleDisconnect(tool)}
-                      className={`p-1 rounded-lg transition-colors ${
-                        dark ? 'hover:bg-white/10 text-white/40' : 'hover:bg-gray-100 text-gray-400'
-                      }`}
-                      title="Disconnect"
-                    >
-                      <X size={14} />
-                    </button>
-                  )}
-                </div>
-                <h3 className={`text-sm font-satoshi font-medium mb-1 ${dark ? 'text-white' : 'text-[#1A1A1A]'}`}>
-                  {tool.name}
-                </h3>
-                <p className={`text-xs font-satoshi mb-3 leading-relaxed ${dark ? 'text-white/40' : 'text-[#1A1A1A]/40'}`}>
-                  {tool.description}
-                </p>
-                {isConnected ? (
-                  <span className="inline-flex items-center gap-1 text-xs font-satoshi font-medium text-[#2F7D4F]">
-                    <Check size={12} /> Connected
-                  </span>
+                {tool.imgSrc ? (
+                  <img src={tool.imgSrc} alt={tool.name} className="w-7 h-7 rounded-lg object-contain" />
                 ) : (
-                  <button
-                    onClick={() => handleConnect(tool)}
-                    disabled={isConnecting}
-                    className={`text-xs font-satoshi font-medium px-3 py-1.5 rounded-lg transition-colors ${
-                      dark
-                        ? 'bg-white/10 text-white hover:bg-white/15'
-                        : 'bg-gray-100 text-[#1A1A1A] hover:bg-gray-200'
-                    } disabled:opacity-50`}
-                  >
-                    {isConnecting ? 'Connecting...' : 'Connect'}
-                  </button>
+                  <div className={`w-7 h-7 rounded-lg flex items-center justify-center text-xs ${dark ? 'bg-white/10 text-white/50' : 'bg-gray-100 text-gray-400'}`}>
+                    {tool.name?.charAt(0) || '?'}
+                  </div>
                 )}
-              </div>
+                <span className={`text-[11px] font-satoshi font-medium leading-tight ${dark ? 'text-white/80' : 'text-[#1A1A1A]/80'}`}>
+                  {tool.name}
+                </span>
+                {isConnecting && <span className="text-[10px] font-satoshi text-[#2F7D4F]">Connecting...</span>}
+              </button>
             );
           })}
         </div>
