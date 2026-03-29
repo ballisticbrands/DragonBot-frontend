@@ -3,7 +3,7 @@ import { HashRouter, Routes, Route, Navigate, useNavigate, useLocation } from 'r
 import SignIn from './pages/SignIn.jsx';
 import GettingStarted from './pages/GettingStarted.jsx';
 import Dashboard from './pages/Dashboard.jsx';
-import Chat from './pages/Chat.jsx';
+// import Chat from './pages/Chat.jsx';
 import Usage from './pages/Usage.jsx';
 import Tasks from './pages/Tasks.jsx';
 import Skills from './pages/Skills.jsx';
@@ -77,7 +77,7 @@ function AppLayout() {
               </PrivateRoute>
             }
           />
-          <Route
+          {/* <Route
             path="/chat"
             element={
               <PrivateRoute>
@@ -92,7 +92,7 @@ function AppLayout() {
                 <Chat />
               </PrivateRoute>
             }
-          />
+          /> */}
           <Route
             path="/tasks"
             element={
