@@ -415,10 +415,10 @@ function ConnectionRow({ conn, dark, isGlobal, onDisconnect }) {
           <div className={`flex items-center gap-1.5 text-xs font-satoshi ${c('text-white/30', 'text-[#1A1A1A]/30')}`}>
             <span>{conn.provider}</span>
             {isGlobal && <span>· shared</span>}
-            {conn.accountName && (
+            {conn.uniqueDisplayId && (
               <>
                 <span>·</span>
-                <span className={c('text-white/50', 'text-[#1A1A1A]/50')}>{conn.accountName}</span>
+                <span className={c('text-white/50', 'text-[#1A1A1A]/50')}>{conn.uniqueDisplayId}</span>
               </>
             )}
           </div>

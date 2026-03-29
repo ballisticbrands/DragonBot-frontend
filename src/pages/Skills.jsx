@@ -179,7 +179,7 @@ function SkillCard({ skill, dark, onClick }) {
             {skill.hasExtension && (
               <span className="flex items-center gap-0.5 text-[10px] font-satoshi px-1.5 py-0.5 rounded bg-[#2F7D4F]/10 text-[#2F7D4F]">
                 <Layers size={10} />
-                +ext
+                custom extension
               </span>
             )}
           </div>
