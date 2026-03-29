@@ -15,6 +15,7 @@ export default function Connections() {
   const [loading, setLoading] = useState(true);
   const [showAddPanel, setShowAddPanel] = useState(false);
   const [connecting, setConnecting] = useState(null);
+  const [customForm, setCustomForm] = useState(null); // { tool, values: {} }
   const [error, setError] = useState('');
   const [search, setSearch] = useState('');
   const [searchLoading, setSearchLoading] = useState(false);
@@ -68,6 +69,13 @@ export default function Connections() {
   }, [search, showAddPanel]);
 
   async function handleConnect(tool) {
+    // Custom connections show a credential form instead of Pipedream OAuth
+    if (tool.custom && tool.fields) {
+      setCustomForm({ tool, values: {} });
+      return;
+    }
+
+    // Pipedream OAuth flow
     setConnecting(tool.slug);
     setError('');
     try {
@@ -129,6 +137,38 @@ export default function Connections() {
       });
     } catch (err) {
       setError(err.message || 'Connection failed');
+      setConnecting(null);
+    }
+  }
+
+  async function handleCustomSubmit() {
+    if (!customForm) return;
+    setConnecting(customForm.tool.slug);
+    setError('');
+    try {
+      const saveRes = await fetch(`${BACKEND_URL}/api/connections/custom`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          Authorization: `Bearer ${getToken()}`,
+        },
+        body: JSON.stringify({
+          provider: customForm.tool.slug,
+          name: customForm.tool.name,
+          credentials: customForm.values,
+        }),
+      });
+      if (saveRes.ok) {
+        await loadConnections();
+        setCustomForm(null);
+        setShowAddPanel(false);
+      } else {
+        const err = await saveRes.json().catch(() => ({}));
+        setError(err.error || 'Failed to save connection');
+      }
+    } catch (err) {
+      setError(err.message || 'Failed');
+    } finally {
       setConnecting(null);
     }
   }
@@ -197,6 +237,64 @@ export default function Connections() {
             {error && (
               <div className="mb-4 px-4 py-2.5 rounded-xl bg-red-500/10 text-red-400 text-sm font-satoshi">
                 {error}
+              </div>
+            )}
+
+            {/* Custom credential form */}
+            {customForm && (
+              <div className={`mb-4 p-4 rounded-xl border ${c('border-white/10 bg-white/5', 'border-gray-200 bg-gray-50')}`}>
+                <div className="flex items-center gap-3 mb-4">
+                  {customForm.tool.imgSrc ? (
+                    <img src={customForm.tool.imgSrc} alt={customForm.tool.name} className="w-8 h-8 rounded-lg object-contain" />
+                  ) : (
+                    <div className={`w-8 h-8 rounded-lg flex items-center justify-center ${c('bg-white/10', 'bg-gray-200')}`}>
+                      <Plug size={14} className={c('text-white/40', 'text-gray-400')} />
+                    </div>
+                  )}
+                  <div className="text-left">
+                    <h3 className={`text-sm font-satoshi font-medium ${c('text-white', 'text-[#1A1A1A]')}`}>{customForm.tool.name}</h3>
+                    <p className={`text-xs font-satoshi ${c('text-white/40', 'text-[#1A1A1A]/40')}`}>{customForm.tool.description}</p>
+                  </div>
+                </div>
+                <div className="space-y-3">
+                  {customForm.tool.fields.map((field) => (
+                    <div key={field.key}>
+                      <label className={`block text-xs font-satoshi font-medium mb-1 ${c('text-white/60', 'text-[#1A1A1A]/60')}`}>
+                        {field.label}
+                      </label>
+                      <input
+                        type={field.type || 'text'}
+                        placeholder={field.placeholder || ''}
+                        value={customForm.values[field.key] || ''}
+                        onChange={(e) => setCustomForm((prev) => ({
+                          ...prev,
+                          values: { ...prev.values, [field.key]: e.target.value },
+                        }))}
+                        className={`w-full rounded-lg px-3 py-2 text-sm font-satoshi outline-none border transition-colors ${
+                          c(
+                            'bg-white/5 border-white/10 text-white placeholder:text-white/20 focus:border-[#4ADE80]/50',
+                            'bg-white border-gray-200 text-[#1A1A1A] placeholder:text-gray-400 focus:border-[#2F7D4F]/50'
+                          )
+                        }`}
+                      />
+                    </div>
+                  ))}
+                </div>
+                <div className="flex gap-2 mt-4">
+                  <button
+                    onClick={handleCustomSubmit}
+                    disabled={connecting === customForm.tool.slug}
+                    className="flex-1 py-2 rounded-xl bg-[#2F7D4F] hover:bg-[#256B42] text-white text-sm font-satoshi font-medium transition-colors disabled:opacity-50"
+                  >
+                    {connecting === customForm.tool.slug ? 'Saving...' : 'Connect'}
+                  </button>
+                  <button
+                    onClick={() => setCustomForm(null)}
+                    className={`px-4 py-2 rounded-xl text-sm font-satoshi font-medium transition-colors ${c('bg-white/5 text-white/50 hover:bg-white/10', 'bg-gray-100 text-gray-500 hover:bg-gray-200')}`}
+                  >
+                    Cancel
+                  </button>
+                </div>
               </div>
             )}
 
