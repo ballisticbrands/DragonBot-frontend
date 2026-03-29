@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { Puzzle, Search, Sparkles, Box } from 'lucide-react';
+import { Puzzle, Search, Sparkles, Box, X, FileText, Layers } from 'lucide-react';
 
 const BACKEND_URL = import.meta.env.VITE_BACKEND_URL ?? 'https://api.dragonsellerbot.com';
 
@@ -11,6 +11,8 @@ export default function Skills() {
   const [skills, setSkills] = useState([]);
   const [loading, setLoading] = useState(true);
   const [search, setSearch] = useState('');
+  const [selected, setSelected] = useState(null); // { name, coreContent, extensionContent }
+  const [contentLoading, setContentLoading] = useState(false);
   const [systemDark] = useState(() => window.matchMedia('(prefers-color-scheme: dark)').matches);
   const dark = systemDark;
 
@@ -20,10 +22,7 @@ export default function Skills() {
         const res = await fetch(`${BACKEND_URL}/api/skills`, {
           headers: { Authorization: `Bearer ${getToken()}` },
         });
-        if (res.ok) {
-          const data = await res.json();
-          setSkills(data.skills || []);
-        }
+        if (res.ok) setSkills((await res.json()).skills || []);
       } catch (err) {
         console.error('Failed to load skills:', err);
       } finally {
@@ -31,6 +30,24 @@ export default function Skills() {
       }
     })();
   }, []);
+
+  async function handleSelectSkill(skill) {
+    setContentLoading(true);
+    setSelected({ name: skill.dirName, displayName: formatName(skill.name), coreContent: null, extensionContent: null });
+    try {
+      const res = await fetch(`${BACKEND_URL}/api/skills/${encodeURIComponent(skill.dirName)}/content`, {
+        headers: { Authorization: `Bearer ${getToken()}` },
+      });
+      if (res.ok) {
+        const data = await res.json();
+        setSelected((prev) => prev && { ...prev, coreContent: data.coreContent, extensionContent: data.extensionContent });
+      }
+    } catch (err) {
+      console.error('Failed to load skill content:', err);
+    } finally {
+      setContentLoading(false);
+    }
+  }
 
   const c = (dv, lv) => dark ? dv : lv;
 
@@ -42,7 +59,7 @@ export default function Skills() {
     : skills;
 
   const coreSkills = filtered.filter(s => s.type === 'core');
-  const extensionSkills = filtered.filter(s => s.type === 'extension');
+  const extensionOnlySkills = filtered.filter(s => s.type === 'extension');
 
   return (
     <div className={`min-h-screen px-4 py-8 md:px-8 ${c('bg-[#0f0f0f]', 'bg-[#fafafa]')}`}>
@@ -61,7 +78,7 @@ export default function Skills() {
         </div>
 
         {/* Search */}
-        <div className={`relative mb-6`}>
+        <div className="relative mb-6">
           <Search size={16} className={`absolute left-3.5 top-1/2 -translate-y-1/2 ${c('text-white/25', 'text-[#1A1A1A]/25')}`} />
           <input
             type="text"
@@ -82,37 +99,18 @@ export default function Skills() {
         ) : skills.length === 0 ? (
           <div className={`rounded-2xl border p-8 text-center ${c('bg-[#1a1a1a] border-white/10', 'bg-white border-gray-200')}`}>
             <Puzzle size={40} className={`mx-auto mb-4 ${c('text-white/20', 'text-[#1A1A1A]/20')}`} />
-            <h2 className={`font-clash font-semibold text-lg mb-2 ${c('text-white', 'text-[#1A1A1A]')}`}>
-              No skills found
-            </h2>
-            <p className={`text-sm font-satoshi max-w-md mx-auto ${c('text-white/40', 'text-[#1A1A1A]/40')}`}>
-              Skills will appear here once your DragonBot is set up.
-            </p>
+            <h2 className={`font-clash font-semibold text-lg mb-2 ${c('text-white', 'text-[#1A1A1A]')}`}>No skills found</h2>
           </div>
         ) : (
           <>
-            {/* Core skills */}
             {coreSkills.length > 0 && (
-              <SkillSection
-                title="Core Skills"
-                subtitle="Built-in platform capabilities"
-                icon={<Sparkles size={16} />}
-                skills={coreSkills}
-                dark={dark}
-              />
+              <SkillSection title="Core Skills" subtitle="Built-in platform capabilities" icon={<Sparkles size={16} />}
+                skills={coreSkills} dark={dark} onSelect={handleSelectSkill} />
             )}
-
-            {/* Extension skills */}
-            {extensionSkills.length > 0 && (
-              <SkillSection
-                title="Extensions"
-                subtitle="Custom skills for your workspace"
-                icon={<Box size={16} />}
-                skills={extensionSkills}
-                dark={dark}
-              />
+            {extensionOnlySkills.length > 0 && (
+              <SkillSection title="Custom Skills" subtitle="Created by your DragonBot" icon={<Box size={16} />}
+                skills={extensionOnlySkills} dark={dark} onSelect={handleSelectSkill} />
             )}
-
             {filtered.length === 0 && search && (
               <p className={`text-sm font-satoshi text-center py-8 ${c('text-white/30', 'text-[#1A1A1A]/30')}`}>
                 No skills matching "{search}"
@@ -121,11 +119,21 @@ export default function Skills() {
           </>
         )}
       </div>
+
+      {/* Detail panel (overlay) */}
+      {selected && (
+        <SkillDetail
+          selected={selected}
+          loading={contentLoading}
+          dark={dark}
+          onClose={() => setSelected(null)}
+        />
+      )}
     </div>
   );
 }
 
-function SkillSection({ title, subtitle, icon, skills, dark }) {
+function SkillSection({ title, subtitle, icon, skills, dark, onSelect }) {
   const c = (dv, lv) => dark ? dv : lv;
   return (
     <div className="mb-8">
@@ -136,45 +144,131 @@ function SkillSection({ title, subtitle, icon, skills, dark }) {
       </div>
       <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
         {skills.map((skill) => (
-          <SkillCard key={skill.name} skill={skill} dark={dark} />
+          <SkillCard key={skill.dirName || skill.name} skill={skill} dark={dark} onClick={() => onSelect(skill)} />
         ))}
       </div>
     </div>
   );
 }
 
-function SkillCard({ skill, dark }) {
+function SkillCard({ skill, dark, onClick }) {
   const c = (dv, lv) => dark ? dv : lv;
+  const displayName = formatName(skill.name);
 
-  // Format the skill name: replace underscores/hyphens with spaces, title case
-  const displayName = skill.name
-    .replace(/[-_]/g, ' ')
-    .replace(/\b\w/g, (c) => c.toUpperCase());
-
-  // Truncate description at the "Use when" part for cleaner display
   let desc = skill.description || '';
   const useWhenIdx = desc.toLowerCase().indexOf('use when');
   if (useWhenIdx > 0) desc = desc.slice(0, useWhenIdx).trim().replace(/\.\s*$/, '');
-  // Remove trailing period for consistency
   desc = desc.replace(/\.$/, '');
 
   return (
-    <div className={`rounded-2xl border p-4 transition-colors ${c('bg-[#1a1a1a] border-white/10 hover:border-white/15', 'bg-white border-gray-200 hover:border-gray-300')}`}>
+    <button
+      onClick={onClick}
+      className={`rounded-2xl border p-4 transition-colors text-left w-full ${c('bg-[#1a1a1a] border-white/10 hover:border-white/20', 'bg-white border-gray-200 hover:border-gray-300')}`}
+    >
       <div className="flex items-start gap-3">
-        <div className={`w-9 h-9 rounded-xl flex items-center justify-center text-base flex-shrink-0 ${
-          c('bg-white/5', 'bg-gray-50')
-        }`}>
+        <div className={`w-9 h-9 rounded-xl flex items-center justify-center text-base flex-shrink-0 ${c('bg-white/5', 'bg-gray-50')}`}>
           {skill.emoji || '🔧'}
         </div>
-        <div className="min-w-0">
-          <h3 className={`font-satoshi font-medium text-sm ${c('text-white', 'text-[#1A1A1A]')}`}>
-            {displayName}
-          </h3>
+        <div className="min-w-0 flex-1">
+          <div className="flex items-center gap-2">
+            <h3 className={`font-satoshi font-medium text-sm ${c('text-white', 'text-[#1A1A1A]')}`}>
+              {displayName}
+            </h3>
+            {skill.hasExtension && (
+              <span className="flex items-center gap-0.5 text-[10px] font-satoshi px-1.5 py-0.5 rounded bg-[#2F7D4F]/10 text-[#2F7D4F]">
+                <Layers size={10} />
+                +ext
+              </span>
+            )}
+          </div>
           <p className={`text-xs font-satoshi mt-1 leading-relaxed line-clamp-2 ${c('text-white/40', 'text-[#1A1A1A]/40')}`}>
             {desc}
           </p>
         </div>
       </div>
+    </button>
+  );
+}
+
+function SkillDetail({ selected, loading, dark, onClose }) {
+  const [tab, setTab] = useState('core');
+  const c = (dv, lv) => dark ? dv : lv;
+
+  const hasCore = !!selected.coreContent;
+  const hasExt = !!selected.extensionContent;
+
+  // Auto-select tab based on what's available
+  useEffect(() => {
+    if (!hasCore && hasExt) setTab('extension');
+    else setTab('core');
+  }, [hasCore, hasExt]);
+
+  const content = tab === 'core' ? selected.coreContent : selected.extensionContent;
+
+  // Strip YAML frontmatter for display
+  const displayContent = content?.replace(/^---\n[\s\S]*?\n---\n*/, '') || '';
+
+  return (
+    <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
+      <div className="absolute inset-0 bg-black/60" onClick={onClose} />
+      <div className={`relative w-full max-w-2xl max-h-[80vh] rounded-2xl border shadow-2xl flex flex-col ${c('bg-[#1a1a1a] border-white/10', 'bg-white border-gray-200')}`}>
+        {/* Header */}
+        <div className={`flex items-center justify-between px-6 py-4 border-b flex-shrink-0 ${c('border-white/10', 'border-gray-200')}`}>
+          <h2 className={`font-clash font-semibold text-lg ${c('text-white', 'text-[#1A1A1A]')}`}>
+            {selected.displayName}
+          </h2>
+          <button onClick={onClose} className={`p-1.5 rounded-lg transition-colors ${c('hover:bg-white/10', 'hover:bg-gray-100')}`}>
+            <X size={18} className={c('text-white/50', 'text-gray-400')} />
+          </button>
+        </div>
+
+        {/* Tabs (only show if both core and extension exist) */}
+        {hasCore && hasExt && (
+          <div className={`flex gap-1 px-6 pt-3 flex-shrink-0`}>
+            <button
+              onClick={() => setTab('core')}
+              className={`px-3 py-1.5 rounded-lg text-xs font-satoshi font-medium transition-colors ${
+                tab === 'core'
+                  ? 'bg-[#2F7D4F]/10 text-[#2F7D4F]'
+                  : c('text-white/40 hover:text-white/60', 'text-[#1A1A1A]/40 hover:text-[#1A1A1A]/60')
+              }`}
+            >
+              <FileText size={12} className="inline mr-1" />
+              Core Skill
+            </button>
+            <button
+              onClick={() => setTab('extension')}
+              className={`px-3 py-1.5 rounded-lg text-xs font-satoshi font-medium transition-colors ${
+                tab === 'extension'
+                  ? 'bg-[#2F7D4F]/10 text-[#2F7D4F]'
+                  : c('text-white/40 hover:text-white/60', 'text-[#1A1A1A]/40 hover:text-[#1A1A1A]/60')
+              }`}
+            >
+              <Layers size={12} className="inline mr-1" />
+              Custom Extension
+            </button>
+          </div>
+        )}
+
+        {/* Content */}
+        <div className="flex-1 overflow-y-auto px-6 py-4">
+          {loading ? (
+            <p className={`text-sm font-satoshi ${c('text-white/40', 'text-[#1A1A1A]/40')}`}>Loading...</p>
+          ) : !content ? (
+            <p className={`text-sm font-satoshi ${c('text-white/40', 'text-[#1A1A1A]/40')}`}>No content available.</p>
+          ) : (
+            <pre className={`text-xs font-mono whitespace-pre-wrap leading-relaxed ${c('text-white/70', 'text-[#1A1A1A]/70')}`}>
+              {displayContent}
+            </pre>
+          )}
+        </div>
+      </div>
     </div>
   );
+}
+
+function formatName(name) {
+  return name
+    .replace(/[-_]/g, ' ')
+    .replace(/\b\w/g, (c) => c.toUpperCase());
 }
