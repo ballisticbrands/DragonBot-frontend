@@ -8,7 +8,7 @@ function getToken() {
   return localStorage.getItem('dragonbot_token') ?? '';
 }
 
-export default function Connections() {
+export default function Connections({ dark }) {
   const [connections, setConnections] = useState([]);
   const [globalConnections, setGlobalConnections] = useState([]);
   const [availableTools, setAvailableTools] = useState([]);
@@ -19,8 +19,6 @@ export default function Connections() {
   const [error, setError] = useState('');
   const [search, setSearch] = useState('');
   const [searchLoading, setSearchLoading] = useState(false);
-  const [systemDark] = useState(() => window.matchMedia('(prefers-color-scheme: dark)').matches);
-  const dark = systemDark;
 
   async function loadConnections() {
     try {

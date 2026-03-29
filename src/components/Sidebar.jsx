@@ -1,5 +1,5 @@
 import { useLocation, useNavigate } from 'react-router-dom';
-import { BarChart3, Clock, Puzzle, Plug, LogOut, Menu, X } from 'lucide-react';
+import { BarChart3, Clock, Puzzle, Plug, LogOut, Menu, X, Sun, Moon, Monitor } from 'lucide-react';
 import { useState } from 'react';
 
 const NAV_ITEMS = [
@@ -7,6 +7,12 @@ const NAV_ITEMS = [
   { path: '/tasks', label: 'Scheduled Tasks', icon: Clock },
   { path: '/connections', label: 'Connections', icon: Plug },
   { path: '/skills', label: 'Skills', icon: Puzzle },
+];
+
+const THEME_OPTIONS = [
+  { value: 'system', label: 'System', icon: Monitor },
+  { value: 'light', label: 'Light', icon: Sun },
+  { value: 'dark', label: 'Dark', icon: Moon },
 ];
 
 function getSession() {
@@ -17,7 +23,7 @@ function getSession() {
   }
 }
 
-export default function Sidebar({ dark }) {
+export default function Sidebar({ dark, theme, onSetTheme }) {
   const location = useLocation();
   const navigate = useNavigate();
   const session = getSession();
@@ -35,6 +41,14 @@ export default function Sidebar({ dark }) {
     localStorage.removeItem('dragonbot_session');
     navigate('/signin', { replace: true });
   }
+
+  function cycleTheme() {
+    const order = ['system', 'light', 'dark'];
+    const next = order[(order.indexOf(theme) + 1) % order.length];
+    onSetTheme(next);
+  }
+
+  const ThemeIcon = THEME_OPTIONS.find(o => o.value === theme)?.icon || Monitor;
 
   const navContent = (
     <div className="flex flex-col h-full">
@@ -69,19 +83,30 @@ export default function Sidebar({ dark }) {
 
       {/* User footer */}
       <div className={`px-3 pb-5 pt-4 border-t ${c('border-white/5', 'border-gray-200')}`}>
-        <div className="flex items-center gap-3 px-3 mb-3">
-          {avatarUrl ? (
-            <img src={avatarUrl} alt={displayName} className="w-8 h-8 rounded-full object-cover" />
-          ) : (
-            <div className={`w-8 h-8 rounded-full flex items-center justify-center text-xs font-satoshi font-medium ${
-              c('bg-white/10 text-white', 'bg-gray-200 text-[#1A1A1A]')
-            }`}>
-              {displayName.charAt(0).toUpperCase()}
-            </div>
-          )}
-          <span className={`text-sm font-satoshi font-medium truncate ${c('text-white/70', 'text-[#1A1A1A]/70')}`}>
-            {displayName}
-          </span>
+        <div className="flex items-center justify-between px-3 mb-3">
+          <div className="flex items-center gap-3 min-w-0">
+            {avatarUrl ? (
+              <img src={avatarUrl} alt={displayName} className="w-8 h-8 rounded-full object-cover flex-shrink-0" />
+            ) : (
+              <div className={`w-8 h-8 rounded-full flex items-center justify-center text-xs font-satoshi font-medium flex-shrink-0 ${
+                c('bg-white/10 text-white', 'bg-gray-200 text-[#1A1A1A]')
+              }`}>
+                {displayName.charAt(0).toUpperCase()}
+              </div>
+            )}
+            <span className={`text-sm font-satoshi font-medium truncate ${c('text-white/70', 'text-[#1A1A1A]/70')}`}>
+              {displayName}
+            </span>
+          </div>
+          <button
+            onClick={cycleTheme}
+            title={`Theme: ${theme}`}
+            className={`p-1.5 rounded-lg transition-colors flex-shrink-0 ${
+              c('text-white/30 hover:text-white/50 hover:bg-white/5', 'text-[#1A1A1A]/30 hover:text-[#1A1A1A]/50 hover:bg-gray-100')
+            }`}
+          >
+            <ThemeIcon size={15} />
+          </button>
         </div>
         <button
           onClick={handleLogout}

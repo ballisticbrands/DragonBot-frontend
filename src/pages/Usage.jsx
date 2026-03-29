@@ -7,12 +7,10 @@ function getToken() {
   return localStorage.getItem('dragonbot_token') ?? '';
 }
 
-export default function Usage() {
+export default function Usage({ dark }) {
   const [data, setData] = useState(null);
   const [loading, setLoading] = useState(true);
   const [days, setDays] = useState(30);
-  const [systemDark] = useState(() => window.matchMedia('(prefers-color-scheme: dark)').matches);
-  const dark = systemDark;
 
   useEffect(() => {
     (async () => {

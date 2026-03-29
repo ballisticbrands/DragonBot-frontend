@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { Puzzle, Search, Sparkles, Box, X, FileText, Layers } from 'lucide-react';
+import { Puzzle, Search, Sparkles, Box, X, FileText, Layers, ChevronRight } from 'lucide-react';
 import Markdown from 'react-markdown';
 import remarkGfm from 'remark-gfm';
 
@@ -9,14 +9,12 @@ function getToken() {
   return localStorage.getItem('dragonbot_token') ?? '';
 }
 
-export default function Skills() {
+export default function Skills({ dark }) {
   const [skills, setSkills] = useState([]);
   const [loading, setLoading] = useState(true);
   const [search, setSearch] = useState('');
   const [selected, setSelected] = useState(null); // { name, coreContent, extensionContent }
   const [contentLoading, setContentLoading] = useState(false);
-  const [systemDark] = useState(() => window.matchMedia('(prefers-color-scheme: dark)').matches);
-  const dark = systemDark;
 
   useEffect(() => {
     (async () => {
@@ -60,8 +58,9 @@ export default function Skills() {
       )
     : skills;
 
-  const coreSkills = filtered.filter(s => s.type === 'core');
-  const extensionOnlySkills = filtered.filter(s => s.type === 'extension');
+  const extendedCoreSkills = filtered.filter(s => s.type === 'core' && s.hasExtension);
+  const plainCoreSkills = filtered.filter(s => s.type === 'core' && !s.hasExtension);
+  const customSkills = filtered.filter(s => s.type === 'extension');
 
   return (
     <div className={`min-h-screen px-4 py-8 md:px-8 ${c('bg-[#0f0f0f]', 'bg-[#fafafa]')}`}>
@@ -105,13 +104,17 @@ export default function Skills() {
           </div>
         ) : (
           <>
-            {coreSkills.length > 0 && (
-              <SkillSection title="Core Skills" subtitle="Built-in platform capabilities" icon={<Sparkles size={16} />}
-                skills={coreSkills} dark={dark} onSelect={handleSelectSkill} />
+            {extendedCoreSkills.length > 0 && (
+              <SkillSection title="Extended Core Skills" icon={<Layers size={16} />}
+                skills={extendedCoreSkills} dark={dark} onSelect={handleSelectSkill} />
             )}
-            {extensionOnlySkills.length > 0 && (
-              <SkillSection title="Custom Skills" subtitle="Created by your DragonBot" icon={<Box size={16} />}
-                skills={extensionOnlySkills} dark={dark} onSelect={handleSelectSkill} />
+            {customSkills.length > 0 && (
+              <SkillSection title="Custom Skills" icon={<Box size={16} />}
+                skills={customSkills} dark={dark} onSelect={handleSelectSkill} />
+            )}
+            {plainCoreSkills.length > 0 && (
+              <SkillSection title="Core Skills" icon={<Sparkles size={16} />}
+                skills={plainCoreSkills} dark={dark} onSelect={handleSelectSkill} defaultCollapsed />
             )}
             {filtered.length === 0 && search && (
               <p className={`text-sm font-satoshi text-center py-8 ${c('text-white/30', 'text-[#1A1A1A]/30')}`}>
@@ -135,20 +138,27 @@ export default function Skills() {
   );
 }
 
-function SkillSection({ title, subtitle, icon, skills, dark, onSelect }) {
+function SkillSection({ title, icon, skills, dark, onSelect, defaultCollapsed = false }) {
+  const [collapsed, setCollapsed] = useState(defaultCollapsed);
   const c = (dv, lv) => dark ? dv : lv;
   return (
     <div className="mb-8">
-      <div className="flex items-center gap-2 mb-4">
+      <button
+        onClick={() => setCollapsed(!collapsed)}
+        className="flex items-center gap-2 mb-4 group"
+      >
+        <ChevronRight size={14} className={`transition-transform ${collapsed ? '' : 'rotate-90'} ${c('text-white/30', 'text-[#1A1A1A]/30')}`} />
         <span className={c('text-white/40', 'text-[#1A1A1A]/40')}>{icon}</span>
-        <h2 className={`text-sm font-satoshi font-medium ${c('text-white/60', 'text-[#1A1A1A]/60')}`}>{title}</h2>
+        <h2 className={`text-sm font-satoshi font-medium ${c('text-white/60 group-hover:text-white/80', 'text-[#1A1A1A]/60 group-hover:text-[#1A1A1A]/80')} transition-colors`}>{title}</h2>
         <span className={`text-xs font-satoshi ${c('text-white/20', 'text-[#1A1A1A]/20')}`}>({skills.length})</span>
-      </div>
-      <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-        {skills.map((skill) => (
-          <SkillCard key={skill.dirName || skill.name} skill={skill} dark={dark} onClick={() => onSelect(skill)} />
-        ))}
-      </div>
+      </button>
+      {!collapsed && (
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+          {skills.map((skill) => (
+            <SkillCard key={skill.dirName || skill.name} skill={skill} dark={dark} onClick={() => onSelect(skill)} />
+          ))}
+        </div>
+      )}
     </div>
   );
 }

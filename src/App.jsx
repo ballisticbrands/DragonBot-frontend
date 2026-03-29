@@ -57,15 +57,28 @@ const NO_SIDEBAR_ROUTES = ['/signin', '/getting-started'];
 
 function AppLayout() {
   const location = useLocation();
-  const [systemDark] = useState(() => window.matchMedia('(prefers-color-scheme: dark)').matches);
-  const dark = systemDark;
+  const [theme, setTheme] = useState(() => localStorage.getItem('dragonbot_theme') || 'system');
+  const [systemDark, setSystemDark] = useState(() => window.matchMedia('(prefers-color-scheme: dark)').matches);
+
+  useEffect(() => {
+    const mq = window.matchMedia('(prefers-color-scheme: dark)');
+    const handler = (e) => setSystemDark(e.matches);
+    mq.addEventListener('change', handler);
+    return () => mq.removeEventListener('change', handler);
+  }, []);
+
+  useEffect(() => {
+    localStorage.setItem('dragonbot_theme', theme);
+  }, [theme]);
+
+  const dark = theme === 'dark' || (theme === 'system' && systemDark);
 
   const showSidebar = !NO_SIDEBAR_ROUTES.some(r => location.pathname.startsWith(r));
   const isAuthenticated = !!localStorage.getItem('dragonbot_token');
 
   return (
     <div className={`flex min-h-screen ${dark ? 'bg-[#0f0f0f]' : 'bg-[#fafafa]'}`}>
-      {showSidebar && isAuthenticated && <Sidebar dark={dark} />}
+      {showSidebar && isAuthenticated && <Sidebar dark={dark} theme={theme} onSetTheme={setTheme} />}
       <main className="flex-1 min-w-0">
         <Routes>
           <Route path="/signin" element={<SignIn />} />
@@ -97,7 +110,7 @@ function AppLayout() {
             path="/tasks"
             element={
               <PrivateRoute>
-                <Tasks />
+                <Tasks dark={dark} />
               </PrivateRoute>
             }
           />
@@ -105,7 +118,7 @@ function AppLayout() {
             path="/usage"
             element={
               <PrivateRoute>
-                <Usage />
+                <Usage dark={dark} />
               </PrivateRoute>
             }
           />
@@ -113,7 +126,7 @@ function AppLayout() {
             path="/connections"
             element={
               <PrivateRoute>
-                <Connections />
+                <Connections dark={dark} />
               </PrivateRoute>
             }
           />
@@ -121,7 +134,7 @@ function AppLayout() {
             path="/skills"
             element={
               <PrivateRoute>
-                <Skills />
+                <Skills dark={dark} />
               </PrivateRoute>
             }
           />
@@ -129,7 +142,7 @@ function AppLayout() {
             path="/"
             element={
               <PrivateRoute>
-                <Dashboard />
+                <Dashboard dark={dark} />
               </PrivateRoute>
             }
           />

@@ -43,11 +43,9 @@ function timeAgo(dateStr) {
   return `${days}d ago`;
 }
 
-export default function Tasks() {
+export default function Tasks({ dark }) {
   const [data, setData] = useState(null);
   const [loading, setLoading] = useState(true);
-  const [systemDark] = useState(() => window.matchMedia('(prefers-color-scheme: dark)').matches);
-  const dark = systemDark;
 
   useEffect(() => {
     (async () => {

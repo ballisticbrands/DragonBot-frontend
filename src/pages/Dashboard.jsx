@@ -1,4 +1,3 @@
-import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 
 function getSession() {
@@ -9,12 +8,9 @@ function getSession() {
   }
 }
 
-export default function Dashboard() {
+export default function Dashboard({ dark }) {
   const navigate = useNavigate();
   const session = getSession();
-
-  const [systemDark] = useState(() => window.matchMedia('(prefers-color-scheme: dark)').matches);
-  const dark = systemDark;
 
   function handleLogout() {
     localStorage.removeItem('dragonbot_token');
