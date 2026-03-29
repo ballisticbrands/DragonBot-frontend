@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import { Puzzle, Search, Sparkles, Box, X, FileText, Layers } from 'lucide-react';
 import Markdown from 'react-markdown';
+import remarkGfm from 'remark-gfm';
 
 const BACKEND_URL = import.meta.env.VITE_BACKEND_URL ?? 'https://api.dragonsellerbot.com';
 
@@ -259,7 +260,7 @@ function SkillDetail({ selected, loading, dark, onClose }) {
             <p className={`text-sm font-satoshi ${c('text-white/40', 'text-[#1A1A1A]/40')}`}>No content available.</p>
           ) : (
             <div className={`prose prose-sm max-w-none font-satoshi ${dark ? 'prose-invert' : ''}`}>
-              <Markdown>{displayContent}</Markdown>
+              <Markdown remarkPlugins={[remarkGfm]}>{displayContent}</Markdown>
             </div>
           )}
         </div>
