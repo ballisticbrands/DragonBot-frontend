@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react';
 import { Puzzle, Search, Sparkles, Box, X, FileText, Layers } from 'lucide-react';
+import Markdown from 'react-markdown';
 
 const BACKEND_URL = import.meta.env.VITE_BACKEND_URL ?? 'https://api.dragonsellerbot.com';
 
@@ -257,9 +258,9 @@ function SkillDetail({ selected, loading, dark, onClose }) {
           ) : !content ? (
             <p className={`text-sm font-satoshi ${c('text-white/40', 'text-[#1A1A1A]/40')}`}>No content available.</p>
           ) : (
-            <pre className={`text-xs font-mono whitespace-pre-wrap leading-relaxed ${c('text-white/70', 'text-[#1A1A1A]/70')}`}>
-              {displayContent}
-            </pre>
+            <div className={`prose prose-sm max-w-none font-satoshi ${dark ? 'prose-invert' : ''}`}>
+              <Markdown>{displayContent}</Markdown>
+            </div>
           )}
         </div>
       </div>
