@@ -144,6 +144,38 @@ export default function Connections({ dark }) {
     setConnecting(customForm.tool.slug);
     setError('');
     try {
+      // Custom OAuth connections: POST credentials to start endpoint, then open OAuth URL
+      if (customForm.tool.customOAuth) {
+        const slug = customForm.tool.slug.replace(/_/g, '-');
+        const startRes = await fetch(`${BACKEND_URL}/api/connect/${slug}/start`, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            Authorization: `Bearer ${getToken()}`,
+          },
+          body: JSON.stringify(customForm.values),
+        });
+        if (!startRes.ok) {
+          const err = await startRes.json().catch(() => ({}));
+          setError(err.error || 'Failed to start OAuth flow');
+          setConnecting(null);
+          return;
+        }
+        const { url } = await startRes.json();
+        window.open(url, '_blank', 'width=600,height=700');
+        // Poll for connection to appear
+        const pollInterval = setInterval(async () => {
+          await loadConnections();
+          setConnecting(null);
+          setCustomForm(null);
+          setShowAddPanel(false);
+          clearInterval(pollInterval);
+        }, 5000);
+        setTimeout(() => { clearInterval(pollInterval); setConnecting(null); }, 120000);
+        return;
+      }
+
+      // Standard custom connections: save credentials directly
       const saveRes = await fetch(`${BACKEND_URL}/api/connections/custom`, {
         method: 'POST',
         headers: {
@@ -254,6 +286,11 @@ export default function Connections({ dark }) {
                     <p className={`text-xs font-satoshi ${c('text-white/40', 'text-[#1A1A1A]/40')}`}>{customForm.tool.description}</p>
                   </div>
                 </div>
+                {customForm.tool.helpText && (
+                  <div className={`mb-4 px-3 py-2.5 rounded-lg text-xs font-satoshi leading-relaxed ${c('bg-white/5 text-white/50', 'bg-gray-100 text-[#1A1A1A]/50')}`}>
+                    {customForm.tool.helpText.replace('{{callbackUrl}}', `${BACKEND_URL}/api/connect/${customForm.tool.slug.replace(/_/g, '-')}/callback`)}
+                  </div>
+                )}
                 <div className="space-y-3">
                   {customForm.tool.fields.map((field) => (
                     <div key={field.key}>
