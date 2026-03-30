@@ -108,12 +108,15 @@ export default function Tasks({ dark }) {
               <div className="space-y-1 max-h-60 overflow-y-auto">
                 {data.runs.map((run, i) => (
                   <div key={i} className={`flex items-center justify-between py-1.5 px-3 rounded-lg text-xs font-satoshi ${c('hover:bg-white/5', 'hover:bg-gray-50')}`}>
-                    <div className="flex items-center gap-2">
-                      <span className={`w-1.5 h-1.5 rounded-full flex-shrink-0 ${run.success !== false ? 'bg-[#2F7D4F]' : 'bg-red-400'}`} />
-                      <span className={c('text-white/70', 'text-[#1A1A1A]/70')}>{run.name || run.id || 'Unknown'}</span>
+                    <div className="flex items-center gap-2 min-w-0">
+                      <span className={`w-1.5 h-1.5 rounded-full flex-shrink-0 ${run.status === 'ok' ? 'bg-[#2F7D4F]' : 'bg-red-400'}`} />
+                      <span className={`truncate ${c('text-white/70', 'text-[#1A1A1A]/70')}`}>{run.jobId || 'Unknown'}</span>
+                      {run.durationMs && (
+                        <span className={c('text-white/25', 'text-[#1A1A1A]/25')}>{formatDuration(run.durationMs)}</span>
+                      )}
                     </div>
-                    <span className={`tabular-nums ${c('text-white/30', 'text-[#1A1A1A]/30')}`}>
-                      {timeAgo(run.startedAt || run.timestamp)}
+                    <span className={`tabular-nums flex-shrink-0 ${c('text-white/30', 'text-[#1A1A1A]/30')}`}>
+                      {run.ts ? timeAgo(new Date(run.ts).toISOString()) : '—'}
                     </span>
                   </div>
                 ))}
@@ -126,10 +129,20 @@ export default function Tasks({ dark }) {
   );
 }
 
+function formatDuration(ms) {
+  if (!ms) return '—';
+  const s = Math.round(ms / 1000);
+  if (s < 60) return `${s}s`;
+  const m = Math.floor(s / 60);
+  const rem = s % 60;
+  return rem > 0 ? `${m}m ${rem}s` : `${m}m`;
+}
+
 function JobCard({ job, dark }) {
   const c = (dv, lv) => dark ? dv : lv;
   const enabled = job.enabled !== false;
   const schedule = job.schedule?.expr || job.schedule || job.cron || '';
+  const lastRun = job.lastRun;
 
   return (
     <div className={`rounded-2xl border p-5 transition-colors ${c('bg-[#1a1a1a] border-white/10', 'bg-white border-gray-200')}`}>
@@ -173,8 +186,33 @@ function JobCard({ job, dark }) {
         )}
       </div>
 
-      {/* Description */}
-      {job.payload?.message && (
+      {/* Last run */}
+      {lastRun && (
+        <div className={`mt-3 rounded-xl p-3 ${c('bg-white/5', 'bg-gray-50')}`}>
+          <div className="flex items-center justify-between mb-1.5">
+            <div className="flex items-center gap-2 text-xs font-satoshi">
+              <span className={`w-1.5 h-1.5 rounded-full flex-shrink-0 ${lastRun.status === 'ok' ? 'bg-[#2F7D4F]' : 'bg-red-400'}`} />
+              <span className={c('text-white/50', 'text-[#1A1A1A]/50')}>
+                Last run: {timeAgo(new Date(lastRun.ts).toISOString())}
+              </span>
+            </div>
+            <div className={`flex items-center gap-3 text-xs font-satoshi tabular-nums ${c('text-white/30', 'text-[#1A1A1A]/30')}`}>
+              <span>{formatDuration(lastRun.durationMs)}</span>
+              {lastRun.nextRunAtMs && (
+                <span>next: {timeAgo(new Date(lastRun.nextRunAtMs).toISOString()).replace(' ago', '') === 'just now' ? 'now' : new Date(lastRun.nextRunAtMs).toLocaleString(undefined, { month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit' })}</span>
+              )}
+            </div>
+          </div>
+          {lastRun.summary && (
+            <p className={`text-xs font-satoshi leading-relaxed line-clamp-2 ${c('text-white/35', 'text-[#1A1A1A]/35')}`}>
+              {lastRun.summary.slice(0, 300)}
+            </p>
+          )}
+        </div>
+      )}
+
+      {/* Description (only if no last run to show) */}
+      {!lastRun && job.payload?.message && (
         <p className={`mt-3 text-xs font-satoshi leading-relaxed line-clamp-2 ${c('text-white/35', 'text-[#1A1A1A]/35')}`}>
           {job.payload.message.slice(0, 200)}{job.payload.message.length > 200 ? '...' : ''}
         </p>
