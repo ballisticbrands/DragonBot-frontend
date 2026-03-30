@@ -96,6 +96,13 @@ function ConnectTools({ dark, onComplete }) {
   }, [search]);
 
   async function handleConnect(tool) {
+    // Custom connections with form fields
+    if (tool.custom && tool.fields) {
+      setCustomForm({ tool, values: {} });
+      return;
+    }
+
+    // Pipedream OAuth flow
     setConnecting(tool.slug);
     setError('');
     try {
@@ -139,6 +146,57 @@ function ConnectTools({ dark, onComplete }) {
     }
   }
 
+  const [customForm, setCustomForm] = useState(null);
+
+  async function handleCustomSubmit() {
+    if (!customForm) return;
+    setConnecting(customForm.tool.slug);
+    setError('');
+    try {
+      // Custom OAuth: POST credentials, then open OAuth URL
+      if (customForm.tool.customOAuth) {
+        const slug = customForm.tool.slug.replace(/_/g, '-');
+        const startRes = await fetch(`${BACKEND_URL}/api/connect/${slug}/start`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${getToken()}` },
+          body: JSON.stringify(customForm.values),
+        });
+        if (!startRes.ok) {
+          setError((await startRes.json().catch(() => ({}))).error || 'Failed to start OAuth');
+          setConnecting(null);
+          return;
+        }
+        const { url } = await startRes.json();
+        window.open(url, '_blank', 'width=600,height=700');
+        const pollInterval = setInterval(async () => {
+          await loadConnections();
+          setConnecting(null);
+          setCustomForm(null);
+          clearInterval(pollInterval);
+        }, 5000);
+        setTimeout(() => { clearInterval(pollInterval); setConnecting(null); }, 120000);
+        return;
+      }
+
+      // Standard custom: save credentials directly
+      const saveRes = await fetch(`${BACKEND_URL}/api/connections/custom`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${getToken()}` },
+        body: JSON.stringify({ provider: customForm.tool.slug, name: customForm.tool.name, credentials: customForm.values }),
+      });
+      if (saveRes.ok) {
+        await loadConnections();
+        setCustomForm(null);
+      } else {
+        setError((await saveRes.json().catch(() => ({}))).error || 'Failed to save');
+      }
+    } catch (err) {
+      setError(err.message || 'Failed');
+    } finally {
+      setConnecting(null);
+    }
+  }
+
   async function handleDisconnect(connId) {
     try {
       await fetch(`${BACKEND_URL}/api/connections/${connId}`, {
@@ -175,7 +233,7 @@ function ConnectTools({ dark, onComplete }) {
                   <Plug size={14} className="text-[#2F7D4F] flex-shrink-0" />
                 )}
                 <span className={`text-sm font-satoshi font-medium truncate ${dark ? 'text-white' : 'text-[#1A1A1A]'}`}>{conn.name}</span>
-                {conn.accountName && <span className={`text-xs font-satoshi ${dark ? 'text-white/40' : 'text-[#1A1A1A]/40'}`}>({conn.accountName})</span>}
+                {conn.uniqueDisplayId && <span className={`text-xs font-satoshi ${dark ? 'text-white/40' : 'text-[#1A1A1A]/40'}`}>({conn.uniqueDisplayId})</span>}
               </div>
               <button onClick={() => handleDisconnect(conn.id)} className={`p-1 rounded-lg ${dark ? 'hover:bg-white/10 text-white/40' : 'hover:bg-gray-100 text-gray-400'}`}>
                 <Trash2 size={14} />
@@ -186,6 +244,63 @@ function ConnectTools({ dark, onComplete }) {
       )}
 
       {error && <div className="mb-4 px-4 py-2.5 rounded-xl bg-red-500/10 text-red-400 text-sm font-satoshi">{error}</div>}
+
+      {/* Custom credential form */}
+      {customForm && (
+        <div className={`mb-4 p-4 rounded-xl border text-left ${dark ? 'border-white/10 bg-white/5' : 'border-gray-200 bg-gray-50'}`}>
+          <div className="flex items-center gap-3 mb-3">
+            {customForm.tool.imgSrc ? (
+              <img src={customForm.tool.imgSrc} alt={customForm.tool.name} className="w-7 h-7 rounded-lg object-contain" />
+            ) : (
+              <div className={`w-7 h-7 rounded-lg flex items-center justify-center ${dark ? 'bg-white/10' : 'bg-gray-200'}`}>
+                <Plug size={14} className={dark ? 'text-white/40' : 'text-gray-400'} />
+              </div>
+            )}
+            <div>
+              <h3 className={`text-sm font-satoshi font-medium ${dark ? 'text-white' : 'text-[#1A1A1A]'}`}>{customForm.tool.name}</h3>
+              <p className={`text-xs font-satoshi ${dark ? 'text-white/40' : 'text-[#1A1A1A]/40'}`}>{customForm.tool.description}</p>
+            </div>
+          </div>
+          {customForm.tool.helpText && (
+            <div className={`mb-3 px-3 py-2 rounded-lg text-xs font-satoshi leading-relaxed ${dark ? 'bg-white/5 text-white/50' : 'bg-gray-100 text-[#1A1A1A]/50'}`}>
+              {customForm.tool.helpText.replace('{{callbackUrl}}', `${BACKEND_URL}/api/connect/${customForm.tool.slug.replace(/_/g, '-')}/callback`)}
+            </div>
+          )}
+          <div className="space-y-3">
+            {customForm.tool.fields.map((field) => (
+              <div key={field.key}>
+                <label className={`block text-xs font-satoshi font-medium mb-1 ${dark ? 'text-white/60' : 'text-[#1A1A1A]/60'}`}>{field.label}</label>
+                <input
+                  type={field.type || 'text'}
+                  placeholder={field.placeholder || ''}
+                  value={customForm.values[field.key] || ''}
+                  onChange={(e) => setCustomForm((prev) => ({ ...prev, values: { ...prev.values, [field.key]: e.target.value } }))}
+                  className={`w-full rounded-lg px-3 py-2 text-sm font-satoshi outline-none border transition-colors ${
+                    dark
+                      ? 'bg-white/5 border-white/10 text-white placeholder:text-white/20 focus:border-[#4ADE80]/50'
+                      : 'bg-white border-gray-200 text-[#1A1A1A] placeholder:text-gray-400 focus:border-[#2F7D4F]/50'
+                  }`}
+                />
+              </div>
+            ))}
+          </div>
+          <div className="flex gap-2 mt-3">
+            <button
+              onClick={handleCustomSubmit}
+              disabled={connecting === customForm.tool.slug}
+              className="flex-1 py-2 rounded-xl bg-[#2F7D4F] hover:bg-[#256B42] text-white text-sm font-satoshi font-medium transition-colors disabled:opacity-50"
+            >
+              {connecting === customForm.tool.slug ? 'Connecting...' : 'Connect'}
+            </button>
+            <button
+              onClick={() => setCustomForm(null)}
+              className={`px-4 py-2 rounded-xl text-sm font-satoshi font-medium transition-colors ${dark ? 'bg-white/5 text-white/50 hover:bg-white/10' : 'bg-gray-100 text-gray-500 hover:bg-gray-200'}`}
+            >
+              Cancel
+            </button>
+          </div>
+        </div>
+      )}
 
       {/* Search */}
       <div className={`relative mb-4 ${dark ? 'text-white/50' : 'text-[#1A1A1A]/40'}`}>
