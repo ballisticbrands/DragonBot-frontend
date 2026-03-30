@@ -193,7 +193,7 @@ function SkillCard({ skill, dark, onClick }) {
               </span>
             )}
           </div>
-          <p className={`text-xs font-satoshi mt-1 leading-relaxed line-clamp-2 ${c('text-white/40', 'text-[#1A1A1A]/40')}`}>
+          <p className={`text-sm font-satoshi mt-1 leading-relaxed line-clamp-2 ${c('text-white/40', 'text-[#1A1A1A]/40')}`}>
             {desc}
           </p>
         </div>

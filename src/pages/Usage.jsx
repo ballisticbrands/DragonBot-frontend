@@ -131,16 +131,16 @@ export default function Usage({ dark }) {
                   {toolRows.map((row) => (
                     <div key={row.tool} className={`flex items-center justify-between py-2 px-3 rounded-xl ${c('', 'hover:bg-white/5', 'hover:bg-gray-50')}`}>
                       <div className="flex items-center gap-3 min-w-0">
-                        <code className={`text-xs font-mono truncate ${c('', 'text-white/80', 'text-[#1A1A1A]/80')}`}>{row.tool}</code>
+                        <code className={`text-sm font-mono truncate ${c('', 'text-white/80', 'text-[#1A1A1A]/80')}`}>{row.tool}</code>
                       </div>
                       <div className="flex items-center gap-4 flex-shrink-0">
-                        <span className={`text-xs font-satoshi tabular-nums ${c('', 'text-white/50', 'text-[#1A1A1A]/50')}`}>
+                        <span className={`text-sm font-satoshi tabular-nums ${c('', 'text-white/50', 'text-[#1A1A1A]/50')}`}>
                           {row.count.toLocaleString()} calls
                         </span>
                         {row.errors > 0 && (
-                          <span className="text-xs font-satoshi text-red-400 tabular-nums">{row.errors} err</span>
+                          <span className="text-sm font-satoshi text-red-400 tabular-nums">{row.errors} err</span>
                         )}
-                        <span className={`text-xs font-satoshi tabular-nums w-16 text-right ${c('', 'text-white/30', 'text-[#1A1A1A]/30')}`}>
+                        <span className={`text-sm font-satoshi tabular-nums w-16 text-right ${c('', 'text-white/30', 'text-[#1A1A1A]/30')}`}>
                           {row.count > 0 ? `${Math.round(row.totalMs / row.count)}ms` : '—'}
                         </span>
                       </div>
@@ -160,7 +160,7 @@ export default function Usage({ dark }) {
               ) : (
                 <div className="space-y-1 max-h-80 overflow-y-auto">
                   {data.recentLogs.map((log, i) => (
-                    <div key={i} className={`flex items-center justify-between py-1.5 px-3 rounded-lg text-xs font-satoshi ${c('', 'hover:bg-white/5', 'hover:bg-gray-50')}`}>
+                    <div key={i} className={`flex items-center justify-between py-2 px-3 rounded-lg text-sm font-satoshi ${c('', 'hover:bg-white/5', 'hover:bg-gray-50')}`}>
                       <div className="flex items-center gap-2 min-w-0">
                         <span className={`w-1.5 h-1.5 rounded-full flex-shrink-0 ${log.success ? 'bg-[#2F7D4F]' : 'bg-red-400'}`} />
                         <code className={`font-mono truncate ${c('', 'text-white/70', 'text-[#1A1A1A]/70')}`}>{log.tool}</code>
@@ -195,7 +195,7 @@ function StatCard({ dark, icon, label, value, color }) {
       <div className={`text-2xl font-clash font-semibold mb-1 ${c('text-white', 'text-[#1A1A1A]')}`} style={color ? { color } : undefined}>
         {value}
       </div>
-      <div className={`text-xs font-satoshi ${c('text-white/40', 'text-[#1A1A1A]/40')}`}>{label}</div>
+      <div className={`text-sm font-satoshi ${c('text-white/40', 'text-[#1A1A1A]/40')}`}>{label}</div>
     </div>
   );
 }

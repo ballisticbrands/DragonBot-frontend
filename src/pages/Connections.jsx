@@ -447,7 +447,7 @@ function ConnectionRow({ conn, dark, isGlobal, onDisconnect }) {
           <h3 className={`text-sm font-satoshi font-medium truncate ${c('text-white', 'text-[#1A1A1A]')}`}>
             {conn.name}
           </h3>
-          <div className={`flex items-center gap-1.5 text-xs font-satoshi ${c('text-white/30', 'text-[#1A1A1A]/30')}`}>
+          <div className={`flex items-center gap-1.5 text-sm font-satoshi ${c('text-white/30', 'text-[#1A1A1A]/30')}`}>
             <span>{conn.provider}</span>
             {isGlobal && <span>· shared</span>}
             {conn.uniqueDisplayId && (

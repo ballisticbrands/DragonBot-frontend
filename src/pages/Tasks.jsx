@@ -43,6 +43,15 @@ function timeAgo(dateStr) {
   return `${days}d ago`;
 }
 
+function formatDuration(ms) {
+  if (!ms) return '—';
+  const s = Math.round(ms / 1000);
+  if (s < 60) return `${s}s`;
+  const m = Math.floor(s / 60);
+  const rem = s % 60;
+  return rem > 0 ? `${m}m ${rem}s` : `${m}m`;
+}
+
 export default function Tasks({ dark }) {
   const [data, setData] = useState(null);
   const [loading, setLoading] = useState(true);
@@ -105,14 +114,14 @@ export default function Tasks({ dark }) {
               Recent Runs
             </h2>
             <div className={`rounded-2xl border p-4 ${c('bg-[#1a1a1a] border-white/10', 'bg-white border-gray-200')}`}>
-              <div className="space-y-1 max-h-60 overflow-y-auto">
+              <div className="space-y-1 max-h-80 overflow-y-auto">
                 {data.runs.map((run, i) => (
-                  <div key={i} className={`flex items-center justify-between py-1.5 px-3 rounded-lg text-xs font-satoshi ${c('hover:bg-white/5', 'hover:bg-gray-50')}`}>
-                    <div className="flex items-center gap-2 min-w-0">
-                      <span className={`w-1.5 h-1.5 rounded-full flex-shrink-0 ${run.status === 'ok' ? 'bg-[#2F7D4F]' : 'bg-red-400'}`} />
+                  <div key={i} className={`flex items-center justify-between py-2 px-3 rounded-lg text-sm font-satoshi ${c('hover:bg-white/5', 'hover:bg-gray-50')}`}>
+                    <div className="flex items-center gap-2.5 min-w-0">
+                      <span className={`w-2 h-2 rounded-full flex-shrink-0 ${run.status === 'ok' ? 'bg-[#2F7D4F]' : 'bg-red-400'}`} />
                       <span className={`truncate ${c('text-white/70', 'text-[#1A1A1A]/70')}`}>{run.jobId || 'Unknown'}</span>
                       {run.durationMs && (
-                        <span className={c('text-white/25', 'text-[#1A1A1A]/25')}>{formatDuration(run.durationMs)}</span>
+                        <span className={c('text-white/30', 'text-[#1A1A1A]/30')}>{formatDuration(run.durationMs)}</span>
                       )}
                     </div>
                     <span className={`tabular-nums flex-shrink-0 ${c('text-white/30', 'text-[#1A1A1A]/30')}`}>
@@ -127,15 +136,6 @@ export default function Tasks({ dark }) {
       </div>
     </div>
   );
-}
-
-function formatDuration(ms) {
-  if (!ms) return '—';
-  const s = Math.round(ms / 1000);
-  if (s < 60) return `${s}s`;
-  const m = Math.floor(s / 60);
-  const rem = s % 60;
-  return rem > 0 ? `${m}m ${rem}s` : `${m}m`;
 }
 
 function JobCard({ job, dark }) {
@@ -155,11 +155,11 @@ function JobCard({ job, dark }) {
             }
           </div>
           <div>
-            <h3 className={`font-satoshi font-medium ${c('text-white', 'text-[#1A1A1A]')}`}>
+            <h3 className={`font-satoshi font-medium text-base ${c('text-white', 'text-[#1A1A1A]')}`}>
               {job.name || job.id || 'Unnamed Task'}
             </h3>
             {job.id && job.id !== job.name && (
-              <code className={`text-xs ${c('text-white/30', 'text-[#1A1A1A]/30')}`}>{job.id}</code>
+              <code className={`text-sm ${c('text-white/30', 'text-[#1A1A1A]/30')}`}>{job.id}</code>
             )}
           </div>
         </div>
@@ -173,14 +173,14 @@ function JobCard({ job, dark }) {
       </div>
 
       {/* Schedule */}
-      <div className={`flex items-center gap-4 text-xs font-satoshi ${c('text-white/50', 'text-[#1A1A1A]/50')}`}>
+      <div className={`flex items-center gap-4 text-sm font-satoshi ${c('text-white/50', 'text-[#1A1A1A]/50')}`}>
         <div className="flex items-center gap-1.5">
-          <Calendar size={12} />
+          <Calendar size={14} />
           <span>{cronToHuman(schedule)}</span>
         </div>
         {schedule && (
           <div className="flex items-center gap-1.5">
-            <Timer size={12} />
+            <Timer size={14} />
             <code className={c('text-white/30', 'text-[#1A1A1A]/30')}>{schedule}</code>
           </div>
         )}
@@ -188,23 +188,23 @@ function JobCard({ job, dark }) {
 
       {/* Last run */}
       {lastRun && (
-        <div className={`mt-3 rounded-xl p-3 ${c('bg-white/5', 'bg-gray-50')}`}>
-          <div className="flex items-center justify-between mb-1.5">
-            <div className="flex items-center gap-2 text-xs font-satoshi">
-              <span className={`w-1.5 h-1.5 rounded-full flex-shrink-0 ${lastRun.status === 'ok' ? 'bg-[#2F7D4F]' : 'bg-red-400'}`} />
+        <div className={`mt-3 rounded-xl p-3.5 ${c('bg-white/5', 'bg-gray-50')}`}>
+          <div className="flex items-center justify-between mb-2">
+            <div className="flex items-center gap-2 text-sm font-satoshi">
+              <span className={`w-2 h-2 rounded-full flex-shrink-0 ${lastRun.status === 'ok' ? 'bg-[#2F7D4F]' : 'bg-red-400'}`} />
               <span className={c('text-white/50', 'text-[#1A1A1A]/50')}>
                 Last run: {timeAgo(new Date(lastRun.ts).toISOString())}
               </span>
             </div>
-            <div className={`flex items-center gap-3 text-xs font-satoshi tabular-nums ${c('text-white/30', 'text-[#1A1A1A]/30')}`}>
+            <div className={`flex items-center gap-3 text-sm font-satoshi tabular-nums ${c('text-white/30', 'text-[#1A1A1A]/30')}`}>
               <span>{formatDuration(lastRun.durationMs)}</span>
               {lastRun.nextRunAtMs && (
-                <span>next: {timeAgo(new Date(lastRun.nextRunAtMs).toISOString()).replace(' ago', '') === 'just now' ? 'now' : new Date(lastRun.nextRunAtMs).toLocaleString(undefined, { month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit' })}</span>
+                <span>next: {new Date(lastRun.nextRunAtMs).toLocaleString(undefined, { month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit' })}</span>
               )}
             </div>
           </div>
           {lastRun.summary && (
-            <p className={`text-xs font-satoshi leading-relaxed line-clamp-2 ${c('text-white/35', 'text-[#1A1A1A]/35')}`}>
+            <p className={`text-sm font-satoshi leading-relaxed line-clamp-3 ${c('text-white/50', 'text-[#1A1A1A]/50')}`}>
               {lastRun.summary.slice(0, 300)}
             </p>
           )}
@@ -213,7 +213,7 @@ function JobCard({ job, dark }) {
 
       {/* Description (only if no last run to show) */}
       {!lastRun && job.payload?.message && (
-        <p className={`mt-3 text-xs font-satoshi leading-relaxed line-clamp-2 ${c('text-white/35', 'text-[#1A1A1A]/35')}`}>
+        <p className={`mt-3 text-sm font-satoshi leading-relaxed line-clamp-2 ${c('text-white/40', 'text-[#1A1A1A]/40')}`}>
           {job.payload.message.slice(0, 200)}{job.payload.message.length > 200 ? '...' : ''}
         </p>
       )}
