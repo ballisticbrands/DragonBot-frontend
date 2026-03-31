@@ -1,11 +1,12 @@
 import { useLocation, useNavigate } from 'react-router-dom';
-import { BarChart3, Clock, Puzzle, Plug, LogOut, Menu, X, Sun, Moon, Monitor } from 'lucide-react';
+import { BarChart3, Clock, Puzzle, Plug, LogOut, Menu, X, Sun, Moon, Monitor, MessageSquare } from 'lucide-react';
 import { useState } from 'react';
 
 const NAV_ITEMS = [
   { path: '/usage', label: 'Usage', icon: BarChart3 },
   { path: '/tasks', label: 'Scheduled Tasks', icon: Clock },
   { path: '/connections', label: 'Connections', icon: Plug },
+  { path: '/slack', label: 'Slack', icon: MessageSquare },
   { path: '/skills', label: 'Skills', icon: Puzzle },
 ];
 

@@ -8,6 +8,7 @@ import Usage from './pages/Usage.jsx';
 import Tasks from './pages/Tasks.jsx';
 import Skills from './pages/Skills.jsx';
 import Connections from './pages/Connections.jsx';
+import Slack from './pages/Slack.jsx';
 import Sidebar from './components/Sidebar.jsx';
 
 const BACKEND_URL = import.meta.env.VITE_BACKEND_URL ?? 'https://api.dragonsellerbot.com';
@@ -135,6 +136,14 @@ function AppLayout() {
             element={
               <PrivateRoute>
                 <Skills dark={dark} />
+              </PrivateRoute>
+            }
+          />
+          <Route
+            path="/slack"
+            element={
+              <PrivateRoute>
+                <Slack dark={dark} />
               </PrivateRoute>
             }
           />
