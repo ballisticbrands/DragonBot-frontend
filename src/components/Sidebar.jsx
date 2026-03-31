@@ -95,9 +95,16 @@ export default function Sidebar({ dark, theme, onSetTheme }) {
                 {displayName.charAt(0).toUpperCase()}
               </div>
             )}
-            <span className={`text-sm font-satoshi font-medium truncate ${c('text-white/70', 'text-[#1A1A1A]/70')}`}>
-              {displayName}
-            </span>
+            <div className="min-w-0">
+              {session?.slackTeamName && (
+                <span className={`block text-sm font-satoshi font-medium truncate ${c('text-white/70', 'text-[#1A1A1A]/70')}`}>
+                  {session.slackTeamName}
+                </span>
+              )}
+              <span className={`block text-xs font-satoshi truncate ${c('text-white/40', 'text-[#1A1A1A]/40')}`}>
+                {displayName}
+              </span>
+            </div>
           </div>
           <button
             onClick={cycleTheme}
