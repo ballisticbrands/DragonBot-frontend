@@ -1,5 +1,5 @@
 import { useLocation, useNavigate } from 'react-router-dom';
-import { BarChart3, Clock, Puzzle, Plug, LogOut, Menu, X, Sun, Moon, Monitor, MessageSquare } from 'lucide-react';
+import { BarChart3, Clock, Puzzle, Plug, LogOut, Menu, X, Sun, Moon, Monitor, MessageSquare, Shield } from 'lucide-react';
 import { useState } from 'react';
 
 const NAV_ITEMS = [
@@ -9,6 +9,8 @@ const NAV_ITEMS = [
   { path: '/slack', label: 'Slack', icon: MessageSquare },
   { path: '/skills', label: 'Skills', icon: Puzzle },
 ];
+
+const ADMIN_NAV = { path: '/admin', label: 'Admin', icon: Shield };
 
 const THEME_OPTIONS = [
   { value: 'system', label: 'System', icon: Monitor },
@@ -63,7 +65,7 @@ export default function Sidebar({ dark, theme, onSetTheme }) {
 
       {/* Nav items */}
       <nav className="flex-1 px-3 space-y-1">
-        {NAV_ITEMS.map(({ path, label, icon: Icon }) => {
+        {[...NAV_ITEMS, ...(session?.email === 'gershon@ballisticbrands.co' ? [ADMIN_NAV] : [])].map(({ path, label, icon: Icon }) => {
           const active = location.pathname === path || location.pathname.startsWith(path + '/');
           return (
             <button
