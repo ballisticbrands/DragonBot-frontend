@@ -328,11 +328,25 @@ function TaskDetailPopup({ job, runs, dark, onClose, onSelectRun }) {
 
 function RunDetailPopup({ run, dark, onClose }) {
   const c = (dv, lv) => dark ? dv : lv;
+  const [session, setSession] = useState(null);
+  const [loadingSession, setLoadingSession] = useState(false);
+
+  useEffect(() => {
+    if (!run.sessionId) return;
+    setLoadingSession(true);
+    fetch(`${BACKEND_URL}/api/tasks/session/${run.sessionId}`, {
+      headers: { Authorization: `Bearer ${getToken()}` },
+    })
+      .then(r => r.ok ? r.json() : null)
+      .then(setSession)
+      .catch(() => {})
+      .finally(() => setLoadingSession(false));
+  }, [run.sessionId]);
 
   return (
     <div className="fixed inset-0 z-[60] flex items-center justify-center p-4">
       <div className="absolute inset-0 bg-black/60" onClick={onClose} />
-      <div className={`relative w-full max-w-md max-h-[80vh] flex flex-col rounded-2xl shadow-2xl border ${c('bg-[#1a1a1a] border-white/10', 'bg-white border-gray-200')}`}>
+      <div className={`relative w-full max-w-lg max-h-[85vh] flex flex-col rounded-2xl shadow-2xl border ${c('bg-[#1a1a1a] border-white/10', 'bg-white border-gray-200')}`}>
         {/* Header */}
         <div className="flex items-start justify-between p-5 pb-3">
           <div>
@@ -342,6 +356,9 @@ function RunDetailPopup({ run, dark, onClose }) {
             <div className={`flex items-center gap-2 mt-1 text-xs font-satoshi ${c('text-white/40', 'text-[#1A1A1A]/40')}`}>
               <span className={`w-2 h-2 rounded-full ${run.status === 'ok' ? 'bg-[#2F7D4F]' : 'bg-red-400'}`} />
               <span>{run.status === 'ok' ? 'Completed' : 'Failed'}</span>
+              <span>&middot;</span>
+              <span>{run.ts ? formatTs(run.ts) : '—'}</span>
+              {run.durationMs && <><span>&middot;</span><span>{formatDuration(run.durationMs)}</span></>}
             </div>
           </div>
           <button onClick={onClose} className={`p-1.5 rounded-lg ${c('hover:bg-white/10', 'hover:bg-gray-100')}`}>
@@ -353,16 +370,6 @@ function RunDetailPopup({ run, dark, onClose }) {
         <div className="flex-1 overflow-y-auto px-5 pb-5">
           {/* Metadata */}
           <div className={`rounded-xl p-3 mb-4 text-xs font-satoshi space-y-1.5 ${c('bg-white/5', 'bg-gray-50')}`}>
-            <div className="flex justify-between">
-              <span className={c('text-white/40', 'text-[#1A1A1A]/40')}>Ran at</span>
-              <span className={c('text-white/60', 'text-[#1A1A1A]/60')}>{run.ts ? formatTs(run.ts) : '—'}</span>
-            </div>
-            {run.durationMs && (
-              <div className="flex justify-between">
-                <span className={c('text-white/40', 'text-[#1A1A1A]/40')}>Duration</span>
-                <span className={c('text-white/60', 'text-[#1A1A1A]/60')}>{formatDuration(run.durationMs)}</span>
-              </div>
-            )}
             {run.model && (
               <div className="flex justify-between">
                 <span className={c('text-white/40', 'text-[#1A1A1A]/40')}>Model</span>
@@ -381,24 +388,52 @@ function RunDetailPopup({ run, dark, onClose }) {
                 <span className={c('text-white/60', 'text-[#1A1A1A]/60')}>{formatTs(run.nextRunAtMs)}</span>
               </div>
             )}
-            {run.sessionId && (
-              <div className="flex justify-between">
-                <span className={c('text-white/40', 'text-[#1A1A1A]/40')}>Session</span>
-                <span className={`font-mono ${c('text-white/40', 'text-[#1A1A1A]/40')}`}>{run.sessionId.slice(0, 12)}...</span>
-              </div>
-            )}
           </div>
 
           {/* Summary */}
           {run.summary && (
-            <>
+            <div className="mb-4">
               <h3 className={`text-xs font-satoshi font-medium uppercase tracking-wider mb-2 ${c('text-white/30', 'text-[#1A1A1A]/30')}`}>
                 Summary
               </h3>
-              <div className={`rounded-xl p-4 text-sm font-satoshi leading-relaxed whitespace-pre-wrap ${c('bg-white/5 text-white/60', 'bg-gray-50 text-[#1A1A1A]/60')}`}>
+              <div className={`rounded-xl p-3 text-sm font-satoshi leading-relaxed whitespace-pre-wrap ${c('bg-white/5 text-white/60', 'bg-gray-50 text-[#1A1A1A]/60')}`}>
                 {run.summary}
               </div>
-            </>
+            </div>
+          )}
+
+          {/* Full session transcript */}
+          {run.sessionId && (
+            <div>
+              <h3 className={`text-xs font-satoshi font-medium uppercase tracking-wider mb-2 ${c('text-white/30', 'text-[#1A1A1A]/30')}`}>
+                Full Transcript
+              </h3>
+              {loadingSession ? (
+                <p className={`text-xs font-satoshi ${c('text-white/30', 'text-[#1A1A1A]/30')}`}>Loading session...</p>
+              ) : session?.messages?.length > 0 ? (
+                <div className="space-y-3">
+                  {session.messages.map((msg, i) => (
+                    <div key={i} className={`rounded-lg p-3 text-sm font-satoshi ${
+                      msg.role === 'assistant'
+                        ? c('bg-[#2F7D4F]/5 border border-[#2F7D4F]/10', 'bg-[#2F7D4F]/5 border border-[#2F7D4F]/10')
+                        : c('bg-white/5', 'bg-gray-50')
+                    }`}>
+                      <div className={`flex items-center gap-2 mb-1 text-xs ${c('text-white/30', 'text-[#1A1A1A]/30')}`}>
+                        <span className="font-medium">{msg.role === 'assistant' ? 'DragonBot' : 'System'}</span>
+                        <span>{formatTs(msg.timestamp)}</span>
+                      </div>
+                      <div className={`leading-relaxed whitespace-pre-wrap break-words ${c('text-white/60', 'text-[#1A1A1A]/60')}`}>
+                        {msg.text.slice(0, 2000)}{msg.text.length > 2000 ? '...' : ''}
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              ) : !loadingSession && (
+                <p className={`text-xs font-satoshi ${c('text-white/30', 'text-[#1A1A1A]/30')}`}>
+                  {run.sessionId ? 'Session not found or empty.' : 'No session linked.'}
+                </p>
+              )}
+            </div>
           )}
         </div>
       </div>
