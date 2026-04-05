@@ -67,6 +67,7 @@ export default function Tasks({ dark }) {
   const [data, setData] = useState(null);
   const [loading, setLoading] = useState(true);
   const [selectedJob, setSelectedJob] = useState(null);
+  const [selectedRun, setSelectedRun] = useState(null);
 
   useEffect(() => {
     (async () => {
@@ -127,7 +128,7 @@ export default function Tasks({ dark }) {
             <div className={`rounded-2xl border p-4 ${c('bg-[#1a1a1a] border-white/10', 'bg-white border-gray-200')}`}>
               <div className="space-y-1 max-h-80 overflow-y-auto">
                 {data.runs.map((run, i) => (
-                  <div key={i} className={`flex items-center justify-between py-2 px-3 rounded-lg text-sm font-satoshi ${c('hover:bg-white/5', 'hover:bg-gray-50')}`}>
+                  <button key={i} onClick={() => setSelectedRun(run)} className={`w-full flex items-center justify-between py-2 px-3 rounded-lg text-sm font-satoshi text-left ${c('hover:bg-white/5', 'hover:bg-gray-50')}`}>
                     <div className="flex items-center gap-2.5 min-w-0">
                       <span className={`w-2 h-2 rounded-full flex-shrink-0 ${run.status === 'ok' ? 'bg-[#2F7D4F]' : 'bg-red-400'}`} />
                       <span className={`truncate ${c('text-white/70', 'text-[#1A1A1A]/70')}`}>{run.jobId || 'Unknown'}</span>
@@ -138,7 +139,7 @@ export default function Tasks({ dark }) {
                     <span className={`tabular-nums flex-shrink-0 ${c('text-white/30', 'text-[#1A1A1A]/30')}`}>
                       {run.ts ? timeAgo(new Date(run.ts).toISOString()) : '—'}
                     </span>
-                  </div>
+                  </button>
                 ))}
               </div>
             </div>
@@ -147,8 +148,13 @@ export default function Tasks({ dark }) {
       </div>
 
       {/* Task detail popup */}
-      {selectedJob && (
-        <TaskDetailPopup job={selectedJob} runs={data?.runs || []} dark={dark} onClose={() => setSelectedJob(null)} />
+      {selectedJob && !selectedRun && (
+        <TaskDetailPopup job={selectedJob} runs={data?.runs || []} dark={dark} onClose={() => setSelectedJob(null)} onSelectRun={setSelectedRun} />
+      )}
+
+      {/* Run detail popup */}
+      {selectedRun && (
+        <RunDetailPopup run={selectedRun} dark={dark} onClose={() => setSelectedRun(null)} />
       )}
     </div>
   );
@@ -231,7 +237,7 @@ function JobCard({ job, dark, onClick }) {
   );
 }
 
-function TaskDetailPopup({ job, runs, dark, onClose }) {
+function TaskDetailPopup({ job, runs, dark, onClose, onSelectRun }) {
   const c = (dv, lv) => dark ? dv : lv;
   const enabled = job.enabled !== false;
   const isNative = job.native === true;
@@ -292,7 +298,7 @@ function TaskDetailPopup({ job, runs, dark, onClose }) {
           ) : (
             <div className="space-y-1">
               {jobRuns.map((run, i) => (
-                <div key={i} className={`flex items-start gap-3 py-2.5 px-3 rounded-lg text-sm font-satoshi ${c('hover:bg-white/5', 'hover:bg-gray-50')}`}>
+                <button key={i} onClick={() => onSelectRun(run)} className={`w-full text-left flex items-start gap-3 py-2.5 px-3 rounded-lg text-sm font-satoshi ${c('hover:bg-white/5', 'hover:bg-gray-50')}`}>
                   <span className={`w-2 h-2 rounded-full flex-shrink-0 mt-1.5 ${run.status === 'ok' ? 'bg-[#2F7D4F]' : 'bg-red-400'}`} />
                   <div className="flex-1 min-w-0">
                     <div className="flex items-center justify-between">
@@ -310,9 +316,89 @@ function TaskDetailPopup({ job, runs, dark, onClose }) {
                       </p>
                     )}
                   </div>
-                </div>
+                </button>
               ))}
             </div>
+          )}
+        </div>
+      </div>
+    </div>
+  );
+}
+
+function RunDetailPopup({ run, dark, onClose }) {
+  const c = (dv, lv) => dark ? dv : lv;
+
+  return (
+    <div className="fixed inset-0 z-[60] flex items-center justify-center p-4">
+      <div className="absolute inset-0 bg-black/60" onClick={onClose} />
+      <div className={`relative w-full max-w-md max-h-[80vh] flex flex-col rounded-2xl shadow-2xl border ${c('bg-[#1a1a1a] border-white/10', 'bg-white border-gray-200')}`}>
+        {/* Header */}
+        <div className="flex items-start justify-between p-5 pb-3">
+          <div>
+            <h2 className={`font-clash font-semibold text-lg ${c('text-white', 'text-[#1A1A1A]')}`}>
+              {run.jobId || 'Unknown'}
+            </h2>
+            <div className={`flex items-center gap-2 mt-1 text-xs font-satoshi ${c('text-white/40', 'text-[#1A1A1A]/40')}`}>
+              <span className={`w-2 h-2 rounded-full ${run.status === 'ok' ? 'bg-[#2F7D4F]' : 'bg-red-400'}`} />
+              <span>{run.status === 'ok' ? 'Completed' : 'Failed'}</span>
+            </div>
+          </div>
+          <button onClick={onClose} className={`p-1.5 rounded-lg ${c('hover:bg-white/10', 'hover:bg-gray-100')}`}>
+            <X size={16} className={c('text-white/50', 'text-[#1A1A1A]/50')} />
+          </button>
+        </div>
+
+        {/* Content */}
+        <div className="flex-1 overflow-y-auto px-5 pb-5">
+          {/* Metadata */}
+          <div className={`rounded-xl p-3 mb-4 text-xs font-satoshi space-y-1.5 ${c('bg-white/5', 'bg-gray-50')}`}>
+            <div className="flex justify-between">
+              <span className={c('text-white/40', 'text-[#1A1A1A]/40')}>Ran at</span>
+              <span className={c('text-white/60', 'text-[#1A1A1A]/60')}>{run.ts ? formatTs(run.ts) : '—'}</span>
+            </div>
+            {run.durationMs && (
+              <div className="flex justify-between">
+                <span className={c('text-white/40', 'text-[#1A1A1A]/40')}>Duration</span>
+                <span className={c('text-white/60', 'text-[#1A1A1A]/60')}>{formatDuration(run.durationMs)}</span>
+              </div>
+            )}
+            {run.model && (
+              <div className="flex justify-between">
+                <span className={c('text-white/40', 'text-[#1A1A1A]/40')}>Model</span>
+                <span className={c('text-white/60', 'text-[#1A1A1A]/60')}>{run.model}</span>
+              </div>
+            )}
+            {run.usage?.total_tokens && (
+              <div className="flex justify-between">
+                <span className={c('text-white/40', 'text-[#1A1A1A]/40')}>Tokens</span>
+                <span className={c('text-white/60', 'text-[#1A1A1A]/60')}>{run.usage.total_tokens.toLocaleString()}</span>
+              </div>
+            )}
+            {run.nextRunAtMs && (
+              <div className="flex justify-between">
+                <span className={c('text-white/40', 'text-[#1A1A1A]/40')}>Next run</span>
+                <span className={c('text-white/60', 'text-[#1A1A1A]/60')}>{formatTs(run.nextRunAtMs)}</span>
+              </div>
+            )}
+            {run.sessionId && (
+              <div className="flex justify-between">
+                <span className={c('text-white/40', 'text-[#1A1A1A]/40')}>Session</span>
+                <span className={`font-mono ${c('text-white/40', 'text-[#1A1A1A]/40')}`}>{run.sessionId.slice(0, 12)}...</span>
+              </div>
+            )}
+          </div>
+
+          {/* Summary */}
+          {run.summary && (
+            <>
+              <h3 className={`text-xs font-satoshi font-medium uppercase tracking-wider mb-2 ${c('text-white/30', 'text-[#1A1A1A]/30')}`}>
+                Summary
+              </h3>
+              <div className={`rounded-xl p-4 text-sm font-satoshi leading-relaxed whitespace-pre-wrap ${c('bg-white/5 text-white/60', 'bg-gray-50 text-[#1A1A1A]/60')}`}>
+                {run.summary}
+              </div>
+            </>
           )}
         </div>
       </div>
