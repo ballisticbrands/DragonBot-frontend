@@ -277,7 +277,7 @@ function TaskDetailPopup({ job, runs, dark, onClose }) {
         <div className="flex-1 overflow-y-auto p-5">
           {/* Task description */}
           {job.payload?.message && (
-            <div className={`mb-5 rounded-xl p-4 text-sm font-satoshi leading-relaxed prose prose-sm max-w-none ${c('bg-white/5 text-white/60 prose-invert prose-headings:text-white/70 prose-strong:text-white/70 prose-code:text-white/50 prose-li:text-white/60', 'bg-gray-50 text-[#1A1A1A]/60 prose-headings:text-[#1A1A1A]/70 prose-strong:text-[#1A1A1A]/70 prose-code:text-[#1A1A1A]/50 prose-li:text-[#1A1A1A]/60')}`}>
+            <div className={`mb-5 rounded-xl p-4 max-h-64 overflow-y-auto text-sm font-satoshi leading-relaxed prose prose-sm max-w-none ${c('bg-white/5 text-white/60 prose-invert prose-headings:text-white/70 prose-strong:text-white/70 prose-code:text-white/50 prose-li:text-white/60', 'bg-gray-50 text-[#1A1A1A]/60 prose-headings:text-[#1A1A1A]/70 prose-strong:text-[#1A1A1A]/70 prose-code:text-[#1A1A1A]/50 prose-li:text-[#1A1A1A]/60')}`}>
               <ReactMarkdown remarkPlugins={[remarkGfm]}>{job.payload.message}</ReactMarkdown>
             </div>
           )}
