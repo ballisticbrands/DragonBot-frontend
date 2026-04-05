@@ -262,9 +262,10 @@ function ConnectTools({ dark, onComplete }) {
             </div>
           </div>
           {customForm.tool.helpText && (
-            <div className={`mb-3 px-3 py-2 rounded-lg text-xs font-satoshi leading-relaxed ${dark ? 'bg-white/5 text-white/50' : 'bg-gray-100 text-[#1A1A1A]/50'}`}>
-              {customForm.tool.helpText.replace('{{callbackUrl}}', `${BACKEND_URL}/api/connect/${customForm.tool.slug.replace(/_/g, '-')}/callback`)}
-            </div>
+            <div
+              className={`mb-3 px-3 py-2 rounded-lg text-xs font-satoshi leading-relaxed [&_a]:underline [&_a]:text-[#2F7D4F] [&_code]:px-1 [&_code]:py-0.5 [&_code]:rounded [&_code]:bg-black/10 [&_code]:text-[10px] [&_code]:break-all ${dark ? 'bg-white/5 text-white/50' : 'bg-gray-100 text-[#1A1A1A]/50'}`}
+              dangerouslySetInnerHTML={{ __html: customForm.tool.helpText.replace('{{callbackUrl}}', `${BACKEND_URL}/api/connect/${customForm.tool.slug.replace(/_/g, '-')}/callback`).replace(/\n/g, '<br/>') }}
+            />
           )}
           <div className="space-y-3">
             {customForm.tool.fields.map((field) => (
