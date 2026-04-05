@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { Clock, Play, Pause, Calendar, Timer } from 'lucide-react';
+import { Clock, Play, Pause, Calendar, Timer, X } from 'lucide-react';
 
 const BACKEND_URL = import.meta.env.VITE_BACKEND_URL ?? 'https://api.dragonsellerbot.com';
 
@@ -12,11 +12,10 @@ function cronToHuman(expr) {
   if (expr.startsWith('every ')) return expr;
   const parts = expr.split(' ');
   if (parts.length < 5) return expr;
-  const [min, hour, dom, mon, dow] = parts;
+  const [min, hour, , , dow] = parts;
 
   const dowNames = { '0': 'Sun', '1': 'Mon', '2': 'Tue', '3': 'Wed', '4': 'Thu', '5': 'Fri', '6': 'Sat', '7': 'Sun' };
 
-  // Common patterns
   if (dow !== '*' && hour !== '*') {
     const days = dow.split(',').map(d => dowNames[d] || d).join(', ');
     const hours = hour.split(',').map(h => `${h}:${min.padStart(2, '0')}`).join(', ');
@@ -26,7 +25,7 @@ function cronToHuman(expr) {
     const hours = hour.split(',').map(h => `${h}:${min.padStart(2, '0')}`).join(', ');
     return `Daily at ${hours} UTC`;
   }
-  if (hour !== '*' && dom === '*') {
+  if (hour !== '*') {
     return `Daily at ${hour}:${min.padStart(2, '0')} UTC`;
   }
   return expr;
@@ -53,9 +52,19 @@ function formatDuration(ms) {
   return rem > 0 ? `${m}m ${rem}s` : `${m}m`;
 }
 
+function formatTs(ts) {
+  if (!ts) return '—';
+  try {
+    return new Date(typeof ts === 'number' ? ts : ts).toLocaleString('en-US', {
+      month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit', hour12: false,
+    });
+  } catch { return '—'; }
+}
+
 export default function Tasks({ dark }) {
   const [data, setData] = useState(null);
   const [loading, setLoading] = useState(true);
+  const [selectedJob, setSelectedJob] = useState(null);
 
   useEffect(() => {
     (async () => {
@@ -77,11 +86,10 @@ export default function Tasks({ dark }) {
   return (
     <div className={`min-h-screen px-4 py-8 md:px-8 ${c('bg-[#0f0f0f]', 'bg-[#fafafa]')}`}>
       <div className="max-w-3xl mx-auto">
-        {/* Header */}
         <div className="mb-8">
           <h1 className={`font-clash font-semibold text-2xl ${c('text-white', 'text-[#1A1A1A]')}`}>Scheduled Tasks</h1>
           <p className={`text-sm font-satoshi ${c('text-white/40', 'text-[#1A1A1A]/40')}`}>
-            Cron jobs running on your DragonBot
+            Cron jobs and heartbeat running on your DragonBot
           </p>
         </div>
 
@@ -103,7 +111,7 @@ export default function Tasks({ dark }) {
         ) : (
           <div className="space-y-4">
             {data.jobs.map((job, i) => (
-              <JobCard key={job.id || i} job={job} dark={dark} />
+              <JobCard key={job.id || i} job={job} dark={dark} onClick={() => setSelectedJob(job)} />
             ))}
           </div>
         )}
@@ -135,11 +143,16 @@ export default function Tasks({ dark }) {
           </div>
         )}
       </div>
+
+      {/* Task detail popup */}
+      {selectedJob && (
+        <TaskDetailPopup job={selectedJob} runs={data?.runs || []} dark={dark} onClose={() => setSelectedJob(null)} />
+      )}
     </div>
   );
 }
 
-function JobCard({ job, dark }) {
+function JobCard({ job, dark, onClick }) {
   const c = (dv, lv) => dark ? dv : lv;
   const enabled = job.enabled !== false;
   const isNative = job.native === true;
@@ -149,7 +162,10 @@ function JobCard({ job, dark }) {
   const lastRun = job.lastRun;
 
   return (
-    <div className={`rounded-2xl border p-5 transition-colors ${c('bg-[#1a1a1a] border-white/10', 'bg-white border-gray-200')}`}>
+    <button
+      onClick={onClick}
+      className={`w-full text-left rounded-2xl border p-5 transition-colors ${c('bg-[#1a1a1a] border-white/10 hover:border-white/20', 'bg-white border-gray-200 hover:border-gray-300')}`}
+    >
       <div className="flex items-start justify-between mb-3">
         <div className="flex items-center gap-3">
           <div className={`p-2 rounded-xl ${enabled ? 'bg-[#2F7D4F]/10' : c('bg-white/5', 'bg-gray-100')}`}>
@@ -162,7 +178,7 @@ function JobCard({ job, dark }) {
             <h3 className={`font-satoshi font-medium text-base ${c('text-white', 'text-[#1A1A1A]')}`}>
               {job.name || job.id || 'Unnamed Task'}
             </h3>
-            {job.id && job.id !== job.name && (
+            {job.id && job.id !== (job.name || '').toLowerCase().replace(/\s+/g, '_') && job.id !== job.name && (
               <code className={`text-sm ${c('text-white/30', 'text-[#1A1A1A]/30')}`}>{job.id}</code>
             )}
           </div>
@@ -183,13 +199,12 @@ function JobCard({ job, dark }) {
         </div>
       </div>
 
-      {/* Schedule */}
       <div className={`flex items-center gap-4 text-sm font-satoshi ${c('text-white/50', 'text-[#1A1A1A]/50')}`}>
         <div className="flex items-center gap-1.5">
           <Calendar size={14} />
           <span>{cronToHuman(schedule)}</span>
         </div>
-        {schedule && (
+        {schedule && !schedule.startsWith('every ') && (
           <div className="flex items-center gap-1.5">
             <Timer size={14} />
             <code className={c('text-white/30', 'text-[#1A1A1A]/30')}>{schedule}</code>
@@ -197,37 +212,108 @@ function JobCard({ job, dark }) {
         )}
       </div>
 
-      {/* Last run */}
       {lastRun && (
-        <div className={`mt-3 rounded-xl p-3.5 ${c('bg-white/5', 'bg-gray-50')}`}>
-          <div className="flex items-center justify-between mb-2">
-            <div className="flex items-center gap-2 text-sm font-satoshi">
-              <span className={`w-2 h-2 rounded-full flex-shrink-0 ${lastRun.status === 'ok' ? 'bg-[#2F7D4F]' : 'bg-red-400'}`} />
-              <span className={c('text-white/50', 'text-[#1A1A1A]/50')}>
-                Last run: {timeAgo(new Date(lastRun.ts).toISOString())}
-              </span>
-            </div>
-            <div className={`flex items-center gap-3 text-sm font-satoshi tabular-nums ${c('text-white/30', 'text-[#1A1A1A]/30')}`}>
-              <span>{formatDuration(lastRun.durationMs)}</span>
-              {lastRun.nextRunAtMs && (
-                <span>next: {new Date(lastRun.nextRunAtMs).toLocaleString(undefined, { month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit' })}</span>
-              )}
-            </div>
-          </div>
-          {lastRun.summary && (
-            <p className={`text-sm font-satoshi leading-relaxed line-clamp-3 ${c('text-white/50', 'text-[#1A1A1A]/50')}`}>
-              {lastRun.summary.slice(0, 300)}
-            </p>
-          )}
+        <div className={`mt-3 flex items-center gap-2 text-sm font-satoshi ${c('text-white/40', 'text-[#1A1A1A]/40')}`}>
+          <span className={`w-2 h-2 rounded-full flex-shrink-0 ${lastRun.status === 'ok' ? 'bg-[#2F7D4F]' : 'bg-red-400'}`} />
+          <span>Last run: {timeAgo(new Date(lastRun.ts).toISOString())}</span>
+          {lastRun.durationMs && <span>({formatDuration(lastRun.durationMs)})</span>}
         </div>
       )}
 
-      {/* Description (only if no last run to show) */}
       {!lastRun && job.payload?.message && (
         <p className={`mt-3 text-sm font-satoshi leading-relaxed line-clamp-2 ${c('text-white/40', 'text-[#1A1A1A]/40')}`}>
           {job.payload.message.slice(0, 200)}{job.payload.message.length > 200 ? '...' : ''}
         </p>
       )}
+    </button>
+  );
+}
+
+function TaskDetailPopup({ job, runs, dark, onClose }) {
+  const c = (dv, lv) => dark ? dv : lv;
+  const enabled = job.enabled !== false;
+  const isNative = job.native === true;
+  const schedule = job.schedule?.kind === 'interval'
+    ? job.schedule.expr
+    : job.schedule?.expr || job.schedule || job.cron || '';
+
+  // Filter runs for this job
+  const jobRuns = runs
+    .filter(r => r.jobId === job.id)
+    .slice(0, 30);
+
+  return (
+    <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
+      <div className="absolute inset-0 bg-black/60" onClick={onClose} />
+      <div className={`relative w-full max-w-lg max-h-[85vh] flex flex-col rounded-2xl shadow-2xl border ${c('bg-[#1a1a1a] border-white/10', 'bg-white border-gray-200')}`}>
+        {/* Header */}
+        <div className="flex items-start justify-between p-5 pb-0">
+          <div className="flex items-center gap-3">
+            <div className={`p-2 rounded-xl ${enabled ? 'bg-[#2F7D4F]/10' : c('bg-white/5', 'bg-gray-100')}`}>
+              {enabled ? <Play size={16} className="text-[#2F7D4F]" /> : <Pause size={16} className={c('text-white/30', 'text-[#1A1A1A]/30')} />}
+            </div>
+            <div>
+              <h2 className={`font-clash font-semibold text-lg ${c('text-white', 'text-[#1A1A1A]')}`}>
+                {job.name || job.id}
+              </h2>
+              <div className={`flex items-center gap-2 text-xs font-satoshi ${c('text-white/40', 'text-[#1A1A1A]/40')}`}>
+                <Calendar size={12} />
+                <span>{cronToHuman(schedule)}</span>
+                {isNative && <span className={`px-1.5 py-0.5 rounded ${c('bg-white/5', 'bg-gray-100')}`}>Native</span>}
+                <span className={`px-1.5 py-0.5 rounded ${enabled ? 'bg-[#2F7D4F]/10 text-[#2F7D4F]' : c('bg-white/5', 'bg-gray-100')}`}>
+                  {enabled ? 'Active' : 'Paused'}
+                </span>
+              </div>
+            </div>
+          </div>
+          <button onClick={onClose} className={`p-1.5 rounded-lg ${c('hover:bg-white/10', 'hover:bg-gray-100')}`}>
+            <X size={16} className={c('text-white/50', 'text-[#1A1A1A]/50')} />
+          </button>
+        </div>
+
+        {/* Content */}
+        <div className="flex-1 overflow-y-auto p-5">
+          {/* Task description */}
+          {job.payload?.message && (
+            <div className={`mb-5 rounded-xl p-4 text-sm font-satoshi leading-relaxed whitespace-pre-wrap ${c('bg-white/5 text-white/60', 'bg-gray-50 text-[#1A1A1A]/60')}`}>
+              {job.payload.message}
+            </div>
+          )}
+
+          {/* Run history */}
+          <h3 className={`text-xs font-satoshi font-medium uppercase tracking-wider mb-3 ${c('text-white/30', 'text-[#1A1A1A]/30')}`}>
+            Run History ({jobRuns.length})
+          </h3>
+
+          {jobRuns.length === 0 ? (
+            <p className={`text-sm font-satoshi ${c('text-white/30', 'text-[#1A1A1A]/30')}`}>No runs recorded yet.</p>
+          ) : (
+            <div className="space-y-1">
+              {jobRuns.map((run, i) => (
+                <div key={i} className={`flex items-start gap-3 py-2.5 px-3 rounded-lg text-sm font-satoshi ${c('hover:bg-white/5', 'hover:bg-gray-50')}`}>
+                  <span className={`w-2 h-2 rounded-full flex-shrink-0 mt-1.5 ${run.status === 'ok' ? 'bg-[#2F7D4F]' : 'bg-red-400'}`} />
+                  <div className="flex-1 min-w-0">
+                    <div className="flex items-center justify-between">
+                      <span className={c('text-white/60', 'text-[#1A1A1A]/60')}>
+                        {formatTs(run.ts)}
+                      </span>
+                      <div className={`flex items-center gap-2 ${c('text-white/30', 'text-[#1A1A1A]/30')}`}>
+                        {run.durationMs && <span>{formatDuration(run.durationMs)}</span>}
+                        <span className={run.status === 'ok' ? 'text-[#2F7D4F]' : 'text-red-400'}>{run.status}</span>
+                      </div>
+                    </div>
+                    {run.summary && run.summary !== 'HEARTBEAT_OK' && (
+                      <p className={`mt-1 text-xs leading-relaxed ${c('text-white/40', 'text-[#1A1A1A]/40')}`}>
+                        {run.summary.slice(0, 300)}
+                      </p>
+                    )}
+                  </div>
+                </div>
+              ))}
+            </div>
+          )}
+        </div>
+      </div>
     </div>
   );
 }
