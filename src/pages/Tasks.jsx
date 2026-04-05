@@ -9,6 +9,7 @@ function getToken() {
 
 function cronToHuman(expr) {
   if (!expr) return '—';
+  if (expr.startsWith('every ')) return expr;
   const parts = expr.split(' ');
   if (parts.length < 5) return expr;
   const [min, hour, dom, mon, dow] = parts;
@@ -141,7 +142,10 @@ export default function Tasks({ dark }) {
 function JobCard({ job, dark }) {
   const c = (dv, lv) => dark ? dv : lv;
   const enabled = job.enabled !== false;
-  const schedule = job.schedule?.expr || job.schedule || job.cron || '';
+  const isNative = job.native === true;
+  const schedule = job.schedule?.kind === 'interval'
+    ? job.schedule.expr
+    : job.schedule?.expr || job.schedule || job.cron || '';
   const lastRun = job.lastRun;
 
   return (
@@ -163,13 +167,20 @@ function JobCard({ job, dark }) {
             )}
           </div>
         </div>
-        <span className={`text-xs font-satoshi px-2.5 py-1 rounded-full ${
-          enabled
-            ? 'bg-[#2F7D4F]/10 text-[#2F7D4F]'
-            : c('bg-white/5 text-white/30', 'bg-gray-100 text-gray-400')
-        }`}>
-          {enabled ? 'Active' : 'Paused'}
-        </span>
+        <div className="flex items-center gap-2">
+          {isNative && (
+            <span className={`text-xs font-satoshi px-2 py-0.5 rounded-full ${c('bg-white/5 text-white/30', 'bg-gray-100 text-gray-400')}`}>
+              Native
+            </span>
+          )}
+          <span className={`text-xs font-satoshi px-2.5 py-1 rounded-full ${
+            enabled
+              ? 'bg-[#2F7D4F]/10 text-[#2F7D4F]'
+              : c('bg-white/5 text-white/30', 'bg-gray-100 text-gray-400')
+          }`}>
+            {enabled ? 'Active' : 'Paused'}
+          </span>
+        </div>
       </div>
 
       {/* Schedule */}
