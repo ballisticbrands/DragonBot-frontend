@@ -67,8 +67,34 @@ export default function Connections({ dark }) {
   }, [search, showAddPanel]);
 
   async function handleConnect(tool) {
-    // Custom connections show a credential form instead of Pipedream OAuth
-    if (tool.custom && tool.fields) {
+    // Direct OAuth — skip form, go straight to OAuth consent screen
+    if (tool.custom && tool.directOAuth) {
+      setConnecting(tool.slug);
+      setError('');
+      try {
+        const res = await fetch(`${BACKEND_URL}/api/connect/${tool.slug.replace(/_/g, '-')}/start`, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            Authorization: `Bearer ${getToken()}`,
+          },
+          body: JSON.stringify({}),
+        });
+        const data = await res.json();
+        if (data.url) {
+          window.location.href = data.url;
+          return;
+        }
+        setError(data.error || 'Failed to start OAuth');
+      } catch (err) {
+        setError(err.message);
+      }
+      setConnecting(null);
+      return;
+    }
+
+    // Custom connections with fields show a credential form
+    if (tool.custom && tool.fields?.length > 0) {
       setCustomForm({ tool, values: {} });
       return;
     }
