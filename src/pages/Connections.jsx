@@ -270,66 +270,69 @@ export default function Connections({ dark }) {
               </div>
             )}
 
-            {/* Custom credential form */}
+            {/* Custom credential form — modal popup */}
             {customForm && (
-              <div className={`mb-4 p-4 rounded-xl border ${c('border-white/10 bg-white/5', 'border-gray-200 bg-gray-50')}`}>
-                <div className="flex items-center gap-3 mb-4">
-                  {customForm.tool.imgSrc ? (
-                    <img src={customForm.tool.imgSrc} alt={customForm.tool.name} className="w-8 h-8 rounded-lg object-contain" />
-                  ) : (
-                    <div className={`w-8 h-8 rounded-lg flex items-center justify-center ${c('bg-white/10', 'bg-gray-200')}`}>
-                      <Plug size={14} className={c('text-white/40', 'text-gray-400')} />
+              <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
+                <div className="absolute inset-0 bg-black/60" onClick={() => setCustomForm(null)} />
+                <div className={`relative w-full max-w-md p-5 rounded-2xl shadow-2xl border ${c('bg-[#1a1a1a] border-white/10', 'bg-white border-gray-200')}`}>
+                  <div className="flex items-center gap-3 mb-4">
+                    {customForm.tool.imgSrc ? (
+                      <img src={customForm.tool.imgSrc} alt={customForm.tool.name} className="w-8 h-8 rounded-lg object-contain" />
+                    ) : (
+                      <div className={`w-8 h-8 rounded-lg flex items-center justify-center ${c('bg-white/10', 'bg-gray-200')}`}>
+                        <Plug size={14} className={c('text-white/40', 'text-gray-400')} />
+                      </div>
+                    )}
+                    <div className="text-left">
+                      <h3 className={`text-sm font-satoshi font-medium ${c('text-white', 'text-[#1A1A1A]')}`}>{customForm.tool.name}</h3>
+                      <p className={`text-xs font-satoshi ${c('text-white/40', 'text-[#1A1A1A]/40')}`}>{customForm.tool.description}</p>
                     </div>
-                  )}
-                  <div className="text-left">
-                    <h3 className={`text-sm font-satoshi font-medium ${c('text-white', 'text-[#1A1A1A]')}`}>{customForm.tool.name}</h3>
-                    <p className={`text-xs font-satoshi ${c('text-white/40', 'text-[#1A1A1A]/40')}`}>{customForm.tool.description}</p>
                   </div>
-                </div>
-                {customForm.tool.helpText && (
-                  <div
-                    className={`mb-4 px-3 py-2.5 rounded-lg text-xs font-satoshi leading-relaxed [&_a]:underline [&_a]:text-[#2F7D4F] [&_code]:px-1 [&_code]:py-0.5 [&_code]:rounded [&_code]:bg-black/10 [&_code]:text-[10px] [&_code]:break-all ${c('bg-white/5 text-white/50', 'bg-gray-100 text-[#1A1A1A]/50')}`}
-                    dangerouslySetInnerHTML={{ __html: customForm.tool.helpText.replace('{{callbackUrl}}', `${BACKEND_URL}/api/connect/${customForm.tool.slug.replace(/_/g, '-')}/callback`).replace(/\n/g, '<br/>') }}
-                  />
-                )}
-                <div className="space-y-3">
-                  {customForm.tool.fields.map((field) => (
-                    <div key={field.key}>
-                      <label className={`block text-xs font-satoshi font-medium mb-1 ${c('text-white/60', 'text-[#1A1A1A]/60')}`}>
-                        {field.label}
-                      </label>
-                      <input
-                        type={field.type || 'text'}
-                        placeholder={field.placeholder || ''}
-                        value={customForm.values[field.key] || ''}
-                        onChange={(e) => setCustomForm((prev) => ({
-                          ...prev,
-                          values: { ...prev.values, [field.key]: e.target.value },
-                        }))}
-                        className={`w-full rounded-lg px-3 py-2 text-sm font-satoshi outline-none border transition-colors ${
-                          c(
-                            'bg-white/5 border-white/10 text-white placeholder:text-white/20 focus:border-[#4ADE80]/50',
-                            'bg-white border-gray-200 text-[#1A1A1A] placeholder:text-gray-400 focus:border-[#2F7D4F]/50'
-                          )
-                        }`}
-                      />
-                    </div>
-                  ))}
-                </div>
-                <div className="flex gap-2 mt-4">
-                  <button
-                    onClick={handleCustomSubmit}
-                    disabled={connecting === customForm.tool.slug}
-                    className="flex-1 py-2 rounded-xl bg-[#2F7D4F] hover:bg-[#256B42] text-white text-sm font-satoshi font-medium transition-colors disabled:opacity-50"
-                  >
-                    {connecting === customForm.tool.slug ? 'Saving...' : 'Connect'}
-                  </button>
-                  <button
-                    onClick={() => setCustomForm(null)}
-                    className={`px-4 py-2 rounded-xl text-sm font-satoshi font-medium transition-colors ${c('bg-white/5 text-white/50 hover:bg-white/10', 'bg-gray-100 text-gray-500 hover:bg-gray-200')}`}
-                  >
-                    Cancel
-                  </button>
+                  {customForm.tool.helpText && (
+                    <div
+                      className={`mb-4 px-3 py-2.5 rounded-lg text-xs font-satoshi leading-relaxed [&_a]:underline [&_a]:text-[#2F7D4F] [&_code]:px-1 [&_code]:py-0.5 [&_code]:rounded [&_code]:bg-black/10 [&_code]:text-[10px] [&_code]:break-all ${c('bg-white/5 text-white/50', 'bg-gray-100 text-[#1A1A1A]/50')}`}
+                      dangerouslySetInnerHTML={{ __html: customForm.tool.helpText.replace('{{callbackUrl}}', `${BACKEND_URL}/api/connect/${customForm.tool.slug.replace(/_/g, '-')}/callback`).replace(/\n/g, '<br/>') }}
+                    />
+                  )}
+                  <div className="space-y-3">
+                    {customForm.tool.fields.map((field) => (
+                      <div key={field.key}>
+                        <label className={`block text-xs font-satoshi font-medium mb-1 ${c('text-white/60', 'text-[#1A1A1A]/60')}`}>
+                          {field.label}
+                        </label>
+                        <input
+                          type={field.type || 'text'}
+                          placeholder={field.placeholder || ''}
+                          value={customForm.values[field.key] || ''}
+                          onChange={(e) => setCustomForm((prev) => ({
+                            ...prev,
+                            values: { ...prev.values, [field.key]: e.target.value },
+                          }))}
+                          className={`w-full rounded-lg px-3 py-2 text-sm font-satoshi outline-none border transition-colors ${
+                            c(
+                              'bg-white/5 border-white/10 text-white placeholder:text-white/20 focus:border-[#4ADE80]/50',
+                              'bg-white border-gray-200 text-[#1A1A1A] placeholder:text-gray-400 focus:border-[#2F7D4F]/50'
+                            )
+                          }`}
+                        />
+                      </div>
+                    ))}
+                  </div>
+                  <div className="flex gap-2 mt-4">
+                    <button
+                      onClick={handleCustomSubmit}
+                      disabled={connecting === customForm.tool.slug}
+                      className="flex-1 py-2 rounded-xl bg-[#2F7D4F] hover:bg-[#256B42] text-white text-sm font-satoshi font-medium transition-colors disabled:opacity-50"
+                    >
+                      {connecting === customForm.tool.slug ? 'Saving...' : 'Connect'}
+                    </button>
+                    <button
+                      onClick={() => setCustomForm(null)}
+                      className={`px-4 py-2 rounded-xl text-sm font-satoshi font-medium transition-colors ${c('bg-white/5 text-white/50 hover:bg-white/10', 'bg-gray-100 text-gray-500 hover:bg-gray-200')}`}
+                    >
+                      Cancel
+                    </button>
+                  </div>
                 </div>
               </div>
             )}
