@@ -448,7 +448,7 @@ export default function Connections({ dark }) {
                 </div>
               ) : connections.length > 0 && (
                 <div className="space-y-2">
-                  {connections.map((conn) => (
+                  {[...connections].sort((a, b) => (a.name || a.provider || '').localeCompare(b.name || b.provider || '')).map((conn) => (
                     <ConnectionRow key={conn.id} conn={conn} dark={dark} onDisconnect={() => handleDisconnect(conn.id)} />
                   ))}
                 </div>
