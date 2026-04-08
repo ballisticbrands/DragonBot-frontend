@@ -1,4 +1,5 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
+import { useSearchParams } from 'react-router-dom';
 import { Clock, Play, Pause, Calendar, Timer, X } from 'lucide-react';
 import ReactMarkdown from 'react-markdown';
 import remarkGfm from 'remark-gfm';
@@ -64,10 +65,9 @@ function formatTs(ts) {
 }
 
 export default function Tasks({ dark }) {
+  const [searchParams, setSearchParams] = useSearchParams();
   const [data, setData] = useState(null);
   const [loading, setLoading] = useState(true);
-  const [selectedJob, setSelectedJob] = useState(null);
-  const [selectedRun, setSelectedRun] = useState(null);
 
   useEffect(() => {
     (async () => {
@@ -83,6 +83,30 @@ export default function Tasks({ dark }) {
       }
     })();
   }, []);
+
+  // Derive selected job/run from URL params
+  const jobParam = searchParams.get('job');
+  const runParam = searchParams.get('run'); // run timestamp
+
+  const selectedJob = jobParam && data
+    ? data.jobs.find(j => j.id === jobParam) || null
+    : null;
+
+  const selectedRun = runParam && data
+    ? data.runs.find(r => String(r.ts) === runParam) || null
+    : null;
+
+  const selectJob = useCallback((job) => {
+    setSearchParams(job ? { job: job.id } : {});
+  }, [setSearchParams]);
+
+  const selectRun = useCallback((run) => {
+    setSearchParams(run ? { run: String(run.ts) } : {});
+  }, [setSearchParams]);
+
+  const closeModal = useCallback(() => {
+    setSearchParams({});
+  }, [setSearchParams]);
 
   const c = (dv, lv) => dark ? dv : lv;
 
@@ -114,7 +138,7 @@ export default function Tasks({ dark }) {
         ) : (
           <div className="space-y-4">
             {data.jobs.map((job, i) => (
-              <JobCard key={job.id || i} job={job} dark={dark} onClick={() => setSelectedJob(job)} />
+              <JobCard key={job.id || i} job={job} dark={dark} onClick={() => selectJob(job)} />
             ))}
           </div>
         )}
@@ -128,7 +152,7 @@ export default function Tasks({ dark }) {
             <div className={`rounded-2xl border p-4 ${c('bg-[#1a1a1a] border-white/10', 'bg-white border-gray-200')}`}>
               <div className="space-y-1 max-h-80 overflow-y-auto">
                 {data.runs.map((run, i) => (
-                  <button key={i} onClick={() => setSelectedRun(run)} className={`w-full flex items-center justify-between py-2 px-3 rounded-lg text-sm font-satoshi text-left ${c('hover:bg-white/5', 'hover:bg-gray-50')}`}>
+                  <button key={i} onClick={() => selectRun(run)} className={`w-full flex items-center justify-between py-2 px-3 rounded-lg text-sm font-satoshi text-left ${c('hover:bg-white/5', 'hover:bg-gray-50')}`}>
                     <div className="flex items-center gap-2.5 min-w-0">
                       <span className={`w-2 h-2 rounded-full flex-shrink-0 ${run.status === 'ok' ? 'bg-[#2F7D4F]' : 'bg-red-400'}`} />
                       <span className={`truncate ${c('text-white/70', 'text-[#1A1A1A]/70')}`}>{run.jobId || 'Unknown'}</span>
@@ -149,12 +173,12 @@ export default function Tasks({ dark }) {
 
       {/* Task detail popup */}
       {selectedJob && !selectedRun && (
-        <TaskDetailPopup job={selectedJob} runs={data?.runs || []} dark={dark} onClose={() => setSelectedJob(null)} onSelectRun={setSelectedRun} />
+        <TaskDetailPopup job={selectedJob} runs={data?.runs || []} dark={dark} onClose={closeModal} onSelectRun={selectRun} />
       )}
 
       {/* Run detail popup */}
       {selectedRun && (
-        <RunDetailPopup run={selectedRun} dark={dark} onClose={() => setSelectedRun(null)} />
+        <RunDetailPopup run={selectedRun} dark={dark} onClose={closeModal} />
       )}
     </div>
   );
