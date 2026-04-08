@@ -330,6 +330,8 @@ function RunDetailPopup({ run, dark, onClose }) {
   const c = (dv, lv) => dark ? dv : lv;
   const [session, setSession] = useState(null);
   const [loadingSession, setLoadingSession] = useState(false);
+  const [memory, setMemory] = useState(null);
+  const [loadingMemory, setLoadingMemory] = useState(false);
 
   useEffect(() => {
     if (!run.sessionId) return;
@@ -342,6 +344,22 @@ function RunDetailPopup({ run, dark, onClose }) {
       .catch(() => {})
       .finally(() => setLoadingSession(false));
   }, [run.sessionId]);
+
+  // For heartbeat runs, fetch the memory file for the day the run occurred
+  const isHeartbeat = run.jobId === 'heartbeat';
+  const runDate = run.ts ? new Date(typeof run.ts === 'number' ? run.ts : run.ts).toISOString().slice(0, 10) : null;
+
+  useEffect(() => {
+    if (!isHeartbeat || !runDate) return;
+    setLoadingMemory(true);
+    fetch(`${BACKEND_URL}/api/tasks/memory/${runDate}`, {
+      headers: { Authorization: `Bearer ${getToken()}` },
+    })
+      .then(r => r.ok ? r.json() : null)
+      .then(setMemory)
+      .catch(() => {})
+      .finally(() => setLoadingMemory(false));
+  }, [isHeartbeat, runDate]);
 
   return (
     <div className="fixed inset-0 z-[60] flex items-center justify-center p-4">
@@ -399,6 +417,24 @@ function RunDetailPopup({ run, dark, onClose }) {
               <div className={`rounded-xl p-3 text-sm font-satoshi leading-relaxed whitespace-pre-wrap ${c('bg-white/5 text-white/60', 'bg-gray-50 text-[#1A1A1A]/60')}`}>
                 {run.summary}
               </div>
+            </div>
+          )}
+
+          {/* Memory notes for the day (heartbeat runs) */}
+          {isHeartbeat && runDate && (
+            <div className="mb-4">
+              <h3 className={`text-xs font-satoshi font-medium uppercase tracking-wider mb-2 ${c('text-white/30', 'text-[#1A1A1A]/30')}`}>
+                Memory — {runDate}
+              </h3>
+              {loadingMemory ? (
+                <p className={`text-xs font-satoshi ${c('text-white/30', 'text-[#1A1A1A]/30')}`}>Loading...</p>
+              ) : memory?.content ? (
+                <div className={`rounded-xl p-4 text-sm font-satoshi leading-relaxed prose prose-sm max-w-none overflow-y-auto max-h-96 ${c('bg-white/5 text-white/60 prose-invert prose-headings:text-white/70 prose-strong:text-white/70 prose-code:text-white/50', 'bg-gray-50 text-[#1A1A1A]/60 prose-headings:text-[#1A1A1A]/70 prose-strong:text-[#1A1A1A]/70 prose-code:text-[#1A1A1A]/50')}`}>
+                  <ReactMarkdown remarkPlugins={[remarkGfm]}>{memory.content}</ReactMarkdown>
+                </div>
+              ) : (
+                <p className={`text-xs font-satoshi ${c('text-white/30', 'text-[#1A1A1A]/30')}`}>No memory file for this day.</p>
+              )}
             </div>
           )}
 
