@@ -4,7 +4,7 @@ import { Clock, Play, Pause, Calendar, Timer, X } from 'lucide-react';
 import ReactMarkdown from 'react-markdown';
 import remarkGfm from 'remark-gfm';
 
-const BACKEND_URL = import.meta.env.VITE_BACKEND_URL ?? 'https://api.dragonsellerbot.com';
+const BACKEND_URL = import.meta.env.VITE_BACKEND_URL ?? 'https://api.getdragonbot.com';
 
 function getToken() {
   return localStorage.getItem('dragonbot_token') ?? '';

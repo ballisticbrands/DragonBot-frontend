@@ -12,7 +12,7 @@ import Slack from './pages/Slack.jsx';
 import Admin from './pages/Admin.jsx';
 import Sidebar from './components/Sidebar.jsx';
 
-const BACKEND_URL = import.meta.env.VITE_BACKEND_URL ?? 'https://api.dragonsellerbot.com';
+const BACKEND_URL = import.meta.env.VITE_BACKEND_URL ?? 'https://api.getdragonbot.com';
 
 function PrivateRoute({ children }) {
   const token = localStorage.getItem('dragonbot_token');

@@ -3,7 +3,7 @@ import { useSearchParams } from 'react-router-dom';
 import { Check, Search, Plug, Trash2 } from 'lucide-react';
 import { createFrontendClient } from '@pipedream/sdk/browser';
 
-const BACKEND_URL = import.meta.env.VITE_BACKEND_URL ?? 'https://api.dragonsellerbot.com';
+const BACKEND_URL = import.meta.env.VITE_BACKEND_URL ?? 'https://api.getdragonbot.com';
 
 const STEPS = ['add-to-slack', 'connect-tools', 'select-channels', 'complete'];
 

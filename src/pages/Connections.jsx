@@ -2,7 +2,7 @@ import { useState, useEffect } from 'react';
 import { Plug, Globe, User, Trash2, Plus, ChevronDown, Search } from 'lucide-react';
 import { createFrontendClient } from '@pipedream/sdk/browser';
 
-const BACKEND_URL = import.meta.env.VITE_BACKEND_URL ?? 'https://api.dragonsellerbot.com';
+const BACKEND_URL = import.meta.env.VITE_BACKEND_URL ?? 'https://api.getdragonbot.com';
 
 function getToken() {
   return localStorage.getItem('dragonbot_token') ?? '';

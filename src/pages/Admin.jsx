@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import { ChevronRight, ArrowLeft, Bot, User, Loader2, MessageSquare } from 'lucide-react';
 
-const BACKEND_URL = import.meta.env.VITE_BACKEND_URL ?? 'https://api.dragonsellerbot.com';
+const BACKEND_URL = import.meta.env.VITE_BACKEND_URL ?? 'https://api.getdragonbot.com';
 function getToken() { return localStorage.getItem('dragonbot_token'); }
 
 async function apiFetch(path) {

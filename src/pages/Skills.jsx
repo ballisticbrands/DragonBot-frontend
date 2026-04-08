@@ -3,7 +3,7 @@ import { Puzzle, Search, Sparkles, Box, X, FileText, Layers, ChevronRight } from
 import Markdown from 'react-markdown';
 import remarkGfm from 'remark-gfm';
 
-const BACKEND_URL = import.meta.env.VITE_BACKEND_URL ?? 'https://api.dragonsellerbot.com';
+const BACKEND_URL = import.meta.env.VITE_BACKEND_URL ?? 'https://api.getdragonbot.com';
 
 function getToken() {
   return localStorage.getItem('dragonbot_token') ?? '';
