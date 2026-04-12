@@ -1,5 +1,5 @@
 import { useState, useEffect, useMemo } from 'react';
-import { BarChart3, AlertCircle, Clock, Zap } from 'lucide-react';
+import { BarChart3, AlertCircle, Clock, Zap, Coins } from 'lucide-react';
 
 const BACKEND_URL = import.meta.env.VITE_BACKEND_URL ?? 'https://api.getdragonbot.com';
 
@@ -78,7 +78,8 @@ export default function Usage({ dark }) {
         ) : (
           <>
             {/* Stats cards */}
-            <div className="grid grid-cols-3 gap-4 mb-8">
+            <div className="grid grid-cols-4 gap-4 mb-8">
+              <StatCard dark={dark} icon={<Coins size={18} />} label="Credits Used" value={data.totalCredits != null ? data.totalCredits.toLocaleString(undefined, { maximumFractionDigits: 1 }) : '—'} color="#2F7D4F" />
               <StatCard dark={dark} icon={<Zap size={18} />} label="Total Calls" value={data.totalCalls.toLocaleString()} />
               <StatCard dark={dark} icon={<AlertCircle size={18} />} label="Errors" value={data.totalErrors.toLocaleString()} color={data.totalErrors > 0 ? '#ef4444' : undefined} />
               <StatCard dark={dark} icon={<Clock size={18} />} label="Avg Latency" value={avgLatency(toolRows)} />
@@ -137,6 +138,9 @@ export default function Usage({ dark }) {
                         <span className={`text-sm font-satoshi tabular-nums ${c('', 'text-white/50', 'text-[#1A1A1A]/50')}`}>
                           {row.count.toLocaleString()} calls
                         </span>
+                        {row.credits > 0 && (
+                          <span className="text-sm font-satoshi text-[#2F7D4F] tabular-nums">{row.credits.toLocaleString(undefined, { maximumFractionDigits: 1 })} cr</span>
+                        )}
                         {row.errors > 0 && (
                           <span className="text-sm font-satoshi text-red-400 tabular-nums">{row.errors} err</span>
                         )}
@@ -166,6 +170,9 @@ export default function Usage({ dark }) {
                         <code className={`font-mono truncate ${c('', 'text-white/70', 'text-[#1A1A1A]/70')}`}>{log.tool}</code>
                       </div>
                       <div className="flex items-center gap-3 flex-shrink-0">
+                        {log.creditCount > 0 && (
+                          <span className="tabular-nums text-[#2F7D4F]">{log.creditCount.toLocaleString(undefined, { maximumFractionDigits: 1 })} cr</span>
+                        )}
                         {log.latencyMs && (
                           <span className={`tabular-nums ${c('', 'text-white/30', 'text-[#1A1A1A]/30')}`}>{log.latencyMs}ms</span>
                         )}
