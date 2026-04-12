@@ -7,12 +7,24 @@ function getToken() {
   return localStorage.getItem('dragonbot_token') ?? '';
 }
 
+function getSince(key) {
+  const now = new Date();
+  switch (key) {
+    case 'today': { const d = new Date(now); d.setHours(0,0,0,0); return d; }
+    case '7d': return new Date(now.getTime() - 7 * 86400000);
+    case 'month': return new Date(now.getFullYear(), now.getMonth(), 1);
+    case '30d': return new Date(now.getTime() - 30 * 86400000);
+    case '90d': return new Date(now.getTime() - 90 * 86400000);
+    default: return new Date(now.getTime() - 30 * 86400000);
+  }
+}
+
 const TIMEFRAMES = [
-  { label: 'Today', value: 1 },
-  { label: 'Last 7 days', value: 7 },
-  { label: 'This month', value: 30 },
-  { label: 'Last 30 days', value: 30 },
-  { label: 'Last 90 days', value: 90 },
+  { label: 'Today', value: 'today' },
+  { label: 'Last 7 days', value: '7d' },
+  { label: 'This month', value: 'month' },
+  { label: 'Last 30 days', value: '30d' },
+  { label: 'Last 90 days', value: '90d' },
 ];
 
 const THREAD_SORTS = [
@@ -49,7 +61,7 @@ function sessionTagToTitle(tag) {
 export default function Usage({ dark }) {
   const [data, setData] = useState(null);
   const [loading, setLoading] = useState(true);
-  const [timeframe, setTimeframe] = useState(30);
+  const [timeframe, setTimeframe] = useState('month');
   const [tfOpen, setTfOpen] = useState(false);
   const [threadSort, setThreadSort] = useState('top');
   const [tsOpen, setTsOpen] = useState(false);
@@ -60,7 +72,7 @@ export default function Usage({ dark }) {
     (async () => {
       setLoading(true);
       try {
-        const since = new Date(Date.now() - timeframe * 86400000).toISOString();
+        const since = getSince(timeframe).toISOString();
         const res = await fetch(`${BACKEND_URL}/api/usage?since=${since}`, {
           headers: { Authorization: `Bearer ${getToken()}` },
         });
@@ -95,6 +107,7 @@ export default function Usage({ dark }) {
 
   const c = (dv, lv) => dark ? dv : lv;
   const tfLabel = TIMEFRAMES.find(t => t.value === timeframe)?.label || 'This month';
+
 
   if (loading) return <div className={`min-h-screen px-4 py-8 md:px-8 ${c('bg-[#0f0f0f]', 'bg-[#fafafa]')}`}><p className={`text-sm ${c('text-white/40', 'text-[#1A1A1A]/40')}`}>Loading...</p></div>;
   if (!data) return <div className={`min-h-screen px-4 py-8 md:px-8 ${c('bg-[#0f0f0f]', 'bg-[#fafafa]')}`}><p className={`text-sm ${c('text-white/40', 'text-[#1A1A1A]/40')}`}>Failed to load usage data.</p></div>;
