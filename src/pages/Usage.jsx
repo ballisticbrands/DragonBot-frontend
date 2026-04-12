@@ -31,8 +31,17 @@ export default function Usage({ dark }) {
 
   const toolRows = useMemo(() => {
     if (!data?.byTool) return [];
-    return Object.entries(data.byTool)
-      .map(([tool, stats]) => ({ tool, ...stats }))
+    // Group by provider (first part before the dot)
+    const grouped = {};
+    for (const [tool, stats] of Object.entries(data.byTool)) {
+      const provider = tool.split('.')[0] || tool;
+      if (!grouped[provider]) grouped[provider] = { tool: provider, count: 0, errors: 0, totalMs: 0, credits: 0 };
+      grouped[provider].count += stats.count || 0;
+      grouped[provider].errors += stats.errors || 0;
+      grouped[provider].totalMs += stats.totalMs || 0;
+      grouped[provider].credits += stats.credits || 0;
+    }
+    return Object.values(grouped)
       .sort((a, b) => (b.credits || 0) - (a.credits || 0) || b.count - a.count);
   }, [data]);
 
@@ -130,7 +139,7 @@ export default function Usage({ dark }) {
               {toolRows.length === 0 ? (
                 <p className={`text-sm font-satoshi ${c('text-white/30', 'text-[#1A1A1A]/30')}`}>No tool calls yet.</p>
               ) : (
-                <div className="space-y-2">
+                <div className="space-y-2 max-h-80 overflow-y-auto">
                   {toolRows.map((row) => (
                     <div key={row.tool} className={`flex items-center justify-between py-2 px-3 rounded-xl ${c('hover:bg-white/5', 'hover:bg-gray-50')}`}>
                       <div className="flex items-center gap-3 min-w-0">
