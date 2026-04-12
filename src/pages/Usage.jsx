@@ -95,7 +95,7 @@ export default function Usage({ dark }) {
                 <p className={`text-sm font-satoshi ${c('text-white/30', 'text-[#1A1A1A]/30')}`}>No activity yet.</p>
               ) : (
                 <>
-                  <div className="flex items-end gap-[3px] h-32">
+                  <div className="flex items-end gap-[3px] h-48">
                     {data.byDay.map((day) => {
                       const credits = day.credits || 0;
                       const pct = credits > 0 ? (credits / maxDayCredits) * 100 : 0;
