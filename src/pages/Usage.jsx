@@ -194,7 +194,7 @@ export default function Usage({ dark }) {
         {/* Threads Table */}
         <div className={`rounded-xl overflow-hidden ${c('bg-[#1a1a1a]', 'bg-white border border-gray-200')}`}>
           <div className="flex items-center justify-between p-5 pb-0">
-            <p className={`text-[11px] font-medium ${c('text-white/50', 'text-[#1A1A1A]/50')}`}>Threads</p>
+            <p className={`text-[11px] font-medium ${c('text-white/50', 'text-[#1A1A1A]/50')}`}>Breakdown by caller</p>
             <Dropdown dark={dark} label={THREAD_SORTS.find(s => s.value === threadSort)?.label} open={tsOpen} setOpen={setTsOpen}
               items={THREAD_SORTS.map(s => ({ label: s.label, onClick: () => { setThreadSort(s.value); setTsOpen(false); setThreadPage(0); } }))} />
           </div>
