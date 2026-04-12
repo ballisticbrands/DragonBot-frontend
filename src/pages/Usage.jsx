@@ -141,9 +141,11 @@ export default function Usage({ dark }) {
                 const pctScheduled = total > 0 ? (scheduled / maxDayCredits) * 100 : 0;
                 return (
                   <div key={day.date} className="flex-1 flex flex-col justify-end group relative h-full">
-                    <div className={`absolute -top-10 left-1/2 -translate-x-1/2 px-2 py-1.5 rounded text-[10px] whitespace-nowrap opacity-0 group-hover:opacity-100 transition-opacity z-10 leading-tight ${c('bg-[#333] text-white', 'bg-gray-800 text-white')}`}>
-                      <div className="font-medium">{day.date.slice(5)}</div>
-                      <div>{total.toLocaleString(undefined, { maximumFractionDigits: 0 })} credits</div>
+                    <div className={`absolute -top-[76px] left-1/2 -translate-x-1/2 px-2.5 py-2 rounded text-[10px] whitespace-nowrap opacity-0 group-hover:opacity-100 transition-opacity z-10 leading-relaxed pointer-events-none ${c('bg-[#333] text-white', 'bg-gray-800 text-white')}`}>
+                      <div className="font-medium mb-0.5">{formatDate(day.date)}</div>
+                      <div className="flex items-center gap-1.5"><span className="inline-block h-2 w-2 rounded-[2px] bg-[#2F7D4F]" />{oneOff.toLocaleString(undefined, { maximumFractionDigits: 0 })} credits</div>
+                      <div className="flex items-center gap-1.5"><span className={`inline-block h-2 w-2 rounded-[2px] ${c('bg-[#4a6741]', 'bg-[#a3d99c]')}`} />{scheduled.toLocaleString(undefined, { maximumFractionDigits: 0 })} credits</div>
+                      <div className={`mt-0.5 pt-0.5 border-t ${c('border-white/20', 'border-white/20')} font-medium`}>Total: {total.toLocaleString(undefined, { maximumFractionDigits: 0 })} credits</div>
                     </div>
                     {pctOneOff > 0 && (
                       <div className="w-full bg-[#2F7D4F] rounded-t-[2px]" style={{ height: `${Math.max(pctOneOff, 1)}%` }} />
