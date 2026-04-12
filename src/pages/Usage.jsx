@@ -95,18 +95,19 @@ export default function Usage({ dark }) {
                 <p className={`text-sm font-satoshi ${c('text-white/30', 'text-[#1A1A1A]/30')}`}>No activity yet.</p>
               ) : (
                 <>
-                  <div className="flex items-end gap-[3px] h-48">
+                  <div className="flex gap-[3px] h-48">
                     {data.byDay.map((day) => {
                       const credits = day.credits || 0;
                       const pct = credits > 0 ? (credits / maxDayCredits) * 100 : 0;
+                      const barHeight = credits > 0 ? Math.max(pct, 2) : 0.5;
                       return (
-                        <div key={day.date} className="flex-1 flex flex-col items-center group relative">
+                        <div key={day.date} className="flex-1 flex flex-col justify-end group relative h-full">
                           <div className={`absolute -top-8 left-1/2 -translate-x-1/2 px-2 py-1 rounded text-[10px] font-satoshi whitespace-nowrap opacity-0 group-hover:opacity-100 transition-opacity z-10 ${c('bg-white/10 text-white', 'bg-gray-800 text-white')}`}>
                             {day.date.slice(5)}: {credits.toLocaleString(undefined, { maximumFractionDigits: 1 })} credits ({day.calls} calls)
                           </div>
                           <div
-                            className={`w-full rounded-t min-h-[1px] transition-all cursor-default ${credits > 0 ? 'bg-[#2F7D4F] hover:bg-[#3a9960]' : c('bg-white/5', 'bg-gray-100')}`}
-                            style={{ height: credits > 0 ? `${Math.max(pct, 3)}%` : '1px' }}
+                            className={`w-full rounded-t transition-all cursor-default ${credits > 0 ? 'bg-[#2F7D4F] hover:bg-[#3a9960]' : c('bg-white/5', 'bg-gray-100')}`}
+                            style={{ height: `${barHeight}%` }}
                           />
                         </div>
                       );
