@@ -132,36 +132,58 @@ export default function Usage({ dark }) {
             </div>
           </div>
           <div className="p-5">
-            <div className="flex gap-[2px] h-40">
-              {data.byDay.map((day) => {
-                const oneOff = day.oneOffCredits || 0;
-                const scheduled = day.scheduledCredits || 0;
-                const total = oneOff + scheduled;
-                const pctOneOff = total > 0 ? (oneOff / maxDayCredits) * 100 : 0;
-                const pctScheduled = total > 0 ? (scheduled / maxDayCredits) * 100 : 0;
-                return (
-                  <div key={day.date} className="flex-1 flex flex-col justify-end group relative h-full">
-                    <div className={`absolute -top-[76px] left-1/2 -translate-x-1/2 px-2.5 py-2 rounded text-[10px] whitespace-nowrap opacity-0 group-hover:opacity-100 transition-opacity z-10 leading-relaxed pointer-events-none ${c('bg-[#333] text-white', 'bg-gray-800 text-white')}`}>
-                      <div className="font-medium mb-0.5">{formatDate(day.date)}</div>
-                      <div className="flex items-center gap-1.5"><span className="inline-block h-2 w-2 rounded-[2px] bg-[#2F7D4F]" />{oneOff.toLocaleString(undefined, { maximumFractionDigits: 0 })} credits</div>
-                      <div className="flex items-center gap-1.5"><span className={`inline-block h-2 w-2 rounded-[2px] ${c('bg-[#4a6741]', 'bg-[#a3d99c]')}`} />{scheduled.toLocaleString(undefined, { maximumFractionDigits: 0 })} credits</div>
-                      <div className={`mt-0.5 pt-0.5 border-t ${c('border-white/20', 'border-white/20')} font-medium`}>Total: {total.toLocaleString(undefined, { maximumFractionDigits: 0 })} credits</div>
-                    </div>
-                    {pctOneOff > 0 && (
-                      <div className="w-full bg-[#2F7D4F] rounded-t-[2px]" style={{ height: `${Math.max(pctOneOff, 1)}%` }} />
-                    )}
-                    {pctScheduled > 0 && (
-                      <div className={`w-full ${c('bg-[#4a6741]', 'bg-[#a3d99c]')} ${pctOneOff === 0 ? 'rounded-t-[2px]' : ''}`} style={{ height: `${Math.max(pctScheduled, 1)}%` }} />
-                    )}
-                    {total === 0 && (
-                      <div className={`w-full rounded-t-[2px] ${c('bg-white/5', 'bg-gray-100')}`} style={{ height: '1px' }} />
-                    )}
+            {(() => {
+              const yTicks = [0, Math.round(maxDayCredits / 2), Math.round(maxDayCredits)];
+              const formatTick = (n) => n >= 1000 ? `${(n / 1000).toFixed(1)}k` : n.toString();
+              return (
+                <div className="flex gap-2">
+                  {/* Y axis labels */}
+                  <div className="flex flex-col justify-between h-40 flex-shrink-0 py-0.5">
+                    {[...yTicks].reverse().map((tick, i) => (
+                      <span key={i} className={`text-[10px] tabular-nums text-right w-8 ${c('text-white/25', 'text-[#1A1A1A]/25')}`}>
+                        {formatTick(tick)}
+                      </span>
+                    ))}
                   </div>
-                );
-              })}
-            </div>
+                  {/* Bars */}
+                  <div className="flex gap-[2px] h-40 flex-1 relative">
+                    {/* Grid lines */}
+                    {yTicks.map((tick, i) => (
+                      <div key={i} className={`absolute left-0 right-0 border-t ${c('border-white/5', 'border-gray-100')}`}
+                        style={{ bottom: `${(tick / maxDayCredits) * 100}%` }} />
+                    ))}
+                    {data.byDay.map((day) => {
+                      const oneOff = day.oneOffCredits || 0;
+                      const scheduled = day.scheduledCredits || 0;
+                      const total = oneOff + scheduled;
+                      const pctOneOff = total > 0 ? (oneOff / maxDayCredits) * 100 : 0;
+                      const pctScheduled = total > 0 ? (scheduled / maxDayCredits) * 100 : 0;
+                      return (
+                        <div key={day.date} className="flex-1 flex flex-col justify-end group relative h-full z-10">
+                          <div className={`absolute bottom-full mb-2 left-1/2 -translate-x-1/2 px-2.5 py-2 rounded text-[10px] whitespace-nowrap opacity-0 group-hover:opacity-100 transition-opacity z-20 leading-relaxed pointer-events-none shadow-lg ${c('bg-[#333] text-white', 'bg-gray-800 text-white')}`}>
+                            <div className="font-medium mb-0.5">{formatDate(day.date)}</div>
+                            <div className="flex items-center gap-1.5"><span className="inline-block h-2 w-2 rounded-[2px] bg-[#2F7D4F]" />One-off: {oneOff.toLocaleString(undefined, { maximumFractionDigits: 0 })} credits</div>
+                            <div className="flex items-center gap-1.5"><span className={`inline-block h-2 w-2 rounded-[2px] ${c('bg-[#4a6741]', 'bg-[#a3d99c]')}`} />Scheduled: {scheduled.toLocaleString(undefined, { maximumFractionDigits: 0 })} credits</div>
+                            <div className={`mt-0.5 pt-0.5 border-t ${c('border-white/20', 'border-white/20')} font-medium`}>Total: {total.toLocaleString(undefined, { maximumFractionDigits: 0 })} credits</div>
+                          </div>
+                          {pctOneOff > 0 && (
+                            <div className="w-full bg-[#2F7D4F] rounded-t-[2px]" style={{ height: `${Math.max(pctOneOff, 1)}%` }} />
+                          )}
+                          {pctScheduled > 0 && (
+                            <div className={`w-full ${c('bg-[#4a6741]', 'bg-[#a3d99c]')} ${pctOneOff === 0 ? 'rounded-t-[2px]' : ''}`} style={{ height: `${Math.max(pctScheduled, 1)}%` }} />
+                          )}
+                          {total === 0 && (
+                            <div className={`w-full rounded-t-[2px] ${c('bg-white/5', 'bg-gray-100')}`} style={{ height: '1px' }} />
+                          )}
+                        </div>
+                      );
+                    })}
+                  </div>
+                </div>
+              );
+            })()}
             {data.byDay.length > 0 && (
-              <div className="flex justify-between mt-2">
+              <div className="flex justify-between mt-2 ml-10">
                 <span className={`text-[10px] ${c('text-white/20', 'text-[#1A1A1A]/20')}`}>{data.byDay[0]?.date}</span>
                 <span className={`text-[10px] ${c('text-white/20', 'text-[#1A1A1A]/20')}`}>{data.byDay[data.byDay.length - 1]?.date}</span>
               </div>
