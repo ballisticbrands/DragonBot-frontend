@@ -117,7 +117,7 @@ export default function Usage({ dark }) {
         </div>
 
         {/* Daily Spend Chart */}
-        <div className={`rounded-xl overflow-hidden ${c('bg-[#1a1a1a]', 'bg-white border border-gray-200')}`}>
+        <div className={`rounded-xl ${c('bg-[#1a1a1a]', 'bg-white border border-gray-200')}`}>
           <div className="flex items-center justify-between p-5 pb-0">
             <p className={`text-[11px] font-medium ${c('text-white/50', 'text-[#1A1A1A]/50')}`}>Daily Spend</p>
             <div className={`flex gap-4 text-[11px] ${c('text-white/40', 'text-[#1A1A1A]/40')}`}>
@@ -131,7 +131,7 @@ export default function Usage({ dark }) {
               </div>
             </div>
           </div>
-          <div className="p-5">
+          <div className="px-5 pb-5 pt-3">
             {(() => {
               const yTicks = [0, Math.round(maxDayCredits / 2), Math.round(maxDayCredits)];
               const formatTick = (n) => n >= 1000 ? `${(n / 1000).toFixed(1)}k` : n.toString();
@@ -146,7 +146,7 @@ export default function Usage({ dark }) {
                     ))}
                   </div>
                   {/* Bars */}
-                  <div className="flex gap-[2px] h-40 flex-1 relative">
+                  <div className="flex gap-[2px] h-40 flex-1 relative overflow-visible">
                     {/* Grid lines */}
                     {yTicks.map((tick, i) => (
                       <div key={i} className={`absolute left-0 right-0 border-t ${c('border-white/5', 'border-gray-100')}`}
@@ -160,7 +160,7 @@ export default function Usage({ dark }) {
                       const pctScheduled = total > 0 ? (scheduled / maxDayCredits) * 100 : 0;
                       return (
                         <div key={day.date} className="flex-1 flex flex-col justify-end group relative h-full z-10">
-                          <div className={`absolute bottom-full mb-2 left-1/2 -translate-x-1/2 px-2.5 py-2 rounded text-[10px] whitespace-nowrap opacity-0 group-hover:opacity-100 transition-opacity z-20 leading-relaxed pointer-events-none shadow-lg ${c('bg-[#333] text-white', 'bg-gray-800 text-white')}`}>
+                          <div className={`absolute left-1/2 -translate-x-1/2 bottom-[calc(100%+8px)] px-2.5 py-2 rounded text-[10px] whitespace-nowrap opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none shadow-lg ${c('bg-[#333] text-white', 'bg-gray-800 text-white')}`} style={{ zIndex: 100 }}>
                             <div className="font-medium mb-0.5">{formatDate(day.date)}</div>
                             <div className="flex items-center gap-1.5"><span className="inline-block h-2 w-2 rounded-[2px] bg-[#2F7D4F]" />One-off: {oneOff.toLocaleString(undefined, { maximumFractionDigits: 0 })} credits</div>
                             <div className="flex items-center gap-1.5"><span className={`inline-block h-2 w-2 rounded-[2px] ${c('bg-[#4a6741]', 'bg-[#a3d99c]')}`} />Scheduled: {scheduled.toLocaleString(undefined, { maximumFractionDigits: 0 })} credits</div>
