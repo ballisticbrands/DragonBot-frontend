@@ -45,7 +45,14 @@ function formatDate(dateStr) {
 
 function sessionTagToTitle(tag) {
   if (!tag || tag === 'unknown::') return 'One-off task';
-  if (tag.startsWith('heartbeat::')) return 'Heartbeat';
+  if (tag.startsWith('heartbeat::')) {
+    const hbTs = tag.slice(12); // "YYYY-MM-DD-HH-MM"
+    if (hbTs) {
+      const [y, mo, d, h, mi] = hbTs.split('-');
+      return `Heartbeat (${mo}/${d} ${h}:${mi})`;
+    }
+    return 'Heartbeat';
+  }
   if (tag.startsWith('cron::')) {
     const parts = tag.slice(6).split(':');
     return `Scheduled task: ${parts[1] || parts[0] || 'Unknown'}`;
