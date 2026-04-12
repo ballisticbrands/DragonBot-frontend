@@ -36,14 +36,10 @@ export default function Usage({ dark }) {
       .sort((a, b) => (b.credits || 0) - (a.credits || 0) || b.count - a.count);
   }, [data]);
 
-  // Use credits if available, fall back to calls for days with no credit tracking
-  const hasAnyCredits = useMemo(() => data?.byDay?.some(d => d.credits > 0), [data]);
-  const dayMetric = (d) => hasAnyCredits ? (d.credits || 0) : d.calls;
-  const dayMetricLabel = hasAnyCredits ? 'credits' : 'calls';
-  const maxDayValue = useMemo(() => {
+  const maxDayCredits = useMemo(() => {
     if (!data?.byDay) return 1;
-    return Math.max(1, ...data.byDay.map(dayMetric));
-  }, [data, hasAnyCredits]);
+    return Math.max(0.01, ...data.byDay.map((d) => d.credits || 0));
+  }, [data]);
 
   const c = (dv, lv) => dark ? dv : lv;
 
@@ -101,16 +97,16 @@ export default function Usage({ dark }) {
                 <>
                   <div className="flex items-end gap-[3px] h-32">
                     {data.byDay.map((day) => {
-                      const val = dayMetric(day);
-                      const pct = maxDayValue > 0 ? (val / maxDayValue) * 100 : 0;
+                      const credits = day.credits || 0;
+                      const pct = credits > 0 ? (credits / maxDayCredits) * 100 : 0;
                       return (
                         <div key={day.date} className="flex-1 flex flex-col items-center group relative">
                           <div className={`absolute -top-8 left-1/2 -translate-x-1/2 px-2 py-1 rounded text-[10px] font-satoshi whitespace-nowrap opacity-0 group-hover:opacity-100 transition-opacity z-10 ${c('bg-white/10 text-white', 'bg-gray-800 text-white')}`}>
-                            {day.date.slice(5)}: {val.toLocaleString(undefined, { maximumFractionDigits: 1 })} {dayMetricLabel} ({day.calls} calls)
+                            {day.date.slice(5)}: {credits.toLocaleString(undefined, { maximumFractionDigits: 1 })} credits ({day.calls} calls)
                           </div>
                           <div
-                            className="w-full rounded-t bg-[#2F7D4F] min-h-[2px] transition-all hover:bg-[#3a9960] cursor-default"
-                            style={{ height: `${Math.max(pct, 1)}%` }}
+                            className={`w-full rounded-t min-h-[1px] transition-all cursor-default ${credits > 0 ? 'bg-[#2F7D4F] hover:bg-[#3a9960]' : c('bg-white/5', 'bg-gray-100')}`}
+                            style={{ height: credits > 0 ? `${Math.max(pct, 3)}%` : '1px' }}
                           />
                         </div>
                       );
