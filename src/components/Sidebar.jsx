@@ -1,5 +1,5 @@
 import { useLocation, useNavigate } from 'react-router-dom';
-import { BarChart3, Clock, Puzzle, Plug, LogOut, Menu, X, Sun, Moon, Monitor, MessageSquare, Shield } from 'lucide-react';
+import { BarChart3, Clock, Puzzle, Plug, LogOut, Menu, X, Sun, Moon, Monitor, MessageSquare, Shield, Settings } from 'lucide-react';
 import { useState } from 'react';
 
 const NAV_ITEMS = [
@@ -8,6 +8,7 @@ const NAV_ITEMS = [
   { path: '/connections', label: 'Connections', icon: Plug },
   { path: '/slack', label: 'Slack', icon: MessageSquare },
   { path: '/skills', label: 'Skills', icon: Puzzle },
+  { path: '/settings', label: 'Settings', icon: Settings },
 ];
 
 const ADMIN_NAV = { path: '/admin', label: 'Admin', icon: Shield };

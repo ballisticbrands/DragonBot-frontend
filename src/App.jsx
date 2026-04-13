@@ -10,6 +10,7 @@ import Skills from './pages/Skills.jsx';
 import Connections from './pages/Connections.jsx';
 import Slack from './pages/Slack.jsx';
 import Admin from './pages/Admin.jsx';
+import Settings from './pages/Settings.jsx';
 import Sidebar from './components/Sidebar.jsx';
 
 const BACKEND_URL = import.meta.env.VITE_BACKEND_URL ?? 'https://api.getdragonbot.com';
@@ -145,6 +146,14 @@ function AppLayout() {
             element={
               <PrivateRoute>
                 <Slack dark={dark} />
+              </PrivateRoute>
+            }
+          />
+          <Route
+            path="/settings"
+            element={
+              <PrivateRoute>
+                <Settings dark={dark} />
               </PrivateRoute>
             }
           />
