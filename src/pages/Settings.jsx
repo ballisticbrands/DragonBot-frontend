@@ -125,8 +125,9 @@ export default function Settings({ dark }) {
 function ModelCard({ dark, name, description, badge, badgeColor, selected, saving, onClick }) {
   const c = (dv, lv) => dark ? dv : lv;
   return (
-    <label
+    <div
       onClick={onClick}
+      role="button"
       className={`flex items-start gap-3 p-4 border rounded-lg cursor-pointer transition-colors ${
         selected
           ? c('border-[#2F7D4F] bg-[#2F7D4F]/5', 'border-[#2F7D4F] bg-[#2F7D4F]/5')
@@ -156,6 +157,6 @@ function ModelCard({ dark, name, description, badge, badgeColor, selected, savin
         </span>
         <span className={`text-sm ${c('text-white/40', 'text-[#1A1A1A]/40')}`}>{description}</span>
       </div>
-    </label>
+    </div>
   );
 }
