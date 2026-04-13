@@ -58,15 +58,15 @@ export default function Sidebar({ dark, theme, onSetTheme }) {
   const navContent = (
     <div className="flex flex-col h-full">
       {/* Logo */}
-      <div className="flex items-center gap-2 px-5 pt-6 pb-8">
+      <div className="flex items-center gap-1.5 px-4 pt-6 pb-8">
         <motion.img
           src="/DragonBot-logo.png"
           alt="DragonBot"
-          className="h-8"
-          animate={{ y: [0, -3, 0] }}
+          className="h-6 flex-shrink-0"
+          animate={{ y: [0, -2, 0] }}
           transition={{ duration: 1.2, repeat: Infinity, ease: 'easeInOut' }}
         />
-        <span className={`font-bold text-[17px] ${c('text-white', 'text-[#1A1A1A]')}`} style={{ lineHeight: '1' }}>
+        <span className={`font-bold text-[14px] ${c('text-white', 'text-[#1A1A1A]')}`} style={{ lineHeight: '1' }}>
           get<span className="bg-gradient-to-r from-[#2F7D4F] to-[#98CC65] bg-clip-text text-transparent">DragonBot</span><span className={c('text-white', 'text-[#1A1A1A]')}>.com</span>
         </span>
       </div>
