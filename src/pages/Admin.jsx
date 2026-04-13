@@ -27,7 +27,7 @@ function BotList({ dark, onSelect }) {
       .finally(() => setLoading(false));
   }, []);
 
-  if (error) return <p className="text-red-500 text-sm font-satoshi">{error}</p>;
+  if (error) return <p className="text-red-500 text-sm">{error}</p>;
   if (loading) return <Loading dark={dark} text="Loading DragonBots..." />;
 
   return (
@@ -42,10 +42,10 @@ function BotList({ dark, onSelect }) {
         >
           <Bot size={20} className={dark ? 'text-[#4ADE80]' : 'text-[#2F7D4F]'} />
           <div className="flex-1 min-w-0">
-            <div className={`text-sm font-satoshi font-medium ${dark ? 'text-white' : 'text-[#1A1A1A]'}`}>
+            <div className={`text-sm font-medium ${dark ? 'text-white' : 'text-[#1A1A1A]'}`}>
               {bot.slackTeamName || bot.name || bot.id.slice(0, 12)}
             </div>
-            <div className={`text-xs font-satoshi ${dark ? 'text-white/40' : 'text-[#1A1A1A]/40'}`}>
+            <div className={`text-xs ${dark ? 'text-white/40' : 'text-[#1A1A1A]/40'}`}>
               {bot.users.join(', ')} &middot; {bot.status}
             </div>
           </div>
@@ -76,13 +76,13 @@ function SessionList({ dark, bot, onSelect, onBack }) {
 
   return (
     <div>
-      <button onClick={onBack} className={`flex items-center gap-1 mb-4 text-sm font-satoshi ${dark ? 'text-white/50 hover:text-white/70' : 'text-[#1A1A1A]/50 hover:text-[#1A1A1A]/70'}`}>
+      <button onClick={onBack} className={`flex items-center gap-1 mb-4 text-sm ${dark ? 'text-white/50 hover:text-white/70' : 'text-[#1A1A1A]/50 hover:text-[#1A1A1A]/70'}`}>
         <ArrowLeft size={14} /> Back to DragonBots
       </button>
-      <h2 className={`text-lg font-clash font-semibold mb-1 ${dark ? 'text-white' : 'text-[#1A1A1A]'}`}>
+      <h2 className={`text-lg font-semibold mb-1 ${dark ? 'text-white' : 'text-[#1A1A1A]'}`}>
         {bot.slackTeamName || bot.name}
       </h2>
-      <p className={`text-xs font-satoshi mb-4 ${dark ? 'text-white/40' : 'text-[#1A1A1A]/40'}`}>
+      <p className={`text-xs mb-4 ${dark ? 'text-white/40' : 'text-[#1A1A1A]/40'}`}>
         {sessions.length} conversations
       </p>
 
@@ -107,25 +107,25 @@ function SessionList({ dark, bot, onSelect, onBack }) {
           >
             <MessageSquare size={16} className={dark ? 'text-white/30' : 'text-[#1A1A1A]/30'} />
             <div className="flex-1 min-w-0">
-              <div className={`text-sm font-satoshi font-medium truncate ${dark ? 'text-white' : 'text-[#1A1A1A]'}`}>
+              <div className={`text-sm font-medium truncate ${dark ? 'text-white' : 'text-[#1A1A1A]'}`}>
                 {session.source || 'Unknown'}
               </div>
-              <div className={`text-xs font-satoshi truncate ${dark ? 'text-white/40' : 'text-[#1A1A1A]/40'}`}>
+              <div className={`text-xs truncate ${dark ? 'text-white/40' : 'text-[#1A1A1A]/40'}`}>
                 {session.preview}
               </div>
             </div>
             <div className="text-right flex-shrink-0">
-              <div className={`text-xs font-satoshi ${dark ? 'text-white/30' : 'text-[#1A1A1A]/30'}`}>
+              <div className={`text-xs ${dark ? 'text-white/30' : 'text-[#1A1A1A]/30'}`}>
                 {formatTs(session.timestamp)}
               </div>
-              <div className={`text-xs font-satoshi ${dark ? 'text-white/20' : 'text-[#1A1A1A]/20'}`}>
+              <div className={`text-xs ${dark ? 'text-white/20' : 'text-[#1A1A1A]/20'}`}>
                 {session.messageCount} msgs
               </div>
             </div>
           </button>
         ))}
         {filtered.length === 0 && (
-          <p className={`text-sm font-satoshi py-4 text-center ${dark ? 'text-white/30' : 'text-[#1A1A1A]/30'}`}>No conversations found</p>
+          <p className={`text-sm py-4 text-center ${dark ? 'text-white/30' : 'text-[#1A1A1A]/30'}`}>No conversations found</p>
         )}
       </div>
     </div>
@@ -149,13 +149,13 @@ function ChatViewer({ dark, bot, session: sessionMeta, onBack }) {
 
   return (
     <div>
-      <button onClick={onBack} className={`flex items-center gap-1 mb-4 text-sm font-satoshi ${dark ? 'text-white/50 hover:text-white/70' : 'text-[#1A1A1A]/50 hover:text-[#1A1A1A]/70'}`}>
+      <button onClick={onBack} className={`flex items-center gap-1 mb-4 text-sm ${dark ? 'text-white/50 hover:text-white/70' : 'text-[#1A1A1A]/50 hover:text-[#1A1A1A]/70'}`}>
         <ArrowLeft size={14} /> Back to sessions
       </button>
-      <h2 className={`text-lg font-clash font-semibold mb-1 ${dark ? 'text-white' : 'text-[#1A1A1A]'}`}>
+      <h2 className={`text-lg font-semibold mb-1 ${dark ? 'text-white' : 'text-[#1A1A1A]'}`}>
         {session.source || 'Conversation'}
       </h2>
-      <p className={`text-xs font-satoshi mb-6 ${dark ? 'text-white/40' : 'text-[#1A1A1A]/40'}`}>
+      <p className={`text-xs mb-6 ${dark ? 'text-white/40' : 'text-[#1A1A1A]/40'}`}>
         {formatTs(session.sessionTs)} &middot; {session.messages.length} messages
       </p>
 
@@ -173,10 +173,10 @@ function ChatViewer({ dark, bot, session: sessionMeta, onBack }) {
               }
             </div>
             <div className="flex-1 min-w-0">
-              <div className={`text-xs font-satoshi mb-1 ${dark ? 'text-white/30' : 'text-[#1A1A1A]/30'}`}>
+              <div className={`text-xs mb-1 ${dark ? 'text-white/30' : 'text-[#1A1A1A]/30'}`}>
                 {msg.role === 'assistant' ? 'DragonBot' : 'User'} &middot; {formatTs(msg.timestamp)}
               </div>
-              <div className={`text-sm font-satoshi whitespace-pre-wrap break-words ${
+              <div className={`text-sm whitespace-pre-wrap break-words ${
                 dark ? 'text-white/80' : 'text-[#1A1A1A]/80'
               }`}>
                 {msg.text}
@@ -193,7 +193,7 @@ function ChatViewer({ dark, bot, session: sessionMeta, onBack }) {
 
 function Loading({ dark, text }) {
   return (
-    <div className={`flex items-center gap-2 py-8 justify-center text-sm font-satoshi ${dark ? 'text-white/40' : 'text-[#1A1A1A]/40'}`}>
+    <div className={`flex items-center gap-2 py-8 justify-center text-sm ${dark ? 'text-white/40' : 'text-[#1A1A1A]/40'}`}>
       <Loader2 size={16} className="animate-spin" /> {text}
     </div>
   );
@@ -203,7 +203,7 @@ function FilterPill({ dark, label, active, onClick, count }) {
   return (
     <button
       onClick={onClick}
-      className={`px-3 py-1 rounded-full text-xs font-satoshi transition-colors ${
+      className={`px-3 py-1 rounded-full text-xs transition-colors ${
         active
           ? 'bg-[#2F7D4F] text-white'
           : dark
@@ -233,10 +233,10 @@ export default function Admin({ dark }) {
 
   return (
     <div className="max-w-3xl mx-auto px-4 py-8">
-      <h1 className={`font-clash font-semibold text-2xl mb-1 ${dark ? 'text-white' : 'text-[#1A1A1A]'}`}>
+      <h1 className={`font-semibold text-2xl mb-1 ${dark ? 'text-white' : 'text-[#1A1A1A]'}`}>
         Admin — Conversations
       </h1>
-      <p className={`text-sm font-satoshi mb-6 ${dark ? 'text-white/50' : 'text-[#1A1A1A]/50'}`}>
+      <p className={`text-sm mb-6 ${dark ? 'text-white/50' : 'text-[#1A1A1A]/50'}`}>
         View all DragonBot conversations across all workspaces.
       </p>
 

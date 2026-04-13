@@ -91,10 +91,10 @@ export default function Slack({ dark }) {
 
   return (
     <div className="max-w-2xl mx-auto px-4 py-8">
-      <h1 className={`font-clash font-semibold text-2xl mb-1 ${dark ? 'text-white' : 'text-[#1A1A1A]'}`}>
+      <h1 className={`font-semibold text-2xl mb-1 ${dark ? 'text-white' : 'text-[#1A1A1A]'}`}>
         Slack Integration
       </h1>
-      <p className={`text-sm font-satoshi mb-6 ${dark ? 'text-white/50' : 'text-[#1A1A1A]/50'}`}>
+      <p className={`text-sm mb-6 ${dark ? 'text-white/50' : 'text-[#1A1A1A]/50'}`}>
         Manage which channels DragonBot monitors and responds in.
         {!loading && ` ${memberCount} of ${channels.length} channels active.`}
       </p>
@@ -104,7 +104,7 @@ export default function Slack({ dark }) {
         <button
           onClick={joinAll}
           disabled={saving.size > 0 || channels.every((c) => c.is_member)}
-          className={`px-4 py-2 rounded-xl text-sm font-satoshi font-medium transition-colors border disabled:opacity-40 disabled:cursor-not-allowed ${
+          className={`px-4 py-2 rounded-xl text-sm font-medium transition-colors border disabled:opacity-40 disabled:cursor-not-allowed ${
             dark
               ? 'bg-white/5 border-white/10 text-white hover:bg-white/10'
               : 'bg-white border-gray-200 text-[#1A1A1A] hover:bg-gray-50'
@@ -122,7 +122,7 @@ export default function Slack({ dark }) {
           value={search}
           onChange={(e) => setSearch(e.target.value)}
           placeholder="Search channels..."
-          className={`w-full rounded-xl pl-9 pr-4 py-2.5 text-sm font-satoshi outline-none border transition-colors ${
+          className={`w-full rounded-xl pl-9 pr-4 py-2.5 text-sm outline-none border transition-colors ${
             dark
               ? 'bg-white/5 border-white/10 text-white placeholder:text-white/30 focus:border-[#4ADE80]/50'
               : 'bg-gray-50 border-gray-200 text-[#1A1A1A] placeholder:text-gray-400 focus:border-[#2F7D4F]/50'
@@ -133,12 +133,12 @@ export default function Slack({ dark }) {
       {/* Channel list */}
       <div className={`rounded-xl border overflow-hidden ${dark ? 'border-white/10' : 'border-gray-200'}`}>
         {loading && (
-          <div className={`flex items-center gap-2 p-4 text-sm font-satoshi ${dark ? 'text-white/40' : 'text-[#1A1A1A]/40'}`}>
+          <div className={`flex items-center gap-2 p-4 text-sm ${dark ? 'text-white/40' : 'text-[#1A1A1A]/40'}`}>
             <Loader2 size={16} className="animate-spin" /> Loading channels...
           </div>
         )}
         {!loading && filtered.length === 0 && (
-          <p className={`p-4 text-sm font-satoshi ${dark ? 'text-white/40' : 'text-[#1A1A1A]/40'}`}>
+          <p className={`p-4 text-sm ${dark ? 'text-white/40' : 'text-[#1A1A1A]/40'}`}>
             {search ? 'No channels match your search' : 'No channels found'}
           </p>
         )}
@@ -151,7 +151,7 @@ export default function Slack({ dark }) {
                 key={ch.id}
                 onClick={() => toggleChannel(ch.id, isMember)}
                 disabled={isMember || isSaving}
-                className={`w-full flex items-center gap-3 px-4 py-3 text-sm font-satoshi transition-colors border-b last:border-b-0 ${
+                className={`w-full flex items-center gap-3 px-4 py-3 text-sm transition-colors border-b last:border-b-0 ${
                   dark
                     ? `border-white/5 ${isMember ? 'bg-white/[0.02]' : 'hover:bg-white/5'}`
                     : `border-gray-100 ${isMember ? 'bg-gray-50/50' : 'hover:bg-gray-50'}`
@@ -192,7 +192,7 @@ export default function Slack({ dark }) {
       </div>
 
       {error && (
-        <p className="text-sm font-satoshi text-red-500 mt-3">{error}</p>
+        <p className="text-sm text-red-500 mt-3">{error}</p>
       )}
     </div>
   );

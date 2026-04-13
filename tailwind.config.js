@@ -4,8 +4,8 @@ export default {
   theme: {
     extend: {
       fontFamily: {
-        clash: ['Clash Display', 'sans-serif'],
-        satoshi: ['Satoshi', 'sans-serif'],
+        sans: ['system-ui', '-apple-system', 'BlinkMacSystemFont', "'Segoe UI'", 'Roboto', 'sans-serif'],
+        mono: ["'Roboto Mono'", 'monospace'],
       },
     },
   },

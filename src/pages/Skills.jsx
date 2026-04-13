@@ -72,12 +72,12 @@ export default function Skills({ dark }) {
         {/* Header */}
         <div className="flex items-center justify-between mb-8">
           <div>
-            <h1 className={`font-clash font-semibold text-2xl ${c('text-white', 'text-[#1A1A1A]')}`}>Skills</h1>
-            <p className={`text-sm font-satoshi ${c('text-white/40', 'text-[#1A1A1A]/40')}`}>
+            <h1 className={`font-semibold text-2xl ${c('text-white', 'text-[#1A1A1A]')}`}>Skills</h1>
+            <p className={`text-sm ${c('text-white/40', 'text-[#1A1A1A]/40')}`}>
               Capabilities available to your DragonBot
             </p>
           </div>
-          <div className={`flex items-center gap-2 text-xs font-satoshi ${c('text-white/30', 'text-[#1A1A1A]/30')}`}>
+          <div className={`flex items-center gap-2 text-xs ${c('text-white/30', 'text-[#1A1A1A]/30')}`}>
             <span className="tabular-nums">{skills.length}</span> skills
           </div>
         </div>
@@ -90,7 +90,7 @@ export default function Skills({ dark }) {
             placeholder="Search skills..."
             value={search}
             onChange={(e) => setSearch(e.target.value)}
-            className={`w-full pl-10 pr-4 py-2.5 rounded-xl text-sm font-satoshi border outline-none transition-colors ${
+            className={`w-full pl-10 pr-4 py-2.5 rounded-xl text-sm border outline-none transition-colors ${
               c(
                 'bg-[#1a1a1a] border-white/10 text-white placeholder:text-white/25 focus:border-white/20',
                 'bg-white border-gray-200 text-[#1A1A1A] placeholder:text-[#1A1A1A]/25 focus:border-gray-300'
@@ -100,11 +100,11 @@ export default function Skills({ dark }) {
         </div>
 
         {loading ? (
-          <p className={`text-sm font-satoshi ${c('text-white/40', 'text-[#1A1A1A]/40')}`}>Loading...</p>
+          <p className={`text-sm ${c('text-white/40', 'text-[#1A1A1A]/40')}`}>Loading...</p>
         ) : skills.length === 0 ? (
           <div className={`rounded-2xl border p-8 text-center ${c('bg-[#1a1a1a] border-white/10', 'bg-white border-gray-200')}`}>
             <Puzzle size={40} className={`mx-auto mb-4 ${c('text-white/20', 'text-[#1A1A1A]/20')}`} />
-            <h2 className={`font-clash font-semibold text-lg mb-2 ${c('text-white', 'text-[#1A1A1A]')}`}>No skills found</h2>
+            <h2 className={`font-semibold text-lg mb-2 ${c('text-white', 'text-[#1A1A1A]')}`}>No skills found</h2>
           </div>
         ) : (
           <>
@@ -117,7 +117,7 @@ export default function Skills({ dark }) {
                 skills={coreSectionSkills} dark={dark} onSelect={handleSelectSkill} defaultCollapsed />
             )}
             {filtered.length === 0 && search && (
-              <p className={`text-sm font-satoshi text-center py-8 ${c('text-white/30', 'text-[#1A1A1A]/30')}`}>
+              <p className={`text-sm text-center py-8 ${c('text-white/30', 'text-[#1A1A1A]/30')}`}>
                 No skills matching "{search}"
               </p>
             )}
@@ -149,8 +149,8 @@ function SkillSection({ title, icon, skills, dark, onSelect, defaultCollapsed = 
       >
         <ChevronRight size={14} className={`transition-transform ${collapsed ? '' : 'rotate-90'} ${c('text-white/30', 'text-[#1A1A1A]/30')}`} />
         <span className={c('text-white/40', 'text-[#1A1A1A]/40')}>{icon}</span>
-        <h2 className={`text-sm font-satoshi font-medium ${c('text-white/60 group-hover:text-white/80', 'text-[#1A1A1A]/60 group-hover:text-[#1A1A1A]/80')} transition-colors`}>{title}</h2>
-        <span className={`text-xs font-satoshi ${c('text-white/20', 'text-[#1A1A1A]/20')}`}>({skills.length})</span>
+        <h2 className={`text-sm font-medium ${c('text-white/60 group-hover:text-white/80', 'text-[#1A1A1A]/60 group-hover:text-[#1A1A1A]/80')} transition-colors`}>{title}</h2>
+        <span className={`text-xs ${c('text-white/20', 'text-[#1A1A1A]/20')}`}>({skills.length})</span>
       </button>
       {!collapsed && (
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
@@ -183,17 +183,17 @@ function SkillCard({ skill, dark, onClick }) {
         </div>
         <div className="min-w-0 flex-1">
           <div className="flex items-center gap-2">
-            <h3 className={`font-satoshi font-medium text-sm ${c('text-white', 'text-[#1A1A1A]')}`}>
+            <h3 className={`font-medium text-sm ${c('text-white', 'text-[#1A1A1A]')}`}>
               {displayName}
             </h3>
             {skill.hasExtension && (
-              <span className="flex items-center gap-0.5 text-[10px] font-satoshi px-1.5 py-0.5 rounded bg-[#2F7D4F]/10 text-[#2F7D4F]">
+              <span className="flex items-center gap-0.5 text-[10px] px-1.5 py-0.5 rounded bg-[#2F7D4F]/10 text-[#2F7D4F]">
                 <Layers size={10} />
                 Extended core skill
               </span>
             )}
           </div>
-          <p className={`text-sm font-satoshi mt-1 leading-relaxed line-clamp-2 ${c('text-white/40', 'text-[#1A1A1A]/40')}`}>
+          <p className={`text-sm mt-1 leading-relaxed line-clamp-2 ${c('text-white/40', 'text-[#1A1A1A]/40')}`}>
             {desc}
           </p>
         </div>
@@ -226,7 +226,7 @@ function SkillDetail({ selected, loading, dark, onClose }) {
       <div className={`relative w-full max-w-2xl max-h-[80vh] rounded-2xl border shadow-2xl flex flex-col ${c('bg-[#1a1a1a] border-white/10', 'bg-white border-gray-200')}`}>
         {/* Header */}
         <div className={`flex items-center justify-between px-6 py-4 border-b flex-shrink-0 ${c('border-white/10', 'border-gray-200')}`}>
-          <h2 className={`font-clash font-semibold text-lg ${c('text-white', 'text-[#1A1A1A]')}`}>
+          <h2 className={`font-semibold text-lg ${c('text-white', 'text-[#1A1A1A]')}`}>
             {selected.displayName}
           </h2>
           <button onClick={onClose} className={`p-1.5 rounded-lg transition-colors ${c('hover:bg-white/10', 'hover:bg-gray-100')}`}>
@@ -239,7 +239,7 @@ function SkillDetail({ selected, loading, dark, onClose }) {
           <div className={`flex gap-1 px-6 pt-3 flex-shrink-0`}>
             <button
               onClick={() => setTab('core')}
-              className={`px-3 py-1.5 rounded-lg text-xs font-satoshi font-medium transition-colors ${
+              className={`px-3 py-1.5 rounded-lg text-xs font-medium transition-colors ${
                 tab === 'core'
                   ? 'bg-[#2F7D4F]/10 text-[#2F7D4F]'
                   : c('text-white/40 hover:text-white/60', 'text-[#1A1A1A]/40 hover:text-[#1A1A1A]/60')
@@ -250,7 +250,7 @@ function SkillDetail({ selected, loading, dark, onClose }) {
             </button>
             <button
               onClick={() => setTab('extension')}
-              className={`px-3 py-1.5 rounded-lg text-xs font-satoshi font-medium transition-colors ${
+              className={`px-3 py-1.5 rounded-lg text-xs font-medium transition-colors ${
                 tab === 'extension'
                   ? 'bg-[#2F7D4F]/10 text-[#2F7D4F]'
                   : c('text-white/40 hover:text-white/60', 'text-[#1A1A1A]/40 hover:text-[#1A1A1A]/60')
@@ -265,11 +265,11 @@ function SkillDetail({ selected, loading, dark, onClose }) {
         {/* Content */}
         <div className="flex-1 overflow-y-auto px-6 py-4">
           {loading ? (
-            <p className={`text-sm font-satoshi ${c('text-white/40', 'text-[#1A1A1A]/40')}`}>Loading...</p>
+            <p className={`text-sm ${c('text-white/40', 'text-[#1A1A1A]/40')}`}>Loading...</p>
           ) : !content ? (
-            <p className={`text-sm font-satoshi ${c('text-white/40', 'text-[#1A1A1A]/40')}`}>No content available.</p>
+            <p className={`text-sm ${c('text-white/40', 'text-[#1A1A1A]/40')}`}>No content available.</p>
           ) : (
-            <div className={`prose prose-sm max-w-none font-satoshi ${dark ? 'prose-invert' : ''}`}>
+            <div className={`prose prose-sm max-w-none ${dark ? 'prose-invert' : ''}`}>
               <Markdown remarkPlugins={[remarkGfm]}>{displayContent}</Markdown>
             </div>
           )}

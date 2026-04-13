@@ -118,7 +118,7 @@ export default function Usage({ dark }) {
       <div className="max-w-[1000px] mx-auto flex flex-col gap-5">
         {/* Header + Timeframe */}
         <div className="flex items-center justify-between">
-          <h1 className={`text-2xl font-clash font-bold ${c('text-white', 'text-[#1A1A1A]')}`}>Usage</h1>
+          <h1 className={`text-2xl font-bold ${c('text-white', 'text-[#1A1A1A]')}`}>Usage</h1>
           <Dropdown dark={dark} label={tfLabel} open={tfOpen} setOpen={setTfOpen}
             items={TIMEFRAMES.map(t => ({ label: t.label, onClick: () => { setTimeframe(t.value); setTfOpen(false); } }))} />
         </div>
@@ -297,7 +297,7 @@ function StatBox({ dark, label, value }) {
   return (
     <div className={`rounded-xl p-4 ${c('bg-[#1a1a1a]', 'bg-white border border-gray-200')}`}>
       <p className={`text-[11px] font-medium mb-1 ${c('text-white/40', 'text-[#1A1A1A]/40')}`}>{label}</p>
-      <p className={`text-2xl font-clash font-bold ${c('text-white', 'text-[#1A1A1A]')}`}>{value}</p>
+      <p className={`text-2xl font-bold ${c('text-white', 'text-[#1A1A1A]')}`}>{value}</p>
     </div>
   );
 }

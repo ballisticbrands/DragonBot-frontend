@@ -1,6 +1,7 @@
 import { useLocation, useNavigate } from 'react-router-dom';
 import { BarChart3, Clock, Puzzle, Plug, LogOut, Menu, X, Sun, Moon, Monitor, MessageSquare, Shield, Settings } from 'lucide-react';
 import { useState } from 'react';
+import { motion } from 'framer-motion';
 
 const NAV_ITEMS = [
   { path: '/usage', label: 'Usage', icon: BarChart3 },
@@ -57,10 +58,16 @@ export default function Sidebar({ dark, theme, onSetTheme }) {
   const navContent = (
     <div className="flex flex-col h-full">
       {/* Logo */}
-      <div className="flex items-center gap-2.5 px-5 pt-6 pb-8">
-        <img src="/logos/dragonbot_fire.png" alt="DragonBot" className="w-7 h-7" />
-        <span className={`font-clash font-semibold text-lg ${c('text-white', 'text-[#1A1A1A]')}`}>
-          DragonBot
+      <div className="flex items-center gap-2 px-5 pt-6 pb-8">
+        <motion.img
+          src="/DragonBot-logo.png"
+          alt="DragonBot"
+          className="h-8"
+          animate={{ y: [0, -3, 0] }}
+          transition={{ duration: 1.2, repeat: Infinity, ease: 'easeInOut' }}
+        />
+        <span className={`font-bold text-[17px] ${c('text-white', 'text-[#1A1A1A]')}`} style={{ lineHeight: '1' }}>
+          get<span className="bg-gradient-to-r from-[#2F7D4F] to-[#98CC65] bg-clip-text text-transparent">DragonBot</span><span className={c('text-white', 'text-[#1A1A1A]')}>.com</span>
         </span>
       </div>
 
@@ -72,7 +79,7 @@ export default function Sidebar({ dark, theme, onSetTheme }) {
             <button
               key={path}
               onClick={() => { navigate(path); setMobileOpen(false); }}
-              className={`w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-satoshi font-medium transition-colors ${
+              className={`w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium transition-colors ${
                 active
                   ? `bg-[#2F7D4F]/10 text-[#2F7D4F]`
                   : c('text-white/50 hover:text-white/70 hover:bg-white/5', 'text-[#1A1A1A]/50 hover:text-[#1A1A1A]/70 hover:bg-gray-100')
@@ -92,7 +99,7 @@ export default function Sidebar({ dark, theme, onSetTheme }) {
             {avatarUrl ? (
               <img src={avatarUrl} alt={displayName} className="w-8 h-8 rounded-full object-cover flex-shrink-0" />
             ) : (
-              <div className={`w-8 h-8 rounded-full flex items-center justify-center text-xs font-satoshi font-medium flex-shrink-0 ${
+              <div className={`w-8 h-8 rounded-full flex items-center justify-center text-xs font-medium flex-shrink-0 ${
                 c('bg-white/10 text-white', 'bg-gray-200 text-[#1A1A1A]')
               }`}>
                 {displayName.charAt(0).toUpperCase()}
@@ -100,11 +107,11 @@ export default function Sidebar({ dark, theme, onSetTheme }) {
             )}
             <div className="min-w-0">
               {session?.slackTeamName && (
-                <span className={`block text-sm font-satoshi font-medium truncate ${c('text-white/70', 'text-[#1A1A1A]/70')}`}>
+                <span className={`block text-sm font-medium truncate ${c('text-white/70', 'text-[#1A1A1A]/70')}`}>
                   {session.slackTeamName}
                 </span>
               )}
-              <span className={`block text-xs font-satoshi truncate ${c('text-white/40', 'text-[#1A1A1A]/40')}`}>
+              <span className={`block text-xs truncate ${c('text-white/40', 'text-[#1A1A1A]/40')}`}>
                 {displayName}
               </span>
             </div>
@@ -121,7 +128,7 @@ export default function Sidebar({ dark, theme, onSetTheme }) {
         </div>
         <button
           onClick={handleLogout}
-          className={`w-full flex items-center gap-3 px-3 py-2 rounded-xl text-sm font-satoshi transition-colors ${
+          className={`w-full flex items-center gap-3 px-3 py-2 rounded-xl text-sm transition-colors ${
             c('text-white/30 hover:text-white/50 hover:bg-white/5', 'text-[#1A1A1A]/30 hover:text-[#1A1A1A]/50 hover:bg-gray-100')
           }`}
         >

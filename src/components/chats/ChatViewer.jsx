@@ -28,7 +28,7 @@ function ThemeDropdown({ dark, theme, onSetTheme, onClose }) {
         <button
           key={opt.value}
           onClick={() => { onSetTheme(opt.value); onClose(); }}
-          className={`w-full flex items-center gap-2.5 px-3 py-2 text-sm font-satoshi transition-colors ${
+          className={`w-full flex items-center gap-2.5 px-3 py-2 text-sm transition-colors ${
             theme === opt.value
               ? dark ? 'text-[#4ADE80] bg-white/5' : 'text-[#2F7D4F] bg-[#2F7D4F]/5'
               : dark ? 'text-white/70 hover:bg-white/5' : 'text-[#1A1A1A]/70 hover:bg-gray-50'
@@ -91,7 +91,7 @@ export default function ChatViewer({
 
   if (!messages) {
     return (
-      <div className={`flex-1 flex items-center justify-center font-satoshi text-sm ${dark ? 'text-white/30' : 'text-gray-400'}`}>
+      <div className={`flex-1 flex items-center justify-center text-sm ${dark ? 'text-white/30' : 'text-gray-400'}`}>
         {connected ? 'Select a chat or start a new one' : 'Connecting…'}
       </div>
     );
@@ -106,7 +106,7 @@ export default function ChatViewer({
     <div className="flex-1 flex flex-col overflow-hidden">
       {/* Header */}
       <div className={`border-b px-5 py-2.5 flex items-center shrink-0 gap-3 ${dark ? 'bg-[#1a1a1a] border-white/10' : 'bg-white border-gray-200'}`}>
-        <h1 className={`font-clash font-semibold text-base flex-1 truncate ${dark ? 'text-white' : 'text-[#1A1A1A]'}`}>
+        <h1 className={`font-semibold text-base flex-1 truncate ${dark ? 'text-white' : 'text-[#1A1A1A]'}`}>
           {sessionTitle ?? 'Chat'}
         </h1>
         <div className="flex items-center gap-1 shrink-0">
@@ -129,7 +129,7 @@ export default function ChatViewer({
       {/* Messages */}
       <div className={`flex-1 overflow-y-auto p-4 space-y-3 ${dark ? 'bg-[#0f0f0f]' : 'bg-[#fafafa]'}`}>
         {allMessages.length === 0 && (
-          <div className={`flex items-center justify-center h-full text-sm font-satoshi ${dark ? 'text-white/20' : 'text-gray-300'}`}>
+          <div className={`flex items-center justify-center h-full text-sm ${dark ? 'text-white/20' : 'text-gray-300'}`}>
             Send a message to get started
           </div>
         )}
@@ -146,12 +146,12 @@ export default function ChatViewer({
                   {!isUser && (
                     <img src="/logos/dragonbot_fire.png" alt="" className="w-4 h-4" />
                   )}
-                  <span className={`text-xs font-satoshi font-medium ${dark ? 'text-white/40' : 'text-[#1A1A1A]/50'}`}>
+                  <span className={`text-xs font-medium ${dark ? 'text-white/40' : 'text-[#1A1A1A]/50'}`}>
                     {isUser ? 'You' : 'DragonBot'}
                   </span>
                 </div>
               )}
-              <div className={`max-w-[80%] px-4 py-2.5 text-sm leading-relaxed font-satoshi break-words ${
+              <div className={`max-w-[80%] px-4 py-2.5 text-sm leading-relaxed break-words ${
                 isUser
                   ? 'bg-[#2F7D4F] text-white rounded-2xl rounded-br-md whitespace-pre-line'
                   : dark
@@ -209,7 +209,7 @@ export default function ChatViewer({
             onKeyDown={handleKeyDown}
             placeholder={connected ? 'Ask DragonBot to do anything…' : 'Connecting…'}
             disabled={!connected || isStreaming}
-            className={`text-sm font-satoshi flex-1 bg-transparent outline-none disabled:opacity-50 ${dark ? 'text-white placeholder:text-white/25' : 'text-[#1A1A1A] placeholder:text-gray-400'}`}
+            className={`text-sm flex-1 bg-transparent outline-none disabled:opacity-50 ${dark ? 'text-white placeholder:text-white/25' : 'text-[#1A1A1A] placeholder:text-gray-400'}`}
           />
           <button
             onClick={handleSend}

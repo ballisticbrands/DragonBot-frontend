@@ -250,14 +250,14 @@ export default function Connections({ dark }) {
         {/* Header */}
         <div className="flex items-center justify-between mb-8">
           <div>
-            <h1 className={`font-clash font-semibold text-2xl ${c('text-white', 'text-[#1A1A1A]')}`}>Connections</h1>
-            <p className={`text-sm font-satoshi ${c('text-white/40', 'text-[#1A1A1A]/40')}`}>
+            <h1 className={`font-semibold text-2xl ${c('text-white', 'text-[#1A1A1A]')}`}>Connections</h1>
+            <p className={`text-sm ${c('text-white/40', 'text-[#1A1A1A]/40')}`}>
               Tools and services your DragonBot can access
             </p>
           </div>
           <button
             onClick={() => { setShowAddPanel(!showAddPanel); setError(''); setSearch(''); }}
-            className="flex items-center gap-1.5 px-4 py-2 rounded-xl bg-[#2F7D4F] hover:bg-[#256B42] text-white text-sm font-satoshi font-medium transition-colors"
+            className="flex items-center gap-1.5 px-4 py-2 rounded-xl bg-[#2F7D4F] hover:bg-[#256B42] text-white text-sm font-medium transition-colors"
           >
             {showAddPanel ? <ChevronDown size={14} /> : <Plus size={14} />}
             {showAddPanel ? 'Close' : 'Add Connection'}
@@ -268,7 +268,7 @@ export default function Connections({ dark }) {
         {showAddPanel && (
           <div className={`rounded-2xl border p-6 mb-8 ${c('bg-[#1a1a1a] border-white/10', 'bg-white border-gray-200')}`}>
             <div className="flex items-center justify-between mb-4">
-              <h2 className={`text-sm font-satoshi font-medium ${c('text-white/60', 'text-[#1A1A1A]/60')}`}>
+              <h2 className={`text-sm font-medium ${c('text-white/60', 'text-[#1A1A1A]/60')}`}>
                 Choose a tool to connect
               </h2>
             </div>
@@ -281,7 +281,7 @@ export default function Connections({ dark }) {
                 value={search}
                 onChange={(e) => setSearch(e.target.value)}
                 placeholder="Search 2000+ apps..."
-                className={`w-full rounded-xl pl-9 pr-4 py-2.5 text-sm font-satoshi outline-none border transition-colors ${
+                className={`w-full rounded-xl pl-9 pr-4 py-2.5 text-sm outline-none border transition-colors ${
                   c(
                     'bg-white/5 border-white/10 text-white placeholder:text-white/30 focus:border-[#4ADE80]/50',
                     'bg-gray-50 border-gray-200 text-[#1A1A1A] placeholder:text-gray-400 focus:border-[#2F7D4F]/50'
@@ -291,7 +291,7 @@ export default function Connections({ dark }) {
             </div>
 
             {error && (
-              <div className="mb-4 px-4 py-2.5 rounded-xl bg-red-500/10 text-red-400 text-sm font-satoshi">
+              <div className="mb-4 px-4 py-2.5 rounded-xl bg-red-500/10 text-red-400 text-sm">
                 {error}
               </div>
             )}
@@ -310,20 +310,20 @@ export default function Connections({ dark }) {
                       </div>
                     )}
                     <div className="text-left">
-                      <h3 className={`text-sm font-satoshi font-medium ${c('text-white', 'text-[#1A1A1A]')}`}>{customForm.tool.name}</h3>
-                      <p className={`text-xs font-satoshi ${c('text-white/40', 'text-[#1A1A1A]/40')}`}>{customForm.tool.description}</p>
+                      <h3 className={`text-sm font-medium ${c('text-white', 'text-[#1A1A1A]')}`}>{customForm.tool.name}</h3>
+                      <p className={`text-xs ${c('text-white/40', 'text-[#1A1A1A]/40')}`}>{customForm.tool.description}</p>
                     </div>
                   </div>
                   {customForm.tool.helpText && (
                     <div
-                      className={`mb-4 px-3 py-2.5 rounded-lg text-xs font-satoshi leading-relaxed [&_a]:underline [&_a]:text-[#2F7D4F] [&_code]:px-1 [&_code]:py-0.5 [&_code]:rounded [&_code]:bg-black/10 [&_code]:text-[10px] [&_code]:break-all ${c('bg-white/5 text-white/50', 'bg-gray-100 text-[#1A1A1A]/50')}`}
+                      className={`mb-4 px-3 py-2.5 rounded-lg text-xs leading-relaxed [&_a]:underline [&_a]:text-[#2F7D4F] [&_code]:px-1 [&_code]:py-0.5 [&_code]:rounded [&_code]:bg-black/10 [&_code]:text-[10px] [&_code]:break-all ${c('bg-white/5 text-white/50', 'bg-gray-100 text-[#1A1A1A]/50')}`}
                       dangerouslySetInnerHTML={{ __html: customForm.tool.helpText.replace('{{callbackUrl}}', `${BACKEND_URL}/api/connect/${customForm.tool.slug.replace(/_/g, '-')}/callback`).replace(/\n/g, '<br/>') }}
                     />
                   )}
                   <div className="space-y-3">
                     {customForm.tool.fields.map((field) => (
                       <div key={field.key}>
-                        <label className={`block text-xs font-satoshi font-medium mb-1 ${c('text-white/60', 'text-[#1A1A1A]/60')}`}>
+                        <label className={`block text-xs font-medium mb-1 ${c('text-white/60', 'text-[#1A1A1A]/60')}`}>
                           {field.label}
                         </label>
                         <input
@@ -334,7 +334,7 @@ export default function Connections({ dark }) {
                             ...prev,
                             values: { ...prev.values, [field.key]: e.target.value },
                           }))}
-                          className={`w-full rounded-lg px-3 py-2 text-sm font-satoshi outline-none border transition-colors ${
+                          className={`w-full rounded-lg px-3 py-2 text-sm outline-none border transition-colors ${
                             c(
                               'bg-white/5 border-white/10 text-white placeholder:text-white/20 focus:border-[#4ADE80]/50',
                               'bg-white border-gray-200 text-[#1A1A1A] placeholder:text-gray-400 focus:border-[#2F7D4F]/50'
@@ -348,13 +348,13 @@ export default function Connections({ dark }) {
                     <button
                       onClick={handleCustomSubmit}
                       disabled={connecting === customForm.tool.slug}
-                      className="flex-1 py-2 rounded-xl bg-[#2F7D4F] hover:bg-[#256B42] text-white text-sm font-satoshi font-medium transition-colors disabled:opacity-50"
+                      className="flex-1 py-2 rounded-xl bg-[#2F7D4F] hover:bg-[#256B42] text-white text-sm font-medium transition-colors disabled:opacity-50"
                     >
                       {connecting === customForm.tool.slug ? 'Saving...' : 'Connect'}
                     </button>
                     <button
                       onClick={() => setCustomForm(null)}
-                      className={`px-4 py-2 rounded-xl text-sm font-satoshi font-medium transition-colors ${c('bg-white/5 text-white/50 hover:bg-white/10', 'bg-gray-100 text-gray-500 hover:bg-gray-200')}`}
+                      className={`px-4 py-2 rounded-xl text-sm font-medium transition-colors ${c('bg-white/5 text-white/50 hover:bg-white/10', 'bg-gray-100 text-gray-500 hover:bg-gray-200')}`}
                     >
                       Cancel
                     </button>
@@ -364,9 +364,9 @@ export default function Connections({ dark }) {
             )}
 
             {searchLoading ? (
-              <p className={`text-sm font-satoshi ${c('text-white/40', 'text-[#1A1A1A]/40')}`}>Loading...</p>
+              <p className={`text-sm ${c('text-white/40', 'text-[#1A1A1A]/40')}`}>Loading...</p>
             ) : availableTools.length === 0 ? (
-              <p className={`text-sm font-satoshi ${c('text-white/40', 'text-[#1A1A1A]/40')}`}>No apps found.</p>
+              <p className={`text-sm ${c('text-white/40', 'text-[#1A1A1A]/40')}`}>No apps found.</p>
             ) : (
               <div className="grid grid-cols-2 sm:grid-cols-3 gap-3 max-h-80 overflow-y-auto">
                 {availableTools.map((tool) => {
@@ -386,15 +386,15 @@ export default function Connections({ dark }) {
                       {tool.imgSrc ? (
                         <img src={tool.imgSrc} alt={tool.name} className="w-8 h-8 rounded-lg object-contain" />
                       ) : (
-                        <div className={`w-8 h-8 rounded-lg flex items-center justify-center text-xs font-satoshi font-medium ${c('bg-white/10 text-white/50', 'bg-gray-100 text-gray-400')}`}>
+                        <div className={`w-8 h-8 rounded-lg flex items-center justify-center text-xs font-medium ${c('bg-white/10 text-white/50', 'bg-gray-100 text-gray-400')}`}>
                           {tool.name?.charAt(0) || '?'}
                         </div>
                       )}
-                      <span className={`text-xs font-satoshi font-medium leading-tight ${c('text-white/80', 'text-[#1A1A1A]/80')}`}>
+                      <span className={`text-xs font-medium leading-tight ${c('text-white/80', 'text-[#1A1A1A]/80')}`}>
                         {tool.name}
                       </span>
                       {isConnecting && (
-                        <span className="text-[10px] font-satoshi text-[#2F7D4F]">Connecting...</span>
+                        <span className="text-[10px] text-[#2F7D4F]">Connecting...</span>
                       )}
                     </button>
                   );
@@ -405,13 +405,13 @@ export default function Connections({ dark }) {
         )}
 
         {loading ? (
-          <p className={`text-sm font-satoshi ${c('text-white/40', 'text-[#1A1A1A]/40')}`}>Loading...</p>
+          <p className={`text-sm ${c('text-white/40', 'text-[#1A1A1A]/40')}`}>Loading...</p>
         ) : (
           <>
             {/* Platform connections (global) */}
             {globalConnections.length > 0 && (
               <div className="mb-8">
-                <h2 className={`flex items-center gap-2 text-sm font-satoshi font-medium mb-4 ${c('text-white/60', 'text-[#1A1A1A]/60')}`}>
+                <h2 className={`flex items-center gap-2 text-sm font-medium mb-4 ${c('text-white/60', 'text-[#1A1A1A]/60')}`}>
                   <Globe size={14} />
                   Platform Tools
                 </h2>
@@ -425,22 +425,22 @@ export default function Connections({ dark }) {
 
             {/* User connections */}
             <div>
-              <h2 className={`flex items-center gap-2 text-sm font-satoshi font-medium mb-4 ${c('text-white/60', 'text-[#1A1A1A]/60')}`}>
+              <h2 className={`flex items-center gap-2 text-sm font-medium mb-4 ${c('text-white/60', 'text-[#1A1A1A]/60')}`}>
                 <User size={14} />
                 Your Connected Tools
               </h2>
               {connections.length === 0 && !showAddPanel ? (
                 <div className={`rounded-2xl border p-8 text-center ${c('bg-[#1a1a1a] border-white/10', 'bg-white border-gray-200')}`}>
                   <Plug size={40} className={`mx-auto mb-4 ${c('text-white/20', 'text-[#1A1A1A]/20')}`} />
-                  <h3 className={`font-clash font-semibold text-lg mb-2 ${c('text-white', 'text-[#1A1A1A]')}`}>
+                  <h3 className={`font-semibold text-lg mb-2 ${c('text-white', 'text-[#1A1A1A]')}`}>
                     No tools connected yet
                   </h3>
-                  <p className={`text-sm font-satoshi max-w-md mx-auto mb-4 ${c('text-white/40', 'text-[#1A1A1A]/40')}`}>
+                  <p className={`text-sm max-w-md mx-auto mb-4 ${c('text-white/40', 'text-[#1A1A1A]/40')}`}>
                     Connect your business tools so DragonBot can pull data and take actions on your behalf.
                   </p>
                   <button
                     onClick={() => setShowAddPanel(true)}
-                    className="inline-flex items-center gap-1.5 px-4 py-2 rounded-xl bg-[#2F7D4F] hover:bg-[#256B42] text-white text-sm font-satoshi font-medium transition-colors"
+                    className="inline-flex items-center gap-1.5 px-4 py-2 rounded-xl bg-[#2F7D4F] hover:bg-[#256B42] text-white text-sm font-medium transition-colors"
                   >
                     <Plus size={14} />
                     Connect Tools
@@ -474,10 +474,10 @@ function ConnectionRow({ conn, dark, isGlobal, onDisconnect }) {
           </div>
         )}
         <div className="min-w-0">
-          <h3 className={`text-sm font-satoshi font-medium truncate ${c('text-white', 'text-[#1A1A1A]')}`}>
+          <h3 className={`text-sm font-medium truncate ${c('text-white', 'text-[#1A1A1A]')}`}>
             {conn.name}
           </h3>
-          <div className={`flex items-center gap-1.5 text-sm font-satoshi ${c('text-white/30', 'text-[#1A1A1A]/30')}`}>
+          <div className={`flex items-center gap-1.5 text-sm ${c('text-white/30', 'text-[#1A1A1A]/30')}`}>
             <span>{conn.provider}</span>
             {isGlobal && <span>· shared</span>}
             {conn.uniqueDisplayId && (
@@ -490,7 +490,7 @@ function ConnectionRow({ conn, dark, isGlobal, onDisconnect }) {
         </div>
       </div>
       <div className="flex items-center gap-3 flex-shrink-0">
-        <span className={`text-xs font-satoshi px-2.5 py-1 rounded-full ${
+        <span className={`text-xs px-2.5 py-1 rounded-full ${
           conn.enabled !== false
             ? 'bg-[#2F7D4F]/10 text-[#2F7D4F]'
             : c('bg-white/5 text-white/30', 'bg-gray-100 text-gray-400')

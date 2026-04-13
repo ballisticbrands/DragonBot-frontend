@@ -81,7 +81,7 @@ export default function Settings({ dark }) {
       <div className="max-w-[1000px] mx-auto">
         {/* Header */}
         <div className="mb-6">
-          <h1 className={`text-2xl font-clash font-bold ${c('text-white', 'text-[#1A1A1A]')}`}>Settings</h1>
+          <h1 className={`text-2xl font-bold ${c('text-white', 'text-[#1A1A1A]')}`}>Settings</h1>
         </div>
 
         {loading ? (

@@ -19,7 +19,7 @@ export default function ChatSidebar({ sessions, activeKey, dark, onSelect, onNew
       {/* Header */}
       <div className={`px-4 py-3 border-b flex items-center gap-2 ${dark ? 'border-white/10' : 'border-gray-100'}`}>
         <img src="/logos/dragonbot_fire.png" alt="DragonBot" className="w-6 h-6" />
-        <span className={`font-clash font-semibold text-base flex-1 ${dark ? 'text-white' : 'text-[#1A1A1A]'}`}>
+        <span className={`font-semibold text-base flex-1 ${dark ? 'text-white' : 'text-[#1A1A1A]'}`}>
           DragonBot
         </span>
       </div>
@@ -28,7 +28,7 @@ export default function ChatSidebar({ sessions, activeKey, dark, onSelect, onNew
       <div className="px-3 py-2">
         <button
           onClick={onNewChat}
-          className={`w-full flex items-center gap-2 px-3 py-2 rounded-lg text-sm font-satoshi font-medium transition-colors ${
+          className={`w-full flex items-center gap-2 px-3 py-2 rounded-lg text-sm font-medium transition-colors ${
             dark
               ? 'text-white/70 hover:bg-white/5 hover:text-white'
               : 'text-[#1A1A1A]/70 hover:bg-gray-50 hover:text-[#1A1A1A]'
@@ -41,14 +41,14 @@ export default function ChatSidebar({ sessions, activeKey, dark, onSelect, onNew
 
       {/* Sessions list */}
       <div className={`px-3 pb-1 pt-1`}>
-        <p className={`text-xs font-satoshi font-medium px-2 mb-1 ${dark ? 'text-white/30' : 'text-[#1A1A1A]/40'}`}>
+        <p className={`text-xs font-medium px-2 mb-1 ${dark ? 'text-white/30' : 'text-[#1A1A1A]/40'}`}>
           Chats
         </p>
       </div>
 
       <div className="flex-1 overflow-y-auto px-3 pb-3">
         {sessions.length === 0 && (
-          <p className={`text-xs font-satoshi px-2 py-2 ${dark ? 'text-white/30' : 'text-gray-400'}`}>
+          <p className={`text-xs px-2 py-2 ${dark ? 'text-white/30' : 'text-gray-400'}`}>
             No chats yet
           </p>
         )}
@@ -69,9 +69,9 @@ export default function ChatSidebar({ sessions, activeKey, dark, onSelect, onNew
                     : 'text-[#1A1A1A]/70 hover:bg-gray-50 hover:text-[#1A1A1A]'
               }`}
             >
-              <p className="text-sm font-satoshi font-medium truncate leading-snug">{label}</p>
+              <p className="text-sm font-medium truncate leading-snug">{label}</p>
               {s.lastMessage && (
-                <p className={`text-xs font-satoshi truncate mt-0.5 ${dark ? 'text-white/30' : 'text-[#1A1A1A]/40'}`}>
+                <p className={`text-xs truncate mt-0.5 ${dark ? 'text-white/30' : 'text-[#1A1A1A]/40'}`}>
                   {s.lastMessage}
                 </p>
               )}
@@ -84,16 +84,16 @@ export default function ChatSidebar({ sessions, activeKey, dark, onSelect, onNew
       <div className={`px-3 py-3 border-t ${dark ? 'border-white/10' : 'border-gray-100'}`}>
         <div className={`flex items-center gap-2.5 px-2 py-1.5 rounded-xl ${dark ? '' : ''}`}>
           <div className="w-8 h-8 rounded-full bg-[#2F7D4F] flex items-center justify-center shrink-0">
-            <span className="text-white text-xs font-satoshi font-semibold">
+            <span className="text-white text-xs font-semibold">
               {firstName ? firstName[0].toUpperCase() : 'U'}
             </span>
           </div>
-          <span className={`flex-1 text-sm font-satoshi font-medium truncate ${dark ? 'text-white/80' : 'text-[#1A1A1A]/80'}`}>
+          <span className={`flex-1 text-sm font-medium truncate ${dark ? 'text-white/80' : 'text-[#1A1A1A]/80'}`}>
             {firstName ?? 'User'}
           </span>
           <button
             onClick={handleLogout}
-            className={`text-xs font-satoshi transition-colors ${dark ? 'text-white/30 hover:text-white/60' : 'text-[#1A1A1A]/40 hover:text-[#1A1A1A]/70'}`}
+            className={`text-xs transition-colors ${dark ? 'text-white/30 hover:text-white/60' : 'text-[#1A1A1A]/40 hover:text-[#1A1A1A]/70'}`}
           >
             Sign out
           </button>
