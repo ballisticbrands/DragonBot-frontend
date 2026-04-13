@@ -47,11 +47,12 @@ function sessionTagToTitle(tag) {
   if (!tag || tag === 'unknown::') return 'One-off task';
   if (tag.startsWith('heartbeat::')) return 'Heartbeat';
   if (tag.startsWith('cron::')) {
-    const parts = tag.slice(6).split(':');
+    const parts = tag.slice(6).split('::');
     return `Scheduled task: ${parts[1] || parts[0] || 'Unknown'}`;
   }
   if (tag.startsWith('slack::')) {
-    const parts = tag.slice(7).split(':');
+    const parts = tag.slice(7).split('::');
+    // parts[0] = senderId, parts[1] = senderName, parts[2] = channel
     const name = parts[1] || parts[0] || 'Unknown';
     return `DM: ${name}`;
   }
