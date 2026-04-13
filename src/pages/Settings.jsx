@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { Settings as SettingsIcon, Sparkles, Zap } from 'lucide-react';
+import { Sparkles, Zap } from 'lucide-react';
 
 const BACKEND_URL = import.meta.env.VITE_BACKEND_URL ?? 'https://api.getdragonbot.com';
 
@@ -28,22 +28,6 @@ const PRESETS = [
   },
 ];
 
-const SPECIFIC_MODELS = [
-  {
-    model: 'anthropic/claude-opus-4-6',
-    name: 'Claude Opus 4.6',
-    badge: 'Recommended',
-    badgeColor: 'bg-[#CCFFE5] text-[#006633]',
-    description: 'Most capable model. Ideal for complex, high-stakes workflows.',
-  },
-  {
-    model: 'anthropic/claude-sonnet-4-6',
-    name: 'Claude Sonnet 4.6',
-    badge: '~50% cheaper',
-    badgeColor: '',
-    description: 'Good balance of quality and cost for everyday tasks.',
-  },
-];
 
 export default function Settings({ dark }) {
   const [currentModel, setCurrentModel] = useState(null);
@@ -130,23 +114,6 @@ export default function Settings({ dark }) {
                 ))}
               </div>
 
-              {/* Specific models */}
-              <div className="flex flex-col gap-2">
-                <span className={`text-sm font-medium ${c('text-white/40', 'text-[#1A1A1A]/40')}`}>Specific models</span>
-                {SPECIFIC_MODELS.map((m) => (
-                  <ModelCard
-                    key={m.model}
-                    dark={dark}
-                    name={m.name}
-                    description={m.description}
-                    badge={m.badge}
-                    badgeColor={m.badgeColor}
-                    selected={currentModel === m.model}
-                    saving={saving}
-                    onClick={() => selectModel(m.model)}
-                  />
-                ))}
-              </div>
             </div>
           </div>
         )}
