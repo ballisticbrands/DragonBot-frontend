@@ -177,7 +177,7 @@ function AppLayout() {
             }
           />
           <Route
-            path="/admin"
+            path="/admin/*"
             element={
               <PrivateRoute>
                 <Admin dark={dark} />
