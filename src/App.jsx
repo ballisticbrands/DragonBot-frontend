@@ -15,6 +15,24 @@ import Sidebar from './components/Sidebar.jsx';
 
 const BACKEND_URL = import.meta.env.VITE_BACKEND_URL ?? 'https://api.getdragonbot.com';
 
+// Monkey-patch window.fetch so every request to the backend automatically carries
+// the admin "view as DragonBot" header, when set. This avoids touching the dozens
+// of individual fetch() call sites scattered across pages.
+if (typeof window !== 'undefined' && !window.__dragonbotFetchPatched) {
+  window.__dragonbotFetchPatched = true;
+  const originalFetch = window.fetch.bind(window);
+  window.fetch = (input, init = {}) => {
+    const url = typeof input === 'string' ? input : (input?.url ?? '');
+    const impersonateId = localStorage.getItem('dragonbot_impersonate_id');
+    if (impersonateId && url.startsWith(BACKEND_URL)) {
+      const headers = new Headers(init.headers || (typeof input !== 'string' ? input.headers : undefined));
+      headers.set('X-Impersonate-DragonBot-Id', impersonateId);
+      init = { ...init, headers };
+    }
+    return originalFetch(input, init);
+  };
+}
+
 function PrivateRoute({ children }) {
   const token = localStorage.getItem('dragonbot_token');
   return token ? children : <Navigate to="/signin" replace />;

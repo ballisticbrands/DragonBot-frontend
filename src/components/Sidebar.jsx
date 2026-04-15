@@ -1,7 +1,9 @@
 import { useLocation, useNavigate } from 'react-router-dom';
 import { BarChart3, Clock, Puzzle, Plug, LogOut, Menu, X, Sun, Moon, Monitor, MessageSquare, Shield, Settings } from 'lucide-react';
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
+
+const BACKEND_URL = import.meta.env.VITE_BACKEND_URL ?? 'https://api.getdragonbot.com';
 
 const NAV_ITEMS = [
   { path: '/usage', label: 'Usage', icon: BarChart3 },
@@ -33,6 +35,34 @@ export default function Sidebar({ dark, theme, onSetTheme }) {
   const navigate = useNavigate();
   const session = getSession();
   const [mobileOpen, setMobileOpen] = useState(false);
+  const isAdmin = session?.email === 'gershon@ballisticbrands.co' || session?.isAdmin;
+  const [adminBots, setAdminBots] = useState([]);
+  const [impersonateId, setImpersonateId] = useState(() => localStorage.getItem('dragonbot_impersonate_id') || '');
+
+  useEffect(() => {
+    if (!isAdmin) return;
+    const token = localStorage.getItem('dragonbot_token');
+    fetch(`${BACKEND_URL}/api/admin/dragonbots-list`, {
+      headers: { Authorization: `Bearer ${token}` },
+    })
+      .then((r) => (r.ok ? r.json() : { bots: [] }))
+      .then((d) => setAdminBots(d.bots || []))
+      .catch(() => {});
+  }, [isAdmin]);
+
+  function onImpersonateChange(e) {
+    const value = e.target.value;
+    if (value) {
+      localStorage.setItem('dragonbot_impersonate_id', value);
+    } else {
+      localStorage.removeItem('dragonbot_impersonate_id');
+    }
+    // Drop cached profile so /api/me is refetched fresh after reload
+    localStorage.removeItem('dragonbot_session');
+    setImpersonateId(value);
+    window.location.href = '/';
+    window.location.reload();
+  }
 
   const c = (dv, lv) => dark ? dv : lv;
 
@@ -73,7 +103,7 @@ export default function Sidebar({ dark, theme, onSetTheme }) {
 
       {/* Nav items */}
       <nav className="flex-1 px-3 space-y-1">
-        {[...NAV_ITEMS, ...(session?.email === 'gershon@ballisticbrands.co' ? [ADMIN_NAV] : [])].map(({ path, label, icon: Icon }) => {
+        {[...NAV_ITEMS, ...(isAdmin ? [ADMIN_NAV] : [])].map(({ path, label, icon: Icon }) => {
           const active = location.pathname === path || location.pathname.startsWith(path + '/');
           return (
             <button
@@ -126,6 +156,27 @@ export default function Sidebar({ dark, theme, onSetTheme }) {
             <ThemeIcon size={15} />
           </button>
         </div>
+        {isAdmin && adminBots.length > 0 && (
+          <div className="px-3 mb-2">
+            <label className={`block text-[10px] uppercase tracking-wider mb-1 ${c('text-white/30', 'text-[#1A1A1A]/40')}`}>
+              View as
+            </label>
+            <select
+              value={impersonateId}
+              onChange={onImpersonateChange}
+              className={`w-full text-xs px-2 py-1.5 rounded-lg border outline-none ${
+                c('bg-white/5 border-white/10 text-white/70', 'bg-white border-gray-200 text-[#1A1A1A]/70')
+              }`}
+            >
+              <option value="">My own DragonBot</option>
+              {adminBots.map((b) => (
+                <option key={b.id} value={b.id}>
+                  {b.slackTeamName || b.name || b.id}{b.ownerEmail ? ` — ${b.ownerEmail}` : ''}
+                </option>
+              ))}
+            </select>
+          </div>
+        )}
         <button
           onClick={handleLogout}
           className={`w-full flex items-center gap-3 px-3 py-2 rounded-xl text-sm transition-colors ${
