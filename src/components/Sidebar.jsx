@@ -35,7 +35,12 @@ export default function Sidebar({ dark, theme, onSetTheme }) {
   const navigate = useNavigate();
   const session = getSession();
   const [mobileOpen, setMobileOpen] = useState(false);
-  const isAdmin = session?.email === 'gershon@ballisticbrands.co' || session?.isAdmin;
+  // isAdmin is sticky in localStorage so it survives an empty/stale session.
+  // /api/me sets it; once true, the picker stays available across impersonation reloads.
+  const isAdmin =
+    session?.email === 'gershon@ballisticbrands.co' ||
+    session?.isAdmin ||
+    localStorage.getItem('dragonbot_is_admin') === '1';
   const [adminBots, setAdminBots] = useState([]);
   const [impersonateId, setImpersonateId] = useState(() => localStorage.getItem('dragonbot_impersonate_id') || '');
 
@@ -50,15 +55,44 @@ export default function Sidebar({ dark, theme, onSetTheme }) {
       .catch(() => {});
   }, [isAdmin]);
 
-  function onImpersonateChange(e) {
+  // Refresh the cached profile if it's missing (e.g. after impersonation reload)
+  // so the sidebar's team-name display and other session-derived UI stay accurate.
+  useEffect(() => {
+    if (session) return;
+    const token = localStorage.getItem('dragonbot_token');
+    if (!token) return;
+    fetch(`${BACKEND_URL}/api/me`, { headers: { Authorization: `Bearer ${token}` } })
+      .then((r) => (r.ok ? r.json() : null))
+      .then((profile) => {
+        if (!profile) return;
+        localStorage.setItem('dragonbot_session', JSON.stringify(profile));
+        if (profile.isAdmin) localStorage.setItem('dragonbot_is_admin', '1');
+        // Force a re-render so the new session is reflected
+        window.dispatchEvent(new Event('storage'));
+      })
+      .catch(() => {});
+  }, [session]);
+
+  async function onImpersonateChange(e) {
     const value = e.target.value;
     if (value) {
       localStorage.setItem('dragonbot_impersonate_id', value);
     } else {
       localStorage.removeItem('dragonbot_impersonate_id');
     }
-    // Drop cached profile so /api/me is refetched fresh after reload
-    localStorage.removeItem('dragonbot_session');
+    // Refetch /api/me with the new impersonation header and cache it before
+    // reloading, so the Sidebar (and other pages) immediately see the right bot.
+    const token = localStorage.getItem('dragonbot_token');
+    try {
+      const res = await fetch(`${BACKEND_URL}/api/me`, {
+        headers: { Authorization: `Bearer ${token}` },
+      });
+      if (res.ok) {
+        const profile = await res.json();
+        localStorage.setItem('dragonbot_session', JSON.stringify(profile));
+        if (profile.isAdmin) localStorage.setItem('dragonbot_is_admin', '1');
+      }
+    } catch { /* ignore — page reload will retry */ }
     setImpersonateId(value);
     window.location.href = '/';
     window.location.reload();
@@ -74,6 +108,8 @@ export default function Sidebar({ dark, theme, onSetTheme }) {
   function handleLogout() {
     localStorage.removeItem('dragonbot_token');
     localStorage.removeItem('dragonbot_session');
+    localStorage.removeItem('dragonbot_is_admin');
+    localStorage.removeItem('dragonbot_impersonate_id');
     navigate('/signin', { replace: true });
   }
 

@@ -57,6 +57,7 @@ function TokenHandler({ children }) {
         if (res.ok) {
           const profile = await res.json();
           localStorage.setItem('dragonbot_session', JSON.stringify(profile));
+          if (profile.isAdmin) localStorage.setItem('dragonbot_is_admin', '1');
         }
       } catch (err) {
         console.error('[app] Failed to fetch user profile:', err);
