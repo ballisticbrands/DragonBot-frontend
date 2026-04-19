@@ -35,6 +35,15 @@ const PRESETS = [
     description: 'Google Gemini 3.1 Pro Preview. Very capable, significantly cheaper. Preview model — may have occasional rough edges.',
     icon: Zap,
   },
+  {
+    id: 'glm',
+    model: 'zai/glm-5.1',
+    name: 'GLM 5.1',
+    badge: '~80% cheaper',
+    badgeColor: '',
+    description: 'Z AI GLM 5.1. 200K context, strong at coding and agentic tasks.',
+    icon: Zap,
+  },
 ];
 
 
