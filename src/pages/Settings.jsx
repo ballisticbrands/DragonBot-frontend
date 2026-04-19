@@ -49,6 +49,7 @@ const PRESETS = [
 
 export default function Settings({ dark }) {
   const [currentModel, setCurrentModel] = useState(null);
+  const [heartbeatModel, setHeartbeatModel] = useState(null); // null = same as primary
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
 
@@ -61,6 +62,7 @@ export default function Settings({ dark }) {
         if (res.ok) {
           const data = await res.json();
           setCurrentModel(data.model);
+          setHeartbeatModel(data.heartbeatModel || null);
         }
       } catch (err) {
         console.error('Failed to load settings:', err);
@@ -92,7 +94,33 @@ export default function Settings({ dark }) {
     }
   }
 
+  async function selectHeartbeatModel(model) {
+    // null means "same as primary"
+    const newVal = model === currentModel ? null : model;
+    if (newVal === heartbeatModel || saving) return;
+    setSaving(true);
+    try {
+      const res = await fetch(`${BACKEND_URL}/api/settings/model`, {
+        method: 'PUT',
+        headers: {
+          Authorization: `Bearer ${getToken()}`,
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ heartbeatModel: newVal }),
+      });
+      if (res.ok) {
+        setHeartbeatModel(newVal);
+      }
+    } catch (err) {
+      console.error('Failed to update heartbeat model:', err);
+    } finally {
+      setSaving(false);
+    }
+  }
+
   const c = (dv, lv) => dark ? dv : lv;
+
+  const effectiveHeartbeat = heartbeatModel || currentModel;
 
   return (
     <div className={`min-h-screen px-4 py-8 md:px-8 ${c('bg-[#0f0f0f]', 'bg-[#fafafa]')}`}>
@@ -105,33 +133,67 @@ export default function Settings({ dark }) {
         {loading ? (
           <p className={`text-sm ${c('text-white/40', 'text-[#1A1A1A]/40')}`}>Loading...</p>
         ) : (
-          <div className={`rounded-xl ${c('bg-[#1a1a1a]', 'bg-white border border-gray-200')}`}>
-            <div className="p-5 flex flex-col gap-2">
-              <h2 className={`text-base font-semibold ${c('text-white', 'text-[#1A1A1A]')}`}>Default AI model</h2>
-              <p className={`text-sm max-w-xl ${c('text-white/50', 'text-[#1A1A1A]/50')}`}>
-                Sets the default model for your DragonBot's conversations and scheduled tasks.
-              </p>
-            </div>
-
-            <div className="px-5 pb-5 flex max-w-xl flex-col gap-4">
-              {/* Presets */}
-              <div className="flex flex-col gap-2">
-                <span className={`text-sm font-medium ${c('text-white/40', 'text-[#1A1A1A]/40')}`}>Presets</span>
-                {PRESETS.map((preset) => (
-                  <ModelCard
-                    key={preset.id}
-                    dark={dark}
-                    name={preset.name}
-                    description={preset.description}
-                    badge={preset.badge}
-                    badgeColor={preset.badgeColor}
-                    selected={currentModel === preset.model}
-                    saving={saving}
-                    onClick={() => selectModel(preset.model)}
-                  />
-                ))}
+          <div className="flex flex-col gap-6">
+            {/* Default AI model */}
+            <div className={`rounded-xl ${c('bg-[#1a1a1a]', 'bg-white border border-gray-200')}`}>
+              <div className="p-5 flex flex-col gap-2">
+                <h2 className={`text-base font-semibold ${c('text-white', 'text-[#1A1A1A]')}`}>Default AI model</h2>
+                <p className={`text-sm max-w-xl ${c('text-white/50', 'text-[#1A1A1A]/50')}`}>
+                  Sets the default model for your DragonBot's conversations and scheduled tasks.
+                </p>
               </div>
 
+              <div className="px-5 pb-5 flex max-w-xl flex-col gap-4">
+                <div className="flex flex-col gap-2">
+                  <span className={`text-sm font-medium ${c('text-white/40', 'text-[#1A1A1A]/40')}`}>Presets</span>
+                  {PRESETS.map((preset) => (
+                    <ModelCard
+                      key={preset.id}
+                      dark={dark}
+                      name={preset.name}
+                      description={preset.description}
+                      badge={preset.badge}
+                      badgeColor={preset.badgeColor}
+                      selected={currentModel === preset.model}
+                      saving={saving}
+                      onClick={() => selectModel(preset.model)}
+                    />
+                  ))}
+                </div>
+              </div>
+            </div>
+
+            {/* Heartbeat AI model */}
+            <div className={`rounded-xl ${c('bg-[#1a1a1a]', 'bg-white border border-gray-200')}`}>
+              <div className="p-5 flex flex-col gap-2">
+                <h2 className={`text-base font-semibold ${c('text-white', 'text-[#1A1A1A]')}`}>Heartbeat AI model</h2>
+                <p className={`text-sm max-w-xl ${c('text-white/50', 'text-[#1A1A1A]/50')}`}>
+                  The model used for periodic heartbeat checks (every 30 minutes). Using a cheaper model here can significantly reduce costs since heartbeats run frequently.
+                </p>
+              </div>
+
+              <div className="px-5 pb-5 flex max-w-xl flex-col gap-4">
+                <div className="flex flex-col gap-2">
+                  {PRESETS.map((preset) => (
+                    <ModelCard
+                      key={`hb-${preset.id}`}
+                      dark={dark}
+                      name={preset.name}
+                      description={preset.id === 'smartest' ? 'Same as default — no separate heartbeat model.' : preset.description}
+                      badge={effectiveHeartbeat === preset.model && heartbeatModel ? 'Active' : preset.badge}
+                      badgeColor={effectiveHeartbeat === preset.model && heartbeatModel ? 'bg-[#CCFFE5] text-[#006633]' : ''}
+                      selected={effectiveHeartbeat === preset.model}
+                      saving={saving}
+                      onClick={() => selectHeartbeatModel(preset.model)}
+                    />
+                  ))}
+                </div>
+                {!heartbeatModel && (
+                  <p className={`text-xs ${c('text-white/30', 'text-[#1A1A1A]/30')}`}>
+                    Currently using the same model as default ({PRESETS.find(p => p.model === currentModel)?.name || currentModel}).
+                  </p>
+                )}
+              </div>
             </div>
           </div>
         )}
