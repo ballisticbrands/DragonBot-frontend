@@ -26,6 +26,15 @@ const PRESETS = [
     description: 'Currently uses Claude Sonnet 4.6. Good balance of quality and cost for everyday tasks.',
     icon: Zap,
   },
+  {
+    id: 'gemini',
+    model: 'google/gemini-3.1-pro-preview',
+    name: 'Gemini (Preview)',
+    badge: '~65% cheaper',
+    badgeColor: '',
+    description: 'Google Gemini 3.1 Pro Preview. Very capable, significantly cheaper. Preview model — may have occasional rough edges.',
+    icon: Zap,
+  },
 ];
 
 
