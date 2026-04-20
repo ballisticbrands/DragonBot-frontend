@@ -49,7 +49,20 @@ if (typeof window !== 'undefined' && !window.__dragonbotFetchPatched) {
 
 function PrivateRoute({ children }) {
   const token = localStorage.getItem('dragonbot_token');
-  return token ? children : <Navigate to="/signin" replace />;
+  const [validated, setValidated] = useState(false);
+
+  useEffect(() => {
+    if (!token) return;
+    // Validate the session on first load — if the user was deleted or the token
+    // is stale, /api/me returns 401 and the fetch interceptor clears the session.
+    fetch(`${BACKEND_URL}/api/me`, { headers: { Authorization: `Bearer ${token}` } })
+      .then(() => setValidated(true))
+      .catch(() => setValidated(true)); // interceptor handles 401; let errors through
+  }, [token]);
+
+  if (!token) return <Navigate to="/signin" replace />;
+  if (!validated) return null; // don't flash stale UI while validating
+  return children;
 }
 
 function TokenHandler({ children }) {
