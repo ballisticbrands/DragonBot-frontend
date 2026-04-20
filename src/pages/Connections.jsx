@@ -490,6 +490,11 @@ function ConnectionRow({ conn, dark, isGlobal, onDisconnect }) {
         </div>
       </div>
       <div className="flex items-center gap-3 flex-shrink-0">
+        {conn.readOnly && (
+          <span className={`text-xs px-2 py-0.5 rounded-full ${c('bg-yellow-500/10 text-yellow-500/70', 'bg-yellow-50 text-yellow-600')}`}>
+            Read-only
+          </span>
+        )}
         <span className={`text-xs px-2.5 py-1 rounded-full ${
           conn.enabled !== false
             ? 'bg-[#2F7D4F]/10 text-[#2F7D4F]'
