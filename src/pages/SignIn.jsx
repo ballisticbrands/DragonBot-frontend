@@ -13,8 +13,7 @@ function SlackLogo({ className }) {
 
 export default function SignIn() {
   const [step, setStep] = useState(1);
-  const [systemDark] = useState(() => window.matchMedia('(prefers-color-scheme: dark)').matches);
-  const dark = systemDark;
+  const dark = true;
 
   return (
     <div className={`min-h-screen flex items-center justify-center px-4 ${dark ? 'bg-[#0f0f0f]' : 'bg-[#fafafa]'}`}>

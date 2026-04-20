@@ -79,7 +79,7 @@ const NO_SIDEBAR_ROUTES = ['/signin', '/getting-started'];
 
 function AppLayout() {
   const location = useLocation();
-  const [theme, setTheme] = useState(() => localStorage.getItem('dragonbot_theme') || 'system');
+  const [theme, setTheme] = useState(() => localStorage.getItem('dragonbot_theme') || 'dark');
   const [systemDark, setSystemDark] = useState(() => window.matchMedia('(prefers-color-scheme: dark)').matches);
 
   useEffect(() => {

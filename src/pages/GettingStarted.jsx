@@ -557,8 +557,7 @@ export default function GettingStarted() {
   const [searchParams, setSearchParams] = useSearchParams();
   const step = searchParams.get('step') ?? 'add-to-slack';
 
-  const [systemDark] = useState(() => window.matchMedia('(prefers-color-scheme: dark)').matches);
-  const dark = systemDark;
+  const dark = true;
 
   return (
     <div className={`min-h-screen flex items-center justify-center px-4 ${dark ? 'bg-[#0f0f0f]' : 'bg-[#fafafa]'}`}>
