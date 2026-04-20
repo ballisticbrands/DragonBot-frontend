@@ -29,7 +29,21 @@ if (typeof window !== 'undefined' && !window.__dragonbotFetchPatched) {
       headers.set('X-Impersonate-DragonBot-Id', impersonateId);
       init = { ...init, headers };
     }
-    return originalFetch(input, init);
+    return originalFetch(input, init).then((resp) => {
+      // If any backend call returns 401, the session is invalid (user deleted, token expired, etc.)
+      // Clear local state and redirect to sign-in.
+      if (resp.status === 401 && url.startsWith(BACKEND_URL)) {
+        localStorage.removeItem('dragonbot_token');
+        localStorage.removeItem('dragonbot_session');
+        localStorage.removeItem('dragonbot_is_admin');
+        localStorage.removeItem('dragonbot_impersonate_id');
+        if (window.location.hash !== '#/signin') {
+          window.location.href = '/#/signin';
+          window.location.reload();
+        }
+      }
+      return resp;
+    });
   };
 }
 
