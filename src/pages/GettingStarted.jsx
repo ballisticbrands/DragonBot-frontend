@@ -63,7 +63,7 @@ function StepIndicator({ currentStep, dark }) {
 function AddToSlack({ dark }) {
   const token = getToken();
   return (
-    <div className="text-center max-w-3xl mx-auto">
+    <div className="text-center max-w-5xl mx-auto">
       <h1 className={`font-semibold text-3xl mb-2 ${dark ? 'text-white' : 'text-[#1A1A1A]'}`}>
         Add <span className="bg-gradient-to-r from-[#2F7D4F] to-[#98CC65] bg-clip-text text-transparent">DragonBot</span> to <span className="bg-gradient-to-r from-[#9B59B6] to-[#B794F4] bg-clip-text text-transparent">Slack</span>
       </h1>
@@ -75,7 +75,7 @@ function AddToSlack({ dark }) {
       <div className="grid grid-cols-3 gap-4 mb-8">
         {/* Pane 1: Authorize */}
         <div className={`rounded-xl border flex flex-col overflow-hidden ${dark ? 'border-white/10' : 'border-gray-200 bg-gray-50'}`}>
-          <div className="relative flex-1 flex items-center justify-center p-5 min-h-[110px]" style={{ background: 'radial-gradient(circle at center, rgba(47,125,79,0.15) 0%, transparent 70%)' }}>
+          <div className="relative flex items-center justify-center p-5 h-[130px]" style={{ background: 'radial-gradient(circle at center, rgba(47,125,79,0.15) 0%, transparent 70%)' }}>
             <span className={`absolute top-2.5 left-2.5 w-5 h-5 rounded-full text-[10px] font-bold flex items-center justify-center ${dark ? 'bg-white/10 text-white/50' : 'bg-gray-200 text-gray-500'}`}>1</span>
             <div className="flex items-center gap-3">
               <div className="w-12 h-12 rounded-xl overflow-hidden shadow-lg">
@@ -97,7 +97,7 @@ function AddToSlack({ dark }) {
 
         {/* Pane 2: Connect tools */}
         <div className={`rounded-xl border flex flex-col overflow-hidden ${dark ? 'border-white/10' : 'border-gray-200 bg-gray-50'}`}>
-          <div className="relative flex-1 flex items-center justify-center p-5 min-h-[110px]" style={{ background: 'radial-gradient(circle at center, rgba(47,125,79,0.15) 0%, transparent 70%)' }}>
+          <div className="relative flex items-center justify-center p-5 h-[130px]" style={{ background: 'radial-gradient(circle at center, rgba(47,125,79,0.15) 0%, transparent 70%)' }}>
             <span className={`absolute top-2.5 left-2.5 w-5 h-5 rounded-full text-[10px] font-bold flex items-center justify-center ${dark ? 'bg-white/10 text-white/50' : 'bg-gray-200 text-gray-500'}`}>2</span>
             <div className="grid grid-cols-4 gap-2">
               {[
@@ -126,7 +126,7 @@ function AddToSlack({ dark }) {
 
         {/* Pane 3: Chat */}
         <div className={`rounded-xl border flex flex-col overflow-hidden ${dark ? 'border-white/10' : 'border-gray-200 bg-gray-50'}`}>
-          <div className="relative flex-1 flex items-center justify-center p-5 min-h-[110px]" style={{ background: 'radial-gradient(circle at center, rgba(47,125,79,0.15) 0%, transparent 70%)' }}>
+          <div className="relative flex items-center justify-center p-5 h-[130px]" style={{ background: 'radial-gradient(circle at center, rgba(47,125,79,0.15) 0%, transparent 70%)' }}>
             <span className={`absolute top-2.5 left-2.5 w-5 h-5 rounded-full text-[10px] font-bold flex items-center justify-center ${dark ? 'bg-white/10 text-white/50' : 'bg-gray-200 text-gray-500'}`}>3</span>
             <div className={`w-full rounded-lg p-3 text-left ${dark ? 'bg-white/[0.06]' : 'bg-gray-100'}`}>
               <div className="flex items-start gap-2">
