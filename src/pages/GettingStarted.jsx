@@ -1,8 +1,19 @@
 import { useState, useEffect, useMemo, useCallback } from 'react';
 import { useSearchParams } from 'react-router-dom';
-import { Check, Search, Plug, Trash2, Lock, Eye, Plus, Gift } from 'lucide-react';
+import { Check, Search, Plug, Trash2, Lock, Eye, Plus, Gift, Shield } from 'lucide-react';
 import { createFrontendClient } from '@pipedream/sdk/browser';
 import { motion } from 'framer-motion';
+
+function SlackLogo({ className }) {
+  return (
+    <svg className={className} viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+      <path d="M5.042 15.165a2.528 2.528 0 0 1-2.52 2.523A2.528 2.528 0 0 1 0 15.165a2.527 2.527 0 0 1 2.522-2.52h2.52v2.52zm1.271 0a2.527 2.527 0 0 1 2.521-2.52 2.527 2.527 0 0 1 2.521 2.52v6.313A2.528 2.528 0 0 1 8.834 24a2.528 2.528 0 0 1-2.521-2.522v-6.313z" fill="#E01E5A"/>
+      <path d="M8.834 5.042a2.528 2.528 0 0 1-2.521-2.52A2.528 2.528 0 0 1 8.834 0a2.528 2.528 0 0 1 2.521 2.522v2.52H8.834zm0 1.271a2.527 2.527 0 0 1 2.521 2.521 2.527 2.527 0 0 1-2.521 2.521H2.522A2.528 2.528 0 0 1 0 8.834a2.528 2.528 0 0 1 2.522-2.521h6.312z" fill="#36C5F0"/>
+      <path d="M18.956 8.834a2.528 2.528 0 0 1 2.522-2.521A2.528 2.528 0 0 1 24 8.834a2.528 2.528 0 0 1-2.522 2.521h-2.522V8.834zm-1.27 0a2.527 2.527 0 0 1-2.522 2.521 2.527 2.527 0 0 1-2.521-2.521V2.522A2.528 2.528 0 0 1 15.165 0a2.528 2.528 0 0 1 2.521 2.522v6.312z" fill="#2EB67D"/>
+      <path d="M15.165 18.956a2.528 2.528 0 0 1 2.521 2.522A2.528 2.528 0 0 1 15.165 24a2.527 2.527 0 0 1-2.522-2.522v-2.522h2.522zm0-1.27a2.527 2.527 0 0 1-2.522-2.522 2.527 2.527 0 0 1 2.522-2.521h6.313A2.528 2.528 0 0 1 24 15.165a2.528 2.528 0 0 1-2.522 2.521h-6.313z" fill="#ECB22E"/>
+    </svg>
+  );
+}
 
 // Logo URLs for popular tools (Pipedream asset CDN)
 const TOOL_LOGOS = {
@@ -52,22 +63,67 @@ function StepIndicator({ currentStep, dark }) {
 function AddToSlack({ dark }) {
   const token = getToken();
   return (
-    <div className="text-center">
-      <div className="inline-flex items-center justify-center w-20 h-20 rounded-2xl mb-6 overflow-hidden">
-        <img src="/DragonBot-avatar-social.png" alt="DragonBot" className="w-full h-full object-cover" />
-      </div>
-      <h1 className={`font-semibold text-2xl mb-3 ${dark ? 'text-white' : 'text-[#1A1A1A]'}`}>
-        Add DragonBot to your Slack workspace
+    <div className="text-center max-w-2xl mx-auto">
+      <h1 className={`font-semibold text-3xl mb-2 ${dark ? 'text-white' : 'text-[#1A1A1A]'}`}>
+        Add <span className="bg-gradient-to-r from-[#2F7D4F] to-[#98CC65] bg-clip-text text-transparent">DragonBot</span> to <span className="bg-gradient-to-r from-[#9B59B6] to-[#B794F4] bg-clip-text text-transparent">Slack</span>
       </h1>
-      <p className={`text-sm mb-8 leading-relaxed max-w-md mx-auto ${dark ? 'text-white/50' : 'text-[#1A1A1A]/50'}`}>
-        DragonBot needs access to your Slack workspace to read and respond to messages in the channels you choose. We only request the minimum permissions needed.
+      <p className={`text-sm mb-8 ${dark ? 'text-white/50' : 'text-[#1A1A1A]/50'}`}>
+        Install DragonBot in your workspace to start collaborating
       </p>
+
+      {/* Three info panes */}
+      <div className="grid grid-cols-3 gap-4 mb-8">
+        <div className={`p-4 rounded-xl border text-left ${dark ? 'border-white/10 bg-white/[0.02]' : 'border-gray-200 bg-gray-50'}`}>
+          <div className="w-10 h-10 rounded-xl mb-3 overflow-hidden">
+            <img src="/DragonBot-avatar-social.png" alt="DragonBot" className="w-full h-full object-cover" />
+          </div>
+          <h3 className={`text-sm font-semibold mb-1 ${dark ? 'text-white' : 'text-[#1A1A1A]'}`}>Authorize in Slack</h3>
+          <p className={`text-xs leading-relaxed ${dark ? 'text-white/40' : 'text-[#1A1A1A]/40'}`}>
+            You'll pop over to Slack for a quick approval. It takes 10 seconds.
+          </p>
+        </div>
+
+        <div className={`p-4 rounded-xl border text-left ${dark ? 'border-white/10 bg-white/[0.02]' : 'border-gray-200 bg-gray-50'}`}>
+          <div className="flex items-center gap-1 mb-3">
+            <img src="https://assets.pipedream.net/s.v0/app_1lxhab/logo/orig" alt="" className="w-5 h-5 rounded" />
+            <img src="https://assets.pipedream.net/s.v0/app_X7Lhxr/logo/orig" alt="" className="w-5 h-5 rounded" />
+            <img src="https://assets.pipedream.net/s.v0/app_1lxhk1/logo/orig" alt="" className="w-5 h-5 rounded" />
+          </div>
+          <h3 className={`text-sm font-semibold mb-1 ${dark ? 'text-white' : 'text-[#1A1A1A]'}`}>Connect your tools</h3>
+          <p className={`text-xs leading-relaxed ${dark ? 'text-white/40' : 'text-[#1A1A1A]/40'}`}>
+            Plug in Amazon SP-API, Google Drive, or whatever your team uses.
+          </p>
+        </div>
+
+        <div className={`p-4 rounded-xl border text-left ${dark ? 'border-white/10 bg-white/[0.02]' : 'border-gray-200 bg-gray-50'}`}>
+          <div className="flex items-center gap-1 mb-3">
+            <span className="text-lg">💬</span>
+          </div>
+          <h3 className={`text-sm font-semibold mb-1 ${dark ? 'text-white' : 'text-[#1A1A1A]'}`}>Chat like coworkers</h3>
+          <p className={`text-xs leading-relaxed ${dark ? 'text-white/40' : 'text-[#1A1A1A]/40'}`}>
+            DM or @mention DragonBot. It already knows your tools and context.
+          </p>
+        </div>
+      </div>
+
+      {/* CTA button */}
       <a
         href={`${BACKEND_URL}/api/slack/install?token=${encodeURIComponent(token)}`}
-        className="inline-flex items-center justify-center gap-2 px-8 py-3 rounded-xl bg-[#2F7D4F] hover:bg-[#256B42] text-white text-sm font-medium transition-colors shadow-lg shadow-[#2F7D4F]/20"
+        className="inline-flex items-center justify-center gap-3 w-full max-w-md py-3 rounded-xl bg-white text-[#1A1A1A] text-sm font-medium transition-colors hover:bg-white/90"
       >
-        Add to Slack
+        <SlackLogo className="w-5 h-5" />
+        Add DragonBot to Slack
       </a>
+
+      {/* Security badges */}
+      <div className="flex items-center justify-center gap-5 mt-6">
+        {['Amazon TOS Compliant', 'Read-Only', 'Encrypted'].map((badge) => (
+          <div key={badge} className="flex items-center gap-1">
+            <Shield size={10} className="text-white/50" />
+            <span className="text-[10px] text-white/50">{badge}</span>
+          </div>
+        ))}
+      </div>
     </div>
   );
 }
