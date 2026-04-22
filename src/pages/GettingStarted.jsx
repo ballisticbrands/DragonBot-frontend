@@ -1,7 +1,24 @@
 import { useState, useEffect, useMemo, useCallback } from 'react';
 import { useSearchParams } from 'react-router-dom';
-import { Check, Search, Plug, Trash2 } from 'lucide-react';
+import { Check, Search, Plug, Trash2, Lock, Eye, Plus, Gift } from 'lucide-react';
 import { createFrontendClient } from '@pipedream/sdk/browser';
+
+// Logo URLs for popular tools (Pipedream asset CDN)
+const TOOL_LOGOS = {
+  amazon_selling_partner: 'https://assets.pipedream.net/s.v0/app_1lxhab/logo/orig', // Amazon
+  amazon_ads: 'https://assets.pipedream.net/s.v0/app_1lxhab/logo/orig',
+  google_drive: 'https://assets.pipedream.net/s.v0/app_1lxhk1/logo/orig',
+  google_sheets: 'https://assets.pipedream.net/s.v0/app_168hvn/logo/orig',
+  google_docs: 'https://assets.pipedream.net/s.v0/app_1MYhp7/logo/orig',
+  notion: 'https://assets.pipedream.net/s.v0/app_X7Lhxr/logo/orig',
+  airtable: 'https://assets.pipedream.net/s.v0/app_X20heg/logo/orig',
+  shopify: 'https://assets.pipedream.net/s.v0/app_dp2hml/logo/orig',
+};
+
+const MOST_POPULAR_SLUGS = [
+  'amazon_selling_partner', 'amazon_ads', 'google_drive', 'google_sheets',
+  'google_docs', 'notion', 'airtable', 'shopify',
+];
 
 const BACKEND_URL = import.meta.env.VITE_BACKEND_URL ?? 'https://api.getdragonbot.com';
 
@@ -129,7 +146,7 @@ function ConnectSpApi({ dark, onComplete }) {
   return (
     <div className="text-center">
       <div className={`inline-flex items-center justify-center w-16 h-16 rounded-2xl mb-6 ${dark ? 'bg-[#FF9900]/10' : 'bg-[#FF9900]/5'}`}>
-        <img src="https://upload.wikimedia.org/wikipedia/commons/a/a9/Amazon_logo.svg" alt="Amazon" className="h-8 object-contain" />
+        <img src={TOOL_LOGOS.amazon_selling_partner} alt="Amazon" className="h-10 w-10 rounded-lg object-contain" />
       </div>
       <h1 className={`font-semibold text-2xl mb-3 ${dark ? 'text-white' : 'text-[#1A1A1A]'}`}>
         Connect your Amazon Seller account
@@ -141,19 +158,19 @@ function ConnectSpApi({ dark, onComplete }) {
       <div className={`text-left mb-6 p-4 rounded-xl border ${dark ? 'border-white/5 bg-white/[0.02]' : 'border-gray-100 bg-gray-50'}`}>
         <div className="space-y-2">
           <div className="flex items-start gap-2">
-            <span className="text-[#2F7D4F] mt-0.5">&#x1f512;</span>
+            <Lock size={14} className="text-[#2F7D4F] mt-0.5 flex-shrink-0" />
             <span className={`text-xs ${dark ? 'text-white/50' : 'text-[#1A1A1A]/50'}`}>
               <strong className={dark ? 'text-white/70' : 'text-[#1A1A1A]/70'}>100% secure & compliant</strong> — fully compliant with Amazon's Terms of Service. Your credentials are encrypted and never shared.
             </span>
           </div>
           <div className="flex items-start gap-2">
-            <span className="text-[#2F7D4F] mt-0.5">&#x1f441;</span>
+            <Eye size={14} className="text-[#2F7D4F] mt-0.5 flex-shrink-0" />
             <span className={`text-xs ${dark ? 'text-white/50' : 'text-[#1A1A1A]/50'}`}>
               <strong className={dark ? 'text-white/70' : 'text-[#1A1A1A]/70'}>Read-only by default</strong> — DragonBot can only view your data. You can enable write access later in Settings if you choose.
             </span>
           </div>
           <div className="flex items-start gap-2">
-            <span className="text-[#2F7D4F] mt-0.5">&#x2795;</span>
+            <Plus size={14} className="text-[#2F7D4F] mt-0.5 flex-shrink-0" />
             <span className={`text-xs ${dark ? 'text-white/50' : 'text-[#1A1A1A]/50'}`}>
               You can connect additional Amazon accounts later from the Connections page.
             </span>
@@ -203,6 +220,34 @@ function ConnectSpApi({ dark, onComplete }) {
         </div>
       )}
     </div>
+  );
+}
+
+function ToolButton({ tool, dark, connecting, onClick }) {
+  const isConnecting = connecting === tool.slug;
+  const logo = TOOL_LOGOS[tool.slug] || tool.imgSrc;
+  return (
+    <button
+      onClick={onClick}
+      disabled={isConnecting}
+      className={`flex flex-col items-center gap-2 p-3 rounded-xl border text-center transition-colors disabled:opacity-50 ${
+        dark
+          ? 'border-white/10 hover:border-white/20 hover:bg-white/5'
+          : 'border-gray-200 hover:border-gray-300 hover:bg-gray-50'
+      }`}
+    >
+      {logo ? (
+        <img src={logo} alt={tool.name} className="w-7 h-7 rounded-lg object-contain" />
+      ) : (
+        <div className={`w-7 h-7 rounded-lg flex items-center justify-center text-xs ${dark ? 'bg-white/10 text-white/50' : 'bg-gray-100 text-gray-400'}`}>
+          {tool.name?.charAt(0) || '?'}
+        </div>
+      )}
+      <span className={`text-[11px] font-medium leading-tight ${dark ? 'text-white/80' : 'text-[#1A1A1A]/80'}`}>
+        {tool.name}
+      </span>
+      {isConnecting && <span className="text-[10px] text-[#2F7D4F]">Connecting...</span>}
+    </button>
   );
 }
 
@@ -365,12 +410,18 @@ function ConnectTools({ dark, onComplete }) {
   const spApiConns = connections.filter((c) => c.provider === 'amazon_selling_partner');
   const otherConns = connections.filter((c) => c.provider !== 'amazon_selling_partner');
 
+  // Split tools into "most popular" and "browse all"
+  const popularTools = MOST_POPULAR_SLUGS
+    .map((slug) => tools.find((t) => t.slug === slug))
+    .filter(Boolean);
+  const browseTools = tools.filter((t) => !MOST_POPULAR_SLUGS.includes(t.slug));
+
   return (
     <div>
       <h1 className={`font-semibold text-2xl mb-2 ${dark ? 'text-white' : 'text-[#1A1A1A]'}`}>
-        Give DragonBot <em>tools</em> to work with
+        Give DragonBot <span className="bg-gradient-to-r from-[#2F7D4F] to-[#98CC65] bg-clip-text text-transparent">tools</span> to work with
       </h1>
-      <p className={`text-sm mb-6 leading-relaxed ${dark ? 'text-white/50' : 'text-[#1A1A1A]/50'}`}>
+      <p className={`text-sm mb-5 leading-relaxed ${dark ? 'text-white/50' : 'text-[#1A1A1A]/50'}`}>
         Just like any new hire, DragonBot works best when it can access your team's tools. Connect now or add them later from settings.
       </p>
 
@@ -471,7 +522,7 @@ function ConnectTools({ dark, onComplete }) {
           type="text"
           value={search}
           onChange={(e) => setSearch(e.target.value)}
-          placeholder="Search 2000+ apps..."
+          placeholder="Search integrations..."
           className={`w-full rounded-xl pl-9 pr-4 py-2.5 text-sm outline-none border transition-colors ${
             dark
               ? 'bg-white/5 border-white/10 text-white placeholder:text-white/30 focus:border-[#4ADE80]/50'
@@ -482,42 +533,47 @@ function ConnectTools({ dark, onComplete }) {
 
       {loading ? (
         <p className={`text-sm ${dark ? 'text-white/40' : 'text-[#1A1A1A]/40'}`}>Loading...</p>
+      ) : search ? (
+        /* Search results — flat grid */
+        <div className="grid grid-cols-3 gap-3 mb-5 text-left max-h-60 overflow-y-auto">
+          {tools.map((tool) => (
+            <ToolButton key={tool.slug} tool={tool} dark={dark} connecting={connecting} onClick={() => handleConnect(tool)} />
+          ))}
+        </div>
       ) : (
-        <div className="grid grid-cols-3 gap-3 mb-6 text-left max-h-60 overflow-y-auto">
-          {tools.map((tool) => {
-            const isConnecting = connecting === tool.slug;
-            return (
-              <button
-                key={tool.slug}
-                onClick={() => handleConnect(tool)}
-                disabled={isConnecting}
-                className={`flex flex-col items-center gap-2 p-3 rounded-xl border text-center transition-colors disabled:opacity-50 ${
-                  dark
-                    ? 'border-white/10 hover:border-white/20 hover:bg-white/5'
-                    : 'border-gray-200 hover:border-gray-300 hover:bg-gray-50'
-                }`}
-              >
-                {tool.imgSrc ? (
-                  <img src={tool.imgSrc} alt={tool.name} className="w-7 h-7 rounded-lg object-contain" />
-                ) : (
-                  <div className={`w-7 h-7 rounded-lg flex items-center justify-center text-xs ${dark ? 'bg-white/10 text-white/50' : 'bg-gray-100 text-gray-400'}`}>
-                    {tool.name?.charAt(0) || '?'}
-                  </div>
-                )}
-                <span className={`text-[11px] font-medium leading-tight ${dark ? 'text-white/80' : 'text-[#1A1A1A]/80'}`}>
-                  {tool.name}
-                </span>
-                {isConnecting && <span className="text-[10px] text-[#2F7D4F]">Connecting...</span>}
-              </button>
-            );
-          })}
+        /* Default view — Most popular + Browse all */
+        <div className="mb-5">
+          {popularTools.length > 0 && (
+            <>
+              <span className={`block text-xs font-medium mb-2 ${dark ? 'text-white/40' : 'text-[#1A1A1A]/40'}`}>Most popular</span>
+              <div className="grid grid-cols-4 gap-2 mb-4">
+                {popularTools.map((tool) => (
+                  <ToolButton key={tool.slug} tool={tool} dark={dark} connecting={connecting} onClick={() => handleConnect(tool)} />
+                ))}
+              </div>
+            </>
+          )}
+          {browseTools.length > 0 && (
+            <>
+              <span className={`block text-xs font-medium mb-2 ${dark ? 'text-white/40' : 'text-[#1A1A1A]/40'}`}>Browse all tools</span>
+              <div className="grid grid-cols-3 gap-2 max-h-48 overflow-y-auto">
+                {browseTools.map((tool) => (
+                  <ToolButton key={tool.slug} tool={tool} dark={dark} connecting={connecting} onClick={() => handleConnect(tool)} />
+                ))}
+              </div>
+            </>
+          )}
         </div>
       )}
 
+      {/* Credits incentive + buttons */}
       <div className={`flex items-center justify-between pt-4 border-t ${dark ? 'border-white/5' : 'border-gray-200'}`}>
-        <span className={`text-xs ${dark ? 'text-white/30' : 'text-[#1A1A1A]/30'}`}>
-          Get 1,000 credits for every tool you connect
-        </span>
+        <div className="flex items-center gap-1.5">
+          <Gift size={14} className="text-[#2F7D4F]" />
+          <span className={`text-xs font-medium ${dark ? 'text-white/50' : 'text-[#1A1A1A]/50'}`}>
+            Get 1,000 credits for every tool you connect
+          </span>
+        </div>
         <div className="flex gap-2">
           <button
             onClick={onComplete}
@@ -557,7 +613,10 @@ function SelectChannels({ dark, onComplete }) {
         });
         if (!res.ok) throw new Error('Failed to load channels');
         const data = await res.json();
-        setChannels(Array.isArray(data) ? data : data.channels ?? []);
+        const chList = Array.isArray(data) ? data : data.channels ?? [];
+        setChannels(chList);
+        // Select all channels by default
+        setSelected(new Set(chList.map((c) => c.id)));
       } catch (err) {
         setError(err.message);
       } finally {
@@ -583,6 +642,10 @@ function SelectChannels({ dark, onComplete }) {
 
   function selectAll() {
     setSelected(new Set(channels.map((c) => c.id)));
+  }
+
+  function clearAll() {
+    setSelected(new Set());
   }
 
   async function handleContinue() {
@@ -615,16 +678,28 @@ function SelectChannels({ dark, onComplete }) {
         Select the Slack channels DragonBot should monitor and respond in.
       </p>
 
-      <button
-        onClick={selectAll}
-        className={`mb-4 px-4 py-2 rounded-xl text-sm font-medium transition-colors border ${
-          dark
-            ? 'bg-white/5 border-white/10 text-white hover:bg-white/10'
-            : 'bg-white border-gray-200 text-[#1A1A1A] hover:bg-gray-50'
-        }`}
-      >
-        Invite DragonBot to all public channels
-      </button>
+      <div className="flex gap-2 mb-4">
+        <button
+          onClick={selectAll}
+          className={`flex-1 px-4 py-2 rounded-xl text-sm font-medium transition-colors border ${
+            dark
+              ? 'bg-white/5 border-white/10 text-white hover:bg-white/10'
+              : 'bg-white border-gray-200 text-[#1A1A1A] hover:bg-gray-50'
+          }`}
+        >
+          Invite DragonBot to all public channels
+        </button>
+        <button
+          onClick={clearAll}
+          className={`px-4 py-2 rounded-xl text-sm font-medium transition-colors border ${
+            dark
+              ? 'border-white/10 text-white/40 hover:text-white/60 hover:bg-white/5'
+              : 'border-gray-200 text-[#1A1A1A]/40 hover:text-[#1A1A1A]/60 hover:bg-gray-50'
+          }`}
+        >
+          Clear all
+        </button>
+      </div>
 
       {/* Search */}
       <div className={`relative mb-3 ${dark ? 'text-white/50' : 'text-[#1A1A1A]/40'}`}>
