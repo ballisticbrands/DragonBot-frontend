@@ -47,21 +47,43 @@ if (typeof window !== 'undefined' && !window.__dragonbotFetchPatched) {
   };
 }
 
-function PrivateRoute({ children }) {
+// Maps DB setupStage to the Getting Started URL step param
+const STAGE_TO_STEP = {
+  SLACK_INSTALL: 'add-to-slack',
+  CONNECT_TOOLS: 'connect-tools',
+  SELECT_CHANNELS: 'select-channels',
+  COMPLETE: null, // no redirect needed
+};
+
+function PrivateRoute({ children, skipSetupCheck }) {
   const token = localStorage.getItem('dragonbot_token');
   const [validated, setValidated] = useState(false);
+  const [setupRedirect, setSetupRedirect] = useState(null);
 
   useEffect(() => {
     if (!token) return;
-    // Validate the session on first load — if the user was deleted or the token
-    // is stale, /api/me returns 401 and the fetch interceptor clears the session.
     fetch(`${BACKEND_URL}/api/me`, { headers: { Authorization: `Bearer ${token}` } })
-      .then(() => setValidated(true))
-      .catch(() => setValidated(true)); // interceptor handles 401; let errors through
+      .then(async (res) => {
+        if (!res.ok) { setValidated(true); return; }
+        const profile = await res.json();
+        localStorage.setItem('dragonbot_session', JSON.stringify(profile));
+        if (profile.isAdmin) localStorage.setItem('dragonbot_is_admin', '1');
+        // If setup isn't complete, redirect to Getting Started (unless we're already there)
+        if (!skipSetupCheck) {
+          const stage = profile.setupStage;
+          if (stage && stage !== 'COMPLETE') {
+            const step = STAGE_TO_STEP[stage] || 'add-to-slack';
+            setSetupRedirect(`/getting-started?step=${step}`);
+          }
+        }
+        setValidated(true);
+      })
+      .catch(() => setValidated(true));
   }, [token]);
 
   if (!token) return <Navigate to="/signin" replace />;
-  if (!validated) return null; // don't flash stale UI while validating
+  if (!validated) return null;
+  if (setupRedirect) return <Navigate to={setupRedirect} replace />;
   return children;
 }
 
@@ -134,7 +156,7 @@ function AppLayout() {
           <Route
             path="/getting-started"
             element={
-              <PrivateRoute>
+              <PrivateRoute skipSetupCheck>
                 <GettingStarted />
               </PrivateRoute>
             }

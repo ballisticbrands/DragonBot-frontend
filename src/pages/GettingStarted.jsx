@@ -553,11 +553,67 @@ function Complete({ dark }) {
 
 // ─── Main ────────────────────────────────────────────────────────────
 
+// Maps URL step params to DB setupStage values
+const STEP_TO_STAGE = {
+  'add-to-slack': 'SLACK_INSTALL',
+  'connect-tools': 'CONNECT_TOOLS',
+  'select-channels': 'SELECT_CHANNELS',
+  'complete': 'COMPLETE',
+};
+
+// Maps DB setupStage to URL step param (for initial load from /api/me)
+const STAGE_TO_STEP = {
+  SLACK_INSTALL: 'add-to-slack',
+  CONNECT_TOOLS: 'connect-tools',
+  SELECT_CHANNELS: 'select-channels',
+  COMPLETE: 'complete',
+};
+
+async function advanceStage(nextStep) {
+  const stage = STEP_TO_STAGE[nextStep];
+  if (!stage) return;
+  try {
+    await fetch(`${BACKEND_URL}/api/setup/stage`, {
+      method: 'PUT',
+      headers: {
+        'Content-Type': 'application/json',
+        Authorization: `Bearer ${getToken()}`,
+      },
+      body: JSON.stringify({ stage }),
+    });
+  } catch (err) {
+    console.error('Failed to advance setup stage:', err);
+  }
+}
+
 export default function GettingStarted() {
   const [searchParams, setSearchParams] = useSearchParams();
-  const step = searchParams.get('step') ?? 'add-to-slack';
+  const [initialStep, setInitialStep] = useState(null);
+
+  // On mount, read the setup stage from /api/me to determine where the user left off
+  useEffect(() => {
+    const session = JSON.parse(localStorage.getItem('dragonbot_session') || 'null');
+    if (session?.setupStage) {
+      const step = STAGE_TO_STEP[session.setupStage] || 'add-to-slack';
+      setInitialStep(step);
+      if (!searchParams.get('step')) {
+        setSearchParams({ step }, { replace: true });
+      }
+    } else {
+      setInitialStep('add-to-slack');
+    }
+  }, []);
+
+  const step = searchParams.get('step') ?? initialStep ?? 'add-to-slack';
+
+  function goToStep(nextStep) {
+    advanceStage(nextStep);
+    setSearchParams({ step: nextStep });
+  }
 
   const dark = true;
+
+  if (!initialStep) return null; // loading
 
   return (
     <div className={`min-h-screen flex items-center justify-center px-4 ${dark ? 'bg-[#0f0f0f]' : 'bg-[#fafafa]'}`}>
@@ -566,10 +622,10 @@ export default function GettingStarted() {
 
         {step === 'add-to-slack' && <AddToSlack dark={dark} />}
         {step === 'connect-tools' && (
-          <ConnectTools dark={dark} onComplete={() => setSearchParams({ step: 'select-channels' })} />
+          <ConnectTools dark={dark} onComplete={() => goToStep('select-channels')} />
         )}
         {step === 'select-channels' && (
-          <SelectChannels dark={dark} onComplete={() => setSearchParams({ step: 'complete' })} />
+          <SelectChannels dark={dark} onComplete={() => goToStep('complete')} />
         )}
         {step === 'complete' && <Complete dark={dark} />}
       </div>
