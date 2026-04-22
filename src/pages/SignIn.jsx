@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import { Shield, Lock } from 'lucide-react';
 
 function SlackLogo({ className }) {
   return (
@@ -11,12 +12,24 @@ function SlackLogo({ className }) {
   );
 }
 
+function AmazonLogo({ className }) {
+  return (
+    <svg className={className} viewBox="0 0 24 24" fill="currentColor" xmlns="http://www.w3.org/2000/svg">
+      <path d="M14.171 13.078c-1.399.996-3.429 1.527-5.175 1.527-2.449 0-4.652-.876-6.321-2.333-.131-.114-.014-.271.143-.182 1.8 1.012 4.026 1.622 6.324 1.622 1.55 0 3.254-.311 4.823-.955.237-.097.435.151.206.321z"/>
+      <path d="M14.761 12.407c-.178-.221-1.18-.105-1.63-.053-.137.016-.158-.099-.035-.182.798-.543 2.107-.386 2.26-.204.153.184-.04 1.455-.789 2.063-.115.093-.225.044-.174-.08.169-.41.547-1.323.368-1.544z"/>
+      <path d="M13.156 7.543v-.629c0-.096.073-.159.16-.159h2.832c.091 0 .164.066.164.159v.539c-.002.091-.078.209-.214.394l-1.467 2.028c.545-.013 1.12.066 1.613.337.111.061.141.151.15.24v.671c0 .09-.1.196-.206.141-.858-.436-1.998-.483-2.947.005-.097.05-.198-.052-.198-.142v-.638c0-.101.001-.274.105-.427l1.699-2.358h-1.478c-.091 0-.164-.064-.164-.158l-.049-.003z"/>
+      <path d="M4.727 11.297h-.861c-.082-.006-.148-.067-.154-.145V6.768c0-.087.073-.157.163-.157h.803c.084.003.151.068.157.148v.559h.016c.21-.544.604-.797 1.134-.797.538 0 .874.253 1.115.797.209-.544.685-.797 1.198-.797.363 0 .761.145.903.472.16.366.128.895.128 1.362l-.001 2.556c0 .087-.073.157-.163.157h-.859c-.085-.006-.153-.073-.153-.157V8.916c0-.183.016-.639-.024-.812-.064-.29-.254-.372-.501-.372-.206 0-.422.134-.51.348-.088.214-.08.572-.08.836v2.196c0 .087-.073.157-.163.157h-.859c-.085-.006-.153-.073-.153-.157l-.001-2.196c0-.484.08-1.196-.525-1.196-.612 0-.588.695-.588 1.196v2.196c0 .087-.073.157-.163.157l.031-.012z"/>
+      <path d="M18.301 6.565c1.277 0 1.969.1062 1.969 2.495 0 1.348-.752 2.456-1.969 2.456-1.268 0-1.957-1.062-1.957-2.417 0-1.362.697-2.534 1.957-2.534zm.008.927c-.642 0-.682.847-.682 1.374 0 .528-.008 1.656.674 1.656.674 0 .706-.91.706-1.464 0-.366-.016-.802-.128-1.152-.097-.305-.29-.414-.57-.414z"/>
+    </svg>
+  );
+}
+
 export default function SignIn() {
   const [step, setStep] = useState(1);
   const dark = true;
 
   return (
-    <div className={`min-h-screen flex items-center justify-center px-4 ${dark ? 'bg-[#0f0f0f]' : 'bg-[#fafafa]'}`}>
+    <div className={`min-h-screen flex flex-col items-center justify-center px-4 ${dark ? 'bg-[#0f0f0f]' : 'bg-[#fafafa]'}`}>
       <div className={`w-full max-w-sm rounded-2xl border p-8 shadow-xl ${dark ? 'bg-[#1a1a1a] border-white/10' : 'bg-white border-gray-200'}`}>
         {/* Logo */}
         <div className="flex items-center gap-2 mb-8">
@@ -28,21 +41,58 @@ export default function SignIn() {
 
         {step === 1 && (
           <div>
+            <p className={`text-[10px] uppercase tracking-widest mb-3 ${dark ? 'text-white/30' : 'text-[#1A1A1A]/30'}`}>
+              Before you connect
+            </p>
             <h1 className={`font-semibold text-2xl mb-2 ${dark ? 'text-white' : 'text-[#1A1A1A]'}`}>
-              Your data stays yours
+              Your data <span className="bg-gradient-to-r from-[#2F7D4F] to-[#98CC65] bg-clip-text text-transparent">stays yours</span>
             </h1>
-            <p className={`text-sm mb-2 leading-relaxed ${dark ? 'text-white/60' : 'text-[#1A1A1A]/60'}`}>
-              DragonBot runs inside your own private environment. Your conversations and data are never shared with anyone else or used to train models.
+            <p className={`text-sm mb-6 leading-relaxed ${dark ? 'text-white/50' : 'text-[#1A1A1A]/50'}`}>
+              Before you connect DragonBot to your workspace, here's how we protect your data.
             </p>
-            <p className={`text-sm mb-8 leading-relaxed ${dark ? 'text-white/50' : 'text-[#1A1A1A]/50'}`}>
-              We use industry-standard encryption and your information never leaves your workspace.
-            </p>
+
+            <div className="space-y-4 mb-6">
+              <div className="flex items-start gap-3">
+                <div className={`w-8 h-8 rounded-lg flex items-center justify-center flex-shrink-0 ${dark ? 'bg-white/5' : 'bg-gray-100'}`}>
+                  <AmazonLogo className={`w-5 h-5 ${dark ? 'text-white/60' : 'text-[#1A1A1A]/60'}`} />
+                </div>
+                <div>
+                  <h3 className={`text-sm font-semibold mb-0.5 ${dark ? 'text-white' : 'text-[#1A1A1A]'}`}>Amazon SP-API Connection</h3>
+                  <p className={`text-xs leading-relaxed ${dark ? 'text-white/50' : 'text-[#1A1A1A]/50'}`}>
+                    DragonBot connects through the official Amazon Selling Partner API (SP-API). This is a read-only OAuth connection — we never see your Amazon password.
+                  </p>
+                </div>
+              </div>
+
+              <div className="flex items-start gap-3">
+                <div className={`w-8 h-8 rounded-lg flex items-center justify-center flex-shrink-0 ${dark ? 'bg-white/5' : 'bg-gray-100'}`}>
+                  <Lock size={16} className={dark ? 'text-white/60' : 'text-[#1A1A1A]/60'} />
+                </div>
+                <div>
+                  <h3 className={`text-sm font-semibold mb-0.5 ${dark ? 'text-white' : 'text-[#1A1A1A]'}`}>Private by design</h3>
+                  <p className={`text-xs leading-relaxed ${dark ? 'text-white/50' : 'text-[#1A1A1A]/50'}`}>
+                    DragonBot is just like your employee so it will see only what you decide to share with it. Your data is never used to train models.
+                  </p>
+                </div>
+              </div>
+            </div>
+
             <button
               onClick={() => setStep(2)}
-              className="w-full py-2.5 rounded-xl bg-[#2F7D4F] hover:bg-[#256B42] text-white text-sm font-medium transition-colors shadow-lg shadow-[#2F7D4F]/20"
+              className="w-full py-2.5 rounded-xl bg-[#2F7D4F] hover:bg-[#256B42] text-white text-sm font-medium transition-colors shadow-lg shadow-[#2F7D4F]/20 flex items-center justify-center gap-2"
             >
-              Continue
+              Continue <span className="text-white/50">&rarr;</span>
             </button>
+
+            {/* Compliance badges */}
+            <div className="flex items-center justify-center gap-4 mt-5">
+              {['Amazon TOS', 'Read-Only', 'Encrypted'].map((badge) => (
+                <div key={badge} className="flex items-center gap-1">
+                  <Shield size={10} className={dark ? 'text-white/20' : 'text-[#1A1A1A]/20'} />
+                  <span className={`text-[10px] ${dark ? 'text-white/20' : 'text-[#1A1A1A]/20'}`}>{badge}</span>
+                </div>
+              ))}
+            </div>
           </div>
         )}
 
@@ -71,6 +121,14 @@ export default function SignIn() {
           </div>
         )}
       </div>
+
+      {/* Footer */}
+      <p className={`text-[10px] mt-4 ${dark ? 'text-white/20' : 'text-[#1A1A1A]/20'}`}>
+        By signing up, you agree to the DragonBot{' '}
+        <a href="https://getdragonbot.com/privacy" className="underline hover:text-white/40">Privacy Policy</a>
+        {' '}and{' '}
+        <a href="https://getdragonbot.com/tos" className="underline hover:text-white/40">Terms of Service</a>
+      </p>
     </div>
   );
 }
