@@ -95,8 +95,8 @@ export default function SignIn() {
             <div className="flex items-center justify-center gap-4 mt-5">
               {['Amazon TOS Compliant', 'Read-Only', 'Encrypted'].map((badge) => (
                 <div key={badge} className="flex items-center gap-1">
-                  <Shield size={10} className={dark ? 'text-white/20' : 'text-[#1A1A1A]/20'} />
-                  <span className={`text-[10px] ${dark ? 'text-white/20' : 'text-[#1A1A1A]/20'}`}>{badge}</span>
+                  <Shield size={10} className={dark ? 'text-white/50' : 'text-[#1A1A1A]/50'} />
+                  <span className={`text-[10px] ${dark ? 'text-white/50' : 'text-[#1A1A1A]/50'}`}>{badge}</span>
                 </div>
               ))}
             </div>
@@ -130,11 +130,11 @@ export default function SignIn() {
       </div>
 
       {/* Footer */}
-      <p className={`text-[10px] mt-8 ${dark ? 'text-white/20' : 'text-[#1A1A1A]/20'}`}>
+      <p className={`text-[10px] mt-8 ${dark ? 'text-white/60' : 'text-[#1A1A1A]/60'}`}>
         By signing up, you agree to the DragonBot{' '}
-        <a href="https://getdragonbot.com/privacy" className="underline hover:text-white/40">Privacy Policy</a>
+        <a href="https://getdragonbot.com/privacy" className="underline hover:text-white/80">Privacy Policy</a>
         {' '}and{' '}
-        <a href="https://getdragonbot.com/tos" className="underline hover:text-white/40">Terms of Service</a>
+        <a href="https://getdragonbot.com/tos" className="underline hover:text-white/80">Terms of Service</a>
       </p>
     </div>
   );
