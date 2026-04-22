@@ -73,36 +73,79 @@ function AddToSlack({ dark }) {
 
       {/* Three info panes */}
       <div className="grid grid-cols-3 gap-4 mb-8">
-        <div className={`p-4 rounded-xl border text-left ${dark ? 'border-white/10 bg-white/[0.02]' : 'border-gray-200 bg-gray-50'}`}>
-          <div className="w-10 h-10 rounded-xl mb-3 overflow-hidden">
-            <img src="/DragonBot-avatar-social.png" alt="DragonBot" className="w-full h-full object-cover" />
+        {/* Pane 1: Authorize */}
+        <div className={`rounded-xl border flex flex-col overflow-hidden ${dark ? 'border-white/10 bg-white/[0.02]' : 'border-gray-200 bg-gray-50'}`}>
+          <div className="relative flex-1 flex items-center justify-center p-4 min-h-[100px]">
+            <span className={`absolute top-2 left-2 w-5 h-5 rounded-full text-[10px] font-bold flex items-center justify-center ${dark ? 'bg-white/10 text-white/50' : 'bg-gray-200 text-gray-500'}`}>1</span>
+            <div className="flex items-center gap-2">
+              <div className="w-10 h-10 rounded-xl overflow-hidden">
+                <img src="/DragonBot-avatar-social.png" alt="DragonBot" className="w-full h-full object-cover" />
+              </div>
+              <div className={`text-lg ${dark ? 'text-white/20' : 'text-[#1A1A1A]/20'}`}>⟷</div>
+              <div className="w-10 h-10 rounded-xl bg-white/5 flex items-center justify-center">
+                <SlackLogo className="w-6 h-6" />
+              </div>
+            </div>
           </div>
-          <h3 className={`text-sm font-semibold mb-1 ${dark ? 'text-white' : 'text-[#1A1A1A]'}`}>Authorize in Slack</h3>
-          <p className={`text-xs leading-relaxed ${dark ? 'text-white/40' : 'text-[#1A1A1A]/40'}`}>
-            You'll pop over to Slack for a quick approval. It takes 10 seconds.
-          </p>
+          <div className="p-4 text-left">
+            <h3 className={`text-sm font-semibold mb-1 ${dark ? 'text-white' : 'text-[#1A1A1A]'}`}>Authorize in Slack</h3>
+            <p className={`text-xs leading-relaxed ${dark ? 'text-white/40' : 'text-[#1A1A1A]/40'}`}>
+              You'll pop over to Slack for a quick approval. It takes 10 seconds.
+            </p>
+          </div>
         </div>
 
-        <div className={`p-4 rounded-xl border text-left ${dark ? 'border-white/10 bg-white/[0.02]' : 'border-gray-200 bg-gray-50'}`}>
-          <div className="flex items-center gap-1 mb-3">
-            <img src="https://assets.pipedream.net/s.v0/app_1lxhab/logo/orig" alt="" className="w-5 h-5 rounded" />
-            <img src="https://assets.pipedream.net/s.v0/app_X7Lhxr/logo/orig" alt="" className="w-5 h-5 rounded" />
-            <img src="https://assets.pipedream.net/s.v0/app_1lxhk1/logo/orig" alt="" className="w-5 h-5 rounded" />
+        {/* Pane 2: Connect tools */}
+        <div className={`rounded-xl border flex flex-col overflow-hidden ${dark ? 'border-white/10 bg-white/[0.02]' : 'border-gray-200 bg-gray-50'}`}>
+          <div className="relative flex-1 flex items-center justify-center p-4 min-h-[100px]">
+            <span className={`absolute top-2 left-2 w-5 h-5 rounded-full text-[10px] font-bold flex items-center justify-center ${dark ? 'bg-white/10 text-white/50' : 'bg-gray-200 text-gray-500'}`}>2</span>
+            <div className="grid grid-cols-4 gap-1.5">
+              {[
+                { src: TOOL_LOGOS.amazon_selling_partner, alt: 'Amazon' },
+                { src: TOOL_LOGOS.notion, alt: 'Notion', whiteBg: true },
+                { src: TOOL_LOGOS.google_drive, alt: 'Drive' },
+                { src: TOOL_LOGOS.google_sheets, alt: 'Sheets' },
+                { src: 'https://assets.pipedream.net/s.v0/app_OQYhq7/logo/orig', alt: 'Gmail' },
+                { src: TOOL_LOGOS.airtable, alt: 'Airtable' },
+                { src: TOOL_LOGOS.shopify, alt: 'Shopify' },
+                { src: TOOL_LOGOS.amazon_ads, alt: 'Ads' },
+              ].map((t) => (
+                <div key={t.alt} className={`w-7 h-7 rounded-lg flex items-center justify-center ${t.whiteBg ? 'bg-white' : ''}`}>
+                  <img src={t.src} alt={t.alt} className="w-5 h-5 rounded object-contain" />
+                </div>
+              ))}
+            </div>
           </div>
-          <h3 className={`text-sm font-semibold mb-1 ${dark ? 'text-white' : 'text-[#1A1A1A]'}`}>Connect your tools</h3>
-          <p className={`text-xs leading-relaxed ${dark ? 'text-white/40' : 'text-[#1A1A1A]/40'}`}>
-            Plug in Amazon SP-API, Google Drive, or whatever your team uses.
-          </p>
+          <div className="p-4 text-left">
+            <h3 className={`text-sm font-semibold mb-1 ${dark ? 'text-white' : 'text-[#1A1A1A]'}`}>Connect your tools</h3>
+            <p className={`text-xs leading-relaxed ${dark ? 'text-white/40' : 'text-[#1A1A1A]/40'}`}>
+              Plug in Amazon SP-API, Google Drive, or whatever your team uses.
+            </p>
+          </div>
         </div>
 
-        <div className={`p-4 rounded-xl border text-left ${dark ? 'border-white/10 bg-white/[0.02]' : 'border-gray-200 bg-gray-50'}`}>
-          <div className="flex items-center gap-1 mb-3">
-            <span className="text-lg">💬</span>
+        {/* Pane 3: Chat */}
+        <div className={`rounded-xl border flex flex-col overflow-hidden ${dark ? 'border-white/10 bg-white/[0.02]' : 'border-gray-200 bg-gray-50'}`}>
+          <div className="relative flex-1 flex items-center justify-center p-4 min-h-[100px]">
+            <span className={`absolute top-2 left-2 w-5 h-5 rounded-full text-[10px] font-bold flex items-center justify-center ${dark ? 'bg-white/10 text-white/50' : 'bg-gray-200 text-gray-500'}`}>3</span>
+            <div className={`w-full rounded-lg p-2.5 text-left ${dark ? 'bg-white/[0.04]' : 'bg-gray-100'}`}>
+              <div className="flex items-start gap-2">
+                <div className="w-6 h-6 rounded bg-blue-500/20 flex items-center justify-center text-[10px] font-bold text-blue-400 flex-shrink-0">J</div>
+                <div>
+                  <span className={`text-[10px] font-semibold ${dark ? 'text-white/70' : 'text-[#1A1A1A]/70'}`}>Jake</span>
+                  <p className={`text-[10px] leading-relaxed mt-0.5 ${dark ? 'text-white/50' : 'text-[#1A1A1A]/50'}`}>
+                    <span className="text-[#2F7D4F] font-semibold">@DragonBot</span> analyze our PPC performance from the last 2 weeks
+                  </p>
+                </div>
+              </div>
+            </div>
           </div>
-          <h3 className={`text-sm font-semibold mb-1 ${dark ? 'text-white' : 'text-[#1A1A1A]'}`}>Chat like coworkers</h3>
-          <p className={`text-xs leading-relaxed ${dark ? 'text-white/40' : 'text-[#1A1A1A]/40'}`}>
-            DM or @mention DragonBot. It already knows your tools and context.
-          </p>
+          <div className="p-4 text-left">
+            <h3 className={`text-sm font-semibold mb-1 ${dark ? 'text-white' : 'text-[#1A1A1A]'}`}>Chat like coworkers</h3>
+            <p className={`text-xs leading-relaxed ${dark ? 'text-white/40' : 'text-[#1A1A1A]/40'}`}>
+              DM or @mention DragonBot. It already knows your tools and context.
+            </p>
+          </div>
         </div>
       </div>
 
