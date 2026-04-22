@@ -1,5 +1,6 @@
 import { useState } from 'react';
 import { Shield, Lock } from 'lucide-react';
+import { motion } from 'framer-motion';
 
 function SlackLogo({ className }) {
   return (
@@ -25,7 +26,13 @@ function TopBar() {
   return (
     <div className="px-6 py-4">
       <div className="flex items-center gap-2">
-        <img src="/DragonBot-logo.png" alt="DragonBot" className="h-6" />
+        <motion.img
+          src="/DragonBot-logo.png"
+          alt="DragonBot"
+          className="h-6"
+          animate={{ y: [0, -2, 0] }}
+          transition={{ duration: 1.2, repeat: Infinity, ease: 'easeInOut' }}
+        />
         <span className="font-bold text-base text-white" style={{ lineHeight: '1' }}>
           get<span className="bg-gradient-to-r from-[#2F7D4F] to-[#98CC65] bg-clip-text text-transparent">DragonBot</span><span className="text-white">.com</span>
         </span>
