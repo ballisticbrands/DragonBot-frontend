@@ -129,11 +129,14 @@ function AddToSlack({ dark }) {
           <div className="relative flex items-center justify-center p-5 h-[130px]" style={{ background: 'radial-gradient(circle at center, rgba(47,125,79,0.15) 0%, transparent 70%)' }}>
             <span className={`absolute top-2.5 left-2.5 w-5 h-5 rounded-full text-[10px] font-bold flex items-center justify-center ${dark ? 'bg-white/10 text-white/50' : 'bg-gray-200 text-gray-500'}`}>3</span>
             <div className={`w-full rounded-lg p-2 text-left ${dark ? 'bg-white/[0.06]' : 'bg-gray-100'}`}>
-              <div className="flex items-start gap-1.5">
-                <img src="/avatar-generic-male.jpg" alt="You" className="w-5 h-5 rounded flex-shrink-0 object-cover" />
-                <div>
-                  <span className={`text-[7px] font-semibold ${dark ? 'text-white/70' : 'text-[#1A1A1A]/70'}`}>You</span>
-                  <p className={`text-[7px] leading-relaxed mt-0.5 ${dark ? 'text-white/50' : 'text-[#1A1A1A]/50'}`}>
+              <div className="flex gap-1.5">
+                <img src="/avatar-generic-male.jpg" alt="You" className="w-5 h-5 rounded flex-shrink-0 object-cover mt-px" />
+                <div className="leading-none">
+                  <div className="flex items-baseline gap-1">
+                    <span className={`text-[7px] font-semibold ${dark ? 'text-white/70' : 'text-[#1A1A1A]/70'}`}>You</span>
+                    <span className={`text-[5px] ${dark ? 'text-white/25' : 'text-[#1A1A1A]/25'}`}>Just now</span>
+                  </div>
+                  <p className={`text-[7px] leading-tight ${dark ? 'text-white/50' : 'text-[#1A1A1A]/50'}`}>
                     <span className="text-[#2F7D4F] font-semibold">@DragonBot</span> analyze our PPC performance from the last 2 weeks
                   </p>
                 </div>
