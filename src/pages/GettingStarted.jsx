@@ -16,8 +16,8 @@ const TOOL_LOGOS = {
 };
 
 const MOST_POPULAR_SLUGS = [
-  'amazon_selling_partner', 'amazon_ads', 'google_drive', 'google_sheets',
-  'google_docs', 'notion', 'airtable', 'shopify',
+  'amazon_ads', 'google_drive', 'notion', 'airtable',
+  'shopify', 'google_sheets', 'google_docs',
 ];
 
 const BACKEND_URL = import.meta.env.VITE_BACKEND_URL ?? 'https://api.getdragonbot.com';
@@ -52,8 +52,8 @@ function AddToSlack({ dark }) {
   const token = getToken();
   return (
     <div className="text-center">
-      <div className={`inline-flex items-center justify-center w-16 h-16 rounded-2xl mb-6 ${dark ? 'bg-white/5' : 'bg-gray-100'}`}>
-        <img src="/DragonBot-logo.png" alt="" className="h-12 object-contain" />
+      <div className="inline-flex items-center justify-center w-20 h-20 rounded-2xl mb-6 overflow-hidden">
+        <img src="/DragonBot-avatar-social.png" alt="DragonBot" className="w-full h-full object-cover" />
       </div>
       <h1 className={`font-semibold text-2xl mb-3 ${dark ? 'text-white' : 'text-[#1A1A1A]'}`}>
         Add DragonBot to your Slack workspace
@@ -152,7 +152,7 @@ function ConnectSpApi({ dark, onComplete }) {
         Connect your Amazon Seller account
       </h1>
       <p className={`text-sm mb-4 leading-relaxed max-w-md mx-auto ${dark ? 'text-white/50' : 'text-[#1A1A1A]/50'}`}>
-        DragonBot connects to your Amazon account in <strong className={dark ? 'text-white/70' : 'text-[#1A1A1A]/70'}>read-only mode</strong> — it can pull sales data, inventory levels, reports, and analytics, but <strong className={dark ? 'text-white/70' : 'text-[#1A1A1A]/70'}>cannot make any changes</strong> to your account.
+        DragonBot connects to your Amazon Seller Central account in <strong className={dark ? 'text-white/70' : 'text-[#1A1A1A]/70'}>read-only mode</strong> — it can pull sales data, inventory levels, reports, and analytics, but <strong className={dark ? 'text-white/70' : 'text-[#1A1A1A]/70'}>cannot make any changes</strong> to your account.
       </p>
 
       <div className={`text-left mb-6 p-4 rounded-xl border ${dark ? 'border-white/5 bg-white/[0.02]' : 'border-gray-100 bg-gray-50'}`}>
@@ -419,7 +419,7 @@ function ConnectTools({ dark, onComplete }) {
   return (
     <div>
       <h1 className={`font-semibold text-2xl mb-2 ${dark ? 'text-white' : 'text-[#1A1A1A]'}`}>
-        Give DragonBot <span className="bg-gradient-to-r from-[#2F7D4F] to-[#98CC65] bg-clip-text text-transparent">tools</span> to work with
+        Give DragonBot <span className="bg-gradient-to-r from-[#2F7D4F] to-[#98CC65] bg-clip-text text-transparent">tools to work with</span>
       </h1>
       <p className={`text-sm mb-5 leading-relaxed ${dark ? 'text-white/50' : 'text-[#1A1A1A]/50'}`}>
         Just like any new hire, DragonBot works best when it can access your team's tools. Connect now or add them later from settings.
@@ -681,11 +681,7 @@ function SelectChannels({ dark, onComplete }) {
       <div className="flex gap-2 mb-4">
         <button
           onClick={selectAll}
-          className={`flex-1 px-4 py-2 rounded-xl text-sm font-medium transition-colors border ${
-            dark
-              ? 'bg-white/5 border-white/10 text-white hover:bg-white/10'
-              : 'bg-white border-gray-200 text-[#1A1A1A] hover:bg-gray-50'
-          }`}
+          className="flex-1 px-4 py-2 rounded-xl text-sm font-medium transition-colors bg-[#2F7D4F] hover:bg-[#256B42] text-white"
         >
           Invite DragonBot to all public channels
         </button>
