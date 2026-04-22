@@ -128,15 +128,38 @@ function ConnectSpApi({ dark, onComplete }) {
 
   return (
     <div className="text-center">
-      <div className={`inline-flex items-center justify-center w-16 h-16 rounded-2xl mb-6 ${dark ? 'bg-white/5' : 'bg-gray-100'}`}>
-        <img src="https://assets.pipedream.net/s.v0/app_XaLh2x/logo/orig" alt="Amazon" className="h-10 object-contain" />
+      <div className={`inline-flex items-center justify-center w-16 h-16 rounded-2xl mb-6 ${dark ? 'bg-[#FF9900]/10' : 'bg-[#FF9900]/5'}`}>
+        <img src="https://upload.wikimedia.org/wikipedia/commons/a/a9/Amazon_logo.svg" alt="Amazon" className="h-8 object-contain" />
       </div>
       <h1 className={`font-semibold text-2xl mb-3 ${dark ? 'text-white' : 'text-[#1A1A1A]'}`}>
-        Connect your Amazon account
+        Connect your Amazon Seller account
       </h1>
-      <p className={`text-sm mb-6 leading-relaxed max-w-md mx-auto ${dark ? 'text-white/50' : 'text-[#1A1A1A]/50'}`}>
-        DragonBot needs access to your Amazon Seller account to pull sales data, manage inventory, run reports, and automate operations. Connect at least one account to continue.
+      <p className={`text-sm mb-4 leading-relaxed max-w-md mx-auto ${dark ? 'text-white/50' : 'text-[#1A1A1A]/50'}`}>
+        DragonBot connects to your Amazon account in <strong className={dark ? 'text-white/70' : 'text-[#1A1A1A]/70'}>read-only mode</strong> — it can pull sales data, inventory levels, reports, and analytics, but <strong className={dark ? 'text-white/70' : 'text-[#1A1A1A]/70'}>cannot make any changes</strong> to your account.
       </p>
+
+      <div className={`text-left mb-6 p-4 rounded-xl border ${dark ? 'border-white/5 bg-white/[0.02]' : 'border-gray-100 bg-gray-50'}`}>
+        <div className="space-y-2">
+          <div className="flex items-start gap-2">
+            <span className="text-[#2F7D4F] mt-0.5">&#x1f512;</span>
+            <span className={`text-xs ${dark ? 'text-white/50' : 'text-[#1A1A1A]/50'}`}>
+              <strong className={dark ? 'text-white/70' : 'text-[#1A1A1A]/70'}>100% secure & compliant</strong> — fully compliant with Amazon's Terms of Service. Your credentials are encrypted and never shared.
+            </span>
+          </div>
+          <div className="flex items-start gap-2">
+            <span className="text-[#2F7D4F] mt-0.5">&#x1f441;</span>
+            <span className={`text-xs ${dark ? 'text-white/50' : 'text-[#1A1A1A]/50'}`}>
+              <strong className={dark ? 'text-white/70' : 'text-[#1A1A1A]/70'}>Read-only by default</strong> — DragonBot can only view your data. You can enable write access later in Settings if you choose.
+            </span>
+          </div>
+          <div className="flex items-start gap-2">
+            <span className="text-[#2F7D4F] mt-0.5">&#x2795;</span>
+            <span className={`text-xs ${dark ? 'text-white/50' : 'text-[#1A1A1A]/50'}`}>
+              You can connect additional Amazon accounts later from the Connections page.
+            </span>
+          </div>
+        </div>
+      </div>
 
       {/* Connected accounts */}
       {connections.length > 0 && (
@@ -338,22 +361,31 @@ function ConnectTools({ dark, onComplete }) {
     }
   }
 
+  // Separate SP-API connections (not deletable) from other connections
+  const spApiConns = connections.filter((c) => c.provider === 'amazon_selling_partner');
+  const otherConns = connections.filter((c) => c.provider !== 'amazon_selling_partner');
+
   return (
-    <div className="text-center">
-      <div className={`inline-flex items-center justify-center w-16 h-16 rounded-2xl mb-6 ${dark ? 'bg-white/5' : 'bg-gray-100'}`}>
-        <Plug size={32} className={dark ? 'text-white/60' : 'text-[#1A1A1A]/50'} />
-      </div>
-      <h1 className={`font-semibold text-2xl mb-3 ${dark ? 'text-white' : 'text-[#1A1A1A]'}`}>
-        Connect your tools
+    <div>
+      <h1 className={`font-semibold text-2xl mb-2 ${dark ? 'text-white' : 'text-[#1A1A1A]'}`}>
+        Give DragonBot <em>tools</em> to work with
       </h1>
-      <p className={`text-sm mb-6 leading-relaxed max-w-md mx-auto ${dark ? 'text-white/50' : 'text-[#1A1A1A]/50'}`}>
-        Give DragonBot access to your business tools so it can pull data, run reports, and take actions on your behalf. You can always add more later.
+      <p className={`text-sm mb-6 leading-relaxed ${dark ? 'text-white/50' : 'text-[#1A1A1A]/50'}`}>
+        Just like any new hire, DragonBot works best when it can access your team's tools. Connect now or add them later from settings.
       </p>
 
-      {/* Connected tools */}
-      {connections.length > 0 && (
-        <div className="mb-6 text-left space-y-2">
-          {connections.map((conn) => (
+      {/* Connected tools (SP-API shown but not deletable) */}
+      {(spApiConns.length > 0 || otherConns.length > 0) && (
+        <div className="mb-5 text-left space-y-2">
+          {spApiConns.map((conn) => (
+            <div key={conn.id} className={`flex items-center gap-3 p-3 rounded-xl border ${dark ? 'border-[#2F7D4F]/50 bg-[#2F7D4F]/10' : 'border-[#2F7D4F]/30 bg-[#2F7D4F]/5'}`}>
+              <Check size={14} className="text-[#2F7D4F] flex-shrink-0" />
+              <span className={`text-sm font-medium truncate ${dark ? 'text-white' : 'text-[#1A1A1A]'}`}>Amazon SP-API</span>
+              {conn.uniqueDisplayId && <span className={`text-xs ${dark ? 'text-white/40' : 'text-[#1A1A1A]/40'}`}>({conn.uniqueDisplayId})</span>}
+              <span className={`ml-auto text-[10px] px-1.5 py-0.5 rounded ${dark ? 'bg-white/5 text-white/30' : 'bg-gray-100 text-gray-400'}`}>read-only</span>
+            </div>
+          ))}
+          {otherConns.map((conn) => (
             <div key={conn.id} className={`flex items-center justify-between p-3 rounded-xl border ${dark ? 'border-[#2F7D4F]/50 bg-[#2F7D4F]/10' : 'border-[#2F7D4F]/30 bg-[#2F7D4F]/5'}`}>
               <div className="flex items-center gap-3 min-w-0">
                 {conn.appImgSrc ? (
@@ -482,12 +514,27 @@ function ConnectTools({ dark, onComplete }) {
         </div>
       )}
 
-      <button
-        onClick={onComplete}
-        className="w-full py-2.5 rounded-xl bg-[#2F7D4F] hover:bg-[#256B42] text-white text-sm font-medium transition-colors shadow-lg shadow-[#2F7D4F]/20"
-      >
-        {connections.length > 0 ? 'Continue' : 'Skip for now'}
-      </button>
+      <div className={`flex items-center justify-between pt-4 border-t ${dark ? 'border-white/5' : 'border-gray-200'}`}>
+        <span className={`text-xs ${dark ? 'text-white/30' : 'text-[#1A1A1A]/30'}`}>
+          Get 1,000 credits for every tool you connect
+        </span>
+        <div className="flex gap-2">
+          <button
+            onClick={onComplete}
+            className={`px-5 py-2 rounded-xl text-sm font-medium transition-colors ${
+              dark ? 'text-white/50 hover:text-white/70 hover:bg-white/5' : 'text-[#1A1A1A]/50 hover:text-[#1A1A1A]/70 hover:bg-gray-100'
+            }`}
+          >
+            Skip
+          </button>
+          <button
+            onClick={onComplete}
+            className="px-5 py-2 rounded-xl bg-[#2F7D4F] hover:bg-[#256B42] text-white text-sm font-medium transition-colors"
+          >
+            Continue
+          </button>
+        </div>
+      </div>
     </div>
   );
 }
