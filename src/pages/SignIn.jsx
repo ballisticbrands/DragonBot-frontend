@@ -19,8 +19,21 @@ function AmazonLogo({ className }) {
       <path d="M14.761 12.407c-.178-.221-1.18-.105-1.63-.053-.137.016-.158-.099-.035-.182.798-.543 2.107-.386 2.26-.204.153.184-.04 1.455-.789 2.063-.115.093-.225.044-.174-.08.169-.41.547-1.323.368-1.544z"/>
       <path d="M13.156 7.543v-.629c0-.096.073-.159.16-.159h2.832c.091 0 .164.066.164.159v.539c-.002.091-.078.209-.214.394l-1.467 2.028c.545-.013 1.12.066 1.613.337.111.061.141.151.15.24v.671c0 .09-.1.196-.206.141-.858-.436-1.998-.483-2.947.005-.097.05-.198-.052-.198-.142v-.638c0-.101.001-.274.105-.427l1.699-2.358h-1.478c-.091 0-.164-.064-.164-.158l-.049-.003z"/>
       <path d="M4.727 11.297h-.861c-.082-.006-.148-.067-.154-.145V6.768c0-.087.073-.157.163-.157h.803c.084.003.151.068.157.148v.559h.016c.21-.544.604-.797 1.134-.797.538 0 .874.253 1.115.797.209-.544.685-.797 1.198-.797.363 0 .761.145.903.472.16.366.128.895.128 1.362l-.001 2.556c0 .087-.073.157-.163.157h-.859c-.085-.006-.153-.073-.153-.157V8.916c0-.183.016-.639-.024-.812-.064-.29-.254-.372-.501-.372-.206 0-.422.134-.51.348-.088.214-.08.572-.08.836v2.196c0 .087-.073.157-.163.157h-.859c-.085-.006-.153-.073-.153-.157l-.001-2.196c0-.484.08-1.196-.525-1.196-.612 0-.588.695-.588 1.196v2.196c0 .087-.073.157-.163.157l.031-.012z"/>
-      <path d="M18.301 6.565c1.277 0 1.969.1062 1.969 2.495 0 1.348-.752 2.456-1.969 2.456-1.268 0-1.957-1.062-1.957-2.417 0-1.362.697-2.534 1.957-2.534zm.008.927c-.642 0-.682.847-.682 1.374 0 .528-.008 1.656.674 1.656.674 0 .706-.91.706-1.464 0-.366-.016-.802-.128-1.152-.097-.305-.29-.414-.57-.414z"/>
+      <path d="M18.301 6.565c1.277 0 1.969 1.062 1.969 2.495 0 1.348-.752 2.456-1.969 2.456-1.268 0-1.957-1.062-1.957-2.417 0-1.362.697-2.534 1.957-2.534zm.008.927c-.642 0-.682.847-.682 1.374 0 .528-.008 1.656.674 1.656.674 0 .706-.91.706-1.464 0-.366-.016-.802-.128-1.152-.097-.305-.29-.414-.57-.414z"/>
     </svg>
+  );
+}
+
+function TopBar() {
+  return (
+    <div className="fixed top-0 left-0 right-0 z-50 px-6 py-4">
+      <div className="flex items-center gap-1.5">
+        <img src="/DragonBot-logo.png" alt="DragonBot" className="h-5" />
+        <span className="font-bold text-sm text-white" style={{ lineHeight: '1' }}>
+          get<span className="bg-gradient-to-r from-[#2F7D4F] to-[#98CC65] bg-clip-text text-transparent">DragonBot</span><span className="text-white">.com</span>
+        </span>
+      </div>
+    </div>
   );
 }
 
@@ -30,15 +43,9 @@ export default function SignIn() {
 
   return (
     <div className={`min-h-screen flex flex-col items-center justify-center px-4 ${dark ? 'bg-[#0f0f0f]' : 'bg-[#fafafa]'}`}>
-      <div className={`w-full max-w-sm rounded-2xl border p-8 shadow-xl ${dark ? 'bg-[#1a1a1a] border-white/10' : 'bg-white border-gray-200'}`}>
-        {/* Logo */}
-        <div className="flex items-center gap-2 mb-8">
-          <img src="/DragonBot-logo.png" alt="DragonBot" className="h-9" />
-          <span className={`font-bold text-xl ${dark ? 'text-white' : 'text-[#1A1A1A]'}`} style={{ lineHeight: '1' }}>
-            get<span className="bg-gradient-to-r from-[#2F7D4F] to-[#98CC65] bg-clip-text text-transparent">DragonBot</span><span className={dark ? 'text-white' : 'text-[#1A1A1A]'}>.com</span>
-          </span>
-        </div>
+      <TopBar />
 
+      <div className="w-full max-w-sm">
         {step === 1 && (
           <div>
             <p className={`text-[10px] uppercase tracking-widest mb-3 ${dark ? 'text-white/30' : 'text-[#1A1A1A]/30'}`}>
@@ -51,7 +58,7 @@ export default function SignIn() {
               Before you connect DragonBot to your workspace, here's how we protect your data.
             </p>
 
-            <div className="space-y-4 mb-6">
+            <div className="space-y-4 mb-8">
               <div className="flex items-start gap-3">
                 <div className={`w-8 h-8 rounded-lg flex items-center justify-center flex-shrink-0 ${dark ? 'bg-white/5' : 'bg-gray-100'}`}>
                   <AmazonLogo className={`w-5 h-5 ${dark ? 'text-white/60' : 'text-[#1A1A1A]/60'}`} />
@@ -86,7 +93,7 @@ export default function SignIn() {
 
             {/* Compliance badges */}
             <div className="flex items-center justify-center gap-4 mt-5">
-              {['Amazon TOS', 'Read-Only', 'Encrypted'].map((badge) => (
+              {['Amazon TOS Compliant', 'Read-Only', 'Encrypted'].map((badge) => (
                 <div key={badge} className="flex items-center gap-1">
                   <Shield size={10} className={dark ? 'text-white/20' : 'text-[#1A1A1A]/20'} />
                   <span className={`text-[10px] ${dark ? 'text-white/20' : 'text-[#1A1A1A]/20'}`}>{badge}</span>
@@ -97,7 +104,7 @@ export default function SignIn() {
         )}
 
         {step === 2 && (
-          <div>
+          <div className="text-center">
             <h1 className={`font-semibold text-2xl mb-2 ${dark ? 'text-white' : 'text-[#1A1A1A]'}`}>
               Try DragonBot for free
             </h1>
@@ -115,7 +122,7 @@ export default function SignIn() {
               <SlackLogo className="w-5 h-5" />
               Continue with Slack
             </a>
-            <p className={`text-xs mt-4 text-center ${dark ? 'text-white/30' : 'text-[#1A1A1A]/40'}`}>
+            <p className={`text-xs mt-4 ${dark ? 'text-white/30' : 'text-[#1A1A1A]/40'}`}>
               We'll never post on your behalf
             </p>
           </div>
@@ -123,7 +130,7 @@ export default function SignIn() {
       </div>
 
       {/* Footer */}
-      <p className={`text-[10px] mt-4 ${dark ? 'text-white/20' : 'text-[#1A1A1A]/20'}`}>
+      <p className={`text-[10px] mt-8 ${dark ? 'text-white/20' : 'text-[#1A1A1A]/20'}`}>
         By signing up, you agree to the DragonBot{' '}
         <a href="https://getdragonbot.com/privacy" className="underline hover:text-white/40">Privacy Policy</a>
         {' '}and{' '}

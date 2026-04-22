@@ -865,8 +865,18 @@ export default function GettingStarted() {
   if (!initialStep) return null; // loading
 
   return (
-    <div className={`min-h-screen flex items-center justify-center px-4 ${dark ? 'bg-[#0f0f0f]' : 'bg-[#fafafa]'}`}>
-      <div className={`w-full max-w-lg rounded-2xl border p-8 shadow-xl ${dark ? 'bg-[#1a1a1a] border-white/10' : 'bg-white border-gray-200'}`}>
+    <div className={`min-h-screen flex flex-col items-center justify-center px-4 ${dark ? 'bg-[#0f0f0f]' : 'bg-[#fafafa]'}`}>
+      {/* Top bar */}
+      <div className="fixed top-0 left-0 right-0 z-50 px-6 py-4">
+        <div className="flex items-center gap-1.5">
+          <img src="/DragonBot-logo.png" alt="DragonBot" className="h-5" />
+          <span className="font-bold text-sm text-white" style={{ lineHeight: '1' }}>
+            get<span className="bg-gradient-to-r from-[#2F7D4F] to-[#98CC65] bg-clip-text text-transparent">DragonBot</span><span className="text-white">.com</span>
+          </span>
+        </div>
+      </div>
+
+      <div className="w-full max-w-lg py-16">
         <StepIndicator currentStep={step} dark={dark} />
 
         {step === 'add-to-slack' && <AddToSlack dark={dark} />}
