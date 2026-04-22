@@ -253,7 +253,7 @@ function ConnectSpApi({ dark, onComplete }) {
         <img src={TOOL_LOGOS.amazon_selling_partner} alt="Amazon" className="h-10 w-10 rounded-lg object-contain" />
       </div>
       <h1 className={`font-semibold text-2xl mb-3 ${dark ? 'text-white' : 'text-[#1A1A1A]'}`}>
-        Connect your Amazon Seller account
+        Connect your <span className="bg-gradient-to-r from-[#FF9900] to-[#FFC266] bg-clip-text text-transparent">Amazon Seller Central</span> account
       </h1>
       <p className={`text-xs mb-4 leading-relaxed max-w-md mx-auto ${dark ? 'text-white/50' : 'text-[#1A1A1A]/50'}`}>
         DragonBot connects to your Amazon Seller Central account in <strong className={dark ? 'text-white/70' : 'text-[#1A1A1A]/70'}>read-only mode</strong> — it can pull sales data, inventory levels, reports, and analytics, but <strong className={dark ? 'text-white/70' : 'text-[#1A1A1A]/70'}>cannot make any changes</strong> to your account.
@@ -290,7 +290,7 @@ function ConnectSpApi({ dark, onComplete }) {
               <Check size={14} className="text-[#2F7D4F] flex-shrink-0" />
               <span className={`text-xs font-medium truncate ${dark ? 'text-white' : 'text-[#1A1A1A]'}`}>Amazon SP-API</span>
               {conn.uniqueDisplayId && <span className={`text-[10px] ${dark ? 'text-white/40' : 'text-[#1A1A1A]/40'}`}>({conn.uniqueDisplayId})</span>}
-              <span className={`ml-auto text-[10px] px-1.5 py-0.5 rounded ${dark ? 'bg-white/5 text-white/30' : 'bg-gray-100 text-gray-400'}`}>read-only</span>
+              <span className={`ml-auto text-[10px] px-1.5 py-0.5 rounded ${dark ? 'bg-white/5 text-white/30' : 'bg-gray-100 text-gray-400'}`}>Read-only</span>
             </div>
           ))}
         </div>
