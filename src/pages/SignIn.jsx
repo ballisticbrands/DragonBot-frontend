@@ -49,11 +49,15 @@ export default function SignIn() {
 
             <div className="space-y-4 mb-8">
               <div className="flex items-start gap-3">
-                <div className={`w-8 h-8 rounded-lg flex items-center justify-center flex-shrink-0 ${dark ? 'bg-white/5' : 'bg-gray-100'}`}>
-                  <img src="https://assets.pipedream.net/s.v0/app_1lxhab/logo/orig" alt="Amazon" className="w-5 h-5 rounded object-contain" />
+                <div className={`w-8 h-8 rounded-lg flex items-center justify-center flex-shrink-0 ${dark ? 'bg-[#0F0F0F] border border-white/10' : 'bg-gray-100'}`}>
+                  <svg viewBox="0 0 40 28" fill="none" xmlns="http://www.w3.org/2000/svg" className="w-6 h-6">
+                    <text x="20" y="16" fill="white" fontSize="11" fontWeight="800" fontFamily="system-ui, -apple-system, sans-serif" textAnchor="middle" letterSpacing="-0.4">amazon</text>
+                    <path d="M6 22 Q 20 27, 34 22" stroke="#FF9900" strokeWidth="1.8" strokeLinecap="round" fill="none" />
+                    <path d="M31 19.5 L 34 22 L 31.5 24.5" stroke="#FF9900" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" fill="none" />
+                  </svg>
                 </div>
                 <div>
-                  <h3 className={`text-sm font-semibold mb-0.5 ${dark ? 'text-white' : 'text-[#1A1A1A]'}`}>Amazon SP-API Connection</h3>
+                  <h3 className={`text-sm font-semibold mb-0.5 ${dark ? 'text-white' : 'text-[#1A1A1A]'}`}>Amazon SP-API connection</h3>
                   <p className={`text-xs leading-relaxed ${dark ? 'text-white/50' : 'text-[#1A1A1A]/50'}`}>
                     DragonBot connects through the official Amazon Selling Partner API (SP-API). This is a read-only OAuth connection — we never see your Amazon password.
                   </p>
