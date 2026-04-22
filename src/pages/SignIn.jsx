@@ -45,7 +45,7 @@ export default function SignIn() {
     <div className={`min-h-screen flex flex-col items-center justify-center px-4 ${dark ? 'bg-[#0f0f0f]' : 'bg-[#fafafa]'}`}>
       <TopBar />
 
-      <div className="w-full max-w-sm">
+      <div className="w-full max-w-md" style={{ zoom: 1.25 }}>
         {step === 1 && (
           <div>
             <p className={`text-[10px] uppercase tracking-widest mb-3 ${dark ? 'text-white/30' : 'text-[#1A1A1A]/30'}`}>

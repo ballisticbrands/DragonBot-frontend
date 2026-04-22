@@ -876,7 +876,7 @@ export default function GettingStarted() {
         </div>
       </div>
 
-      <div className="w-full max-w-lg py-16">
+      <div className="w-full max-w-xl py-16" style={{ zoom: 1.25 }}>
         <StepIndicator currentStep={step} dark={dark} />
 
         {step === 'add-to-slack' && <AddToSlack dark={dark} />}
