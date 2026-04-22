@@ -287,10 +287,10 @@ function ConnectSpApi({ dark, onComplete }) {
         <div className="mb-6 text-left space-y-2">
           {connections.map((conn) => (
             <div key={conn.id} className={`flex items-center gap-3 p-3 rounded-xl border ${dark ? 'border-[#2F7D4F]/50 bg-[#2F7D4F]/10' : 'border-[#2F7D4F]/30 bg-[#2F7D4F]/5'}`}>
-              <Check size={16} className="text-[#2F7D4F] flex-shrink-0" />
-              <span className={`text-sm font-medium ${dark ? 'text-white' : 'text-[#1A1A1A]'}`}>
-                {conn.uniqueDisplayId || conn.name}
-              </span>
+              <Check size={14} className="text-[#2F7D4F] flex-shrink-0" />
+              <span className={`text-xs font-medium truncate ${dark ? 'text-white' : 'text-[#1A1A1A]'}`}>Amazon SP-API</span>
+              {conn.uniqueDisplayId && <span className={`text-[10px] ${dark ? 'text-white/40' : 'text-[#1A1A1A]/40'}`}>({conn.uniqueDisplayId})</span>}
+              <span className={`ml-auto text-[10px] px-1.5 py-0.5 rounded ${dark ? 'bg-white/5 text-white/30' : 'bg-gray-100 text-gray-400'}`}>read-only</span>
             </div>
           ))}
         </div>
@@ -861,6 +861,10 @@ function SelectChannels({ dark, onComplete }) {
       >
         {saving ? 'Saving...' : `Continue (${selected.size} selected)`}
       </button>
+
+      <p className={`text-[10px] mt-3 text-center ${dark ? 'text-white/30' : 'text-[#1A1A1A]/30'}`}>
+        You can remove DragonBot from any channel anytime
+      </p>
     </div>
   );
 }
