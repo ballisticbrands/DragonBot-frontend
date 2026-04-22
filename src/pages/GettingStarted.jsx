@@ -21,10 +21,10 @@ const TOOL_LOGOS = {
   amazon_ads: 'https://assets.pipedream.net/s.v0/app_1lxhab/logo/orig',
   google_drive: 'https://assets.pipedream.net/s.v0/app_1lxhk1/logo/orig',
   google_sheets: 'https://assets.pipedream.net/s.v0/app_168hvn/logo/orig',
-  google_docs: 'https://assets.pipedream.net/s.v0/app_1MYhp7/logo/orig',
-  notion: 'https://assets.pipedream.net/s.v0/app_X7Lhxr/logo/orig',
-  airtable: 'https://assets.pipedream.net/s.v0/app_X20heg/logo/orig',
-  shopify: 'https://assets.pipedream.net/s.v0/app_dp2hml/logo/orig',
+  google_docs: 'https://upload.wikimedia.org/wikipedia/commons/0/01/Google_Docs_logo_%282014-2020%29.svg',
+  notion: 'https://upload.wikimedia.org/wikipedia/commons/4/45/Notion_app_logo.png',
+  airtable: 'https://upload.wikimedia.org/wikipedia/commons/4/4b/Airtable_Logo.svg',
+  shopify: 'https://upload.wikimedia.org/wikipedia/commons/0/0e/Shopify_logo_2018.svg',
 };
 
 const MOST_POPULAR_SLUGS = [
@@ -102,7 +102,7 @@ function AddToSlack({ dark }) {
             <div className="grid grid-cols-4 gap-2">
               {[
                 { src: TOOL_LOGOS.amazon_selling_partner, alt: 'Amazon' },
-                { src: 'https://upload.wikimedia.org/wikipedia/commons/4/45/Notion_app_logo.png', alt: 'Notion' },
+                { src: TOOL_LOGOS.notion, alt: 'Notion' },
                 { src: TOOL_LOGOS.google_drive, alt: 'Drive' },
                 { src: TOOL_LOGOS.google_sheets, alt: 'Sheets' },
                 { src: 'https://assets.pipedream.net/s.v0/app_OQYhq7/logo/orig', alt: 'Gmail' },
@@ -137,7 +137,7 @@ function AddToSlack({ dark }) {
                     <span className={`text-[5px] ${dark ? 'text-white/25' : 'text-[#1A1A1A]/25'}`}>Just now</span>
                   </div>
                   <p className={`text-[7px] leading-tight ${dark ? 'text-white/50' : 'text-[#1A1A1A]/50'}`}>
-                    <span className="text-[#2F7D4F] font-semibold">@DragonBot</span> analyze our PPC performance from the last 2 weeks
+                    <span className="text-[#2F7D4F] font-semibold">@DragonBot</span> analyze our Amazon PPC performance from the last 2 weeks
                   </p>
                 </div>
               </div>
