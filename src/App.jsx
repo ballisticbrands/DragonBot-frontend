@@ -50,6 +50,7 @@ if (typeof window !== 'undefined' && !window.__dragonbotFetchPatched) {
 // Maps DB setupStage to the Getting Started URL step param
 const STAGE_TO_STEP = {
   SLACK_INSTALL: 'add-to-slack',
+  CONNECT_SPAPI: 'connect-spapi',
   CONNECT_TOOLS: 'connect-tools',
   SELECT_CHANNELS: 'select-channels',
   COMPLETE: null, // no redirect needed

@@ -5,7 +5,7 @@ import { createFrontendClient } from '@pipedream/sdk/browser';
 
 const BACKEND_URL = import.meta.env.VITE_BACKEND_URL ?? 'https://api.getdragonbot.com';
 
-const STEPS = ['add-to-slack', 'connect-tools', 'select-channels', 'complete'];
+const STEPS = ['add-to-slack', 'connect-spapi', 'connect-tools', 'select-channels', 'complete'];
 
 function getToken() {
   return localStorage.getItem('dragonbot_token') ?? '';
@@ -50,6 +50,135 @@ function AddToSlack({ dark }) {
       >
         Add to Slack
       </a>
+    </div>
+  );
+}
+
+// ─── Connect SP-API step ─────────────────────────────────────────────
+
+function ConnectSpApi({ dark, onComplete }) {
+  const [connections, setConnections] = useState([]);
+  const [connecting, setConnecting] = useState(false);
+  const [error, setError] = useState('');
+  const [loading, setLoading] = useState(true);
+
+  async function loadConnections() {
+    try {
+      const res = await fetch(`${BACKEND_URL}/api/connections`, {
+        headers: { Authorization: `Bearer ${getToken()}` },
+      });
+      if (res.ok) {
+        const all = (await res.json()).connections ?? [];
+        setConnections(all.filter((c) => c.provider === 'amazon_selling_partner'));
+      }
+    } catch (err) {
+      console.error('Failed to load connections:', err);
+    }
+  }
+
+  useEffect(() => {
+    loadConnections().finally(() => setLoading(false));
+  }, []);
+
+  async function handleConnect() {
+    setConnecting(true);
+    setError('');
+    try {
+      const tokenRes = await fetch(`${BACKEND_URL}/api/connect/token`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${getToken()}` },
+        body: JSON.stringify({ app_slug: 'amazon_selling_partner' }),
+      });
+      if (!tokenRes.ok) {
+        setError((await tokenRes.json().catch(() => ({}))).error || 'Failed');
+        setConnecting(false);
+        return;
+      }
+      const tokenData = await tokenRes.json();
+      const pd = createFrontendClient({
+        externalUserId: tokenData.externalUserId || 'user',
+        tokenCallback: async () => tokenData,
+      });
+      await pd.connectAccount({
+        app: 'amazon_selling_partner',
+        token: tokenData.token,
+        onSuccess: async (result) => {
+          const saveRes = await fetch(`${BACKEND_URL}/api/connections`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${getToken()}` },
+            body: JSON.stringify({ provider: 'amazon_selling_partner', name: 'Selling Partner API (SP-API)', pipedreamAccountId: result.id }),
+          });
+          if (!saveRes.ok) {
+            setError((await saveRes.json().catch(() => ({}))).error || 'Failed to save');
+          } else {
+            await loadConnections();
+          }
+          setConnecting(false);
+        },
+        onError: (err) => { setError(err.message || 'Failed'); setConnecting(false); },
+        onClose: () => { setConnecting(false); },
+      });
+    } catch (err) {
+      setError(err.message || 'Failed');
+      setConnecting(false);
+    }
+  }
+
+  const hasConnection = connections.length > 0;
+
+  return (
+    <div className="text-center">
+      <div className={`inline-flex items-center justify-center w-16 h-16 rounded-2xl mb-6 ${dark ? 'bg-white/5' : 'bg-gray-100'}`}>
+        <img src="https://assets.pipedream.net/s.v0/app_XaLh2x/logo/orig" alt="Amazon" className="h-10 object-contain" />
+      </div>
+      <h1 className={`font-semibold text-2xl mb-3 ${dark ? 'text-white' : 'text-[#1A1A1A]'}`}>
+        Connect your Amazon account
+      </h1>
+      <p className={`text-sm mb-6 leading-relaxed max-w-md mx-auto ${dark ? 'text-white/50' : 'text-[#1A1A1A]/50'}`}>
+        DragonBot needs access to your Amazon Seller account to pull sales data, manage inventory, run reports, and automate operations. Connect at least one account to continue.
+      </p>
+
+      {/* Connected accounts */}
+      {connections.length > 0 && (
+        <div className="mb-6 text-left space-y-2">
+          {connections.map((conn) => (
+            <div key={conn.id} className={`flex items-center gap-3 p-3 rounded-xl border ${dark ? 'border-[#2F7D4F]/50 bg-[#2F7D4F]/10' : 'border-[#2F7D4F]/30 bg-[#2F7D4F]/5'}`}>
+              <Check size={16} className="text-[#2F7D4F] flex-shrink-0" />
+              <span className={`text-sm font-medium ${dark ? 'text-white' : 'text-[#1A1A1A]'}`}>
+                {conn.uniqueDisplayId || conn.name}
+              </span>
+            </div>
+          ))}
+        </div>
+      )}
+
+      {error && <div className="mb-4 px-4 py-2.5 rounded-xl bg-red-500/10 text-red-400 text-sm">{error}</div>}
+
+      {loading ? (
+        <p className={`text-sm ${dark ? 'text-white/40' : 'text-[#1A1A1A]/40'}`}>Loading...</p>
+      ) : (
+        <div className="flex flex-col gap-3">
+          <button
+            onClick={handleConnect}
+            disabled={connecting}
+            className={`w-full py-2.5 rounded-xl text-sm font-medium transition-colors border disabled:opacity-50 ${
+              dark
+                ? 'bg-white/5 border-white/10 text-white hover:bg-white/10'
+                : 'bg-white border-gray-200 text-[#1A1A1A] hover:bg-gray-50'
+            }`}
+          >
+            {connecting ? 'Connecting...' : hasConnection ? '+ Add another Amazon account' : 'Connect Amazon Account'}
+          </button>
+
+          <button
+            onClick={onComplete}
+            disabled={!hasConnection}
+            className="w-full py-2.5 rounded-xl bg-[#2F7D4F] hover:bg-[#256B42] disabled:opacity-40 disabled:cursor-not-allowed text-white text-sm font-medium transition-colors shadow-lg shadow-[#2F7D4F]/20"
+          >
+            Continue
+          </button>
+        </div>
+      )}
     </div>
   );
 }
@@ -556,6 +685,7 @@ function Complete({ dark }) {
 // Maps URL step params to DB setupStage values
 const STEP_TO_STAGE = {
   'add-to-slack': 'SLACK_INSTALL',
+  'connect-spapi': 'CONNECT_SPAPI',
   'connect-tools': 'CONNECT_TOOLS',
   'select-channels': 'SELECT_CHANNELS',
   'complete': 'COMPLETE',
@@ -564,6 +694,7 @@ const STEP_TO_STAGE = {
 // Maps DB setupStage to URL step param (for initial load from /api/me)
 const STAGE_TO_STEP = {
   SLACK_INSTALL: 'add-to-slack',
+  CONNECT_SPAPI: 'connect-spapi',
   CONNECT_TOOLS: 'connect-tools',
   SELECT_CHANNELS: 'select-channels',
   COMPLETE: 'complete',
@@ -621,6 +752,9 @@ export default function GettingStarted() {
         <StepIndicator currentStep={step} dark={dark} />
 
         {step === 'add-to-slack' && <AddToSlack dark={dark} />}
+        {step === 'connect-spapi' && (
+          <ConnectSpApi dark={dark} onComplete={() => goToStep('connect-tools')} />
+        )}
         {step === 'connect-tools' && (
           <ConnectTools dark={dark} onComplete={() => goToStep('select-channels')} />
         )}
