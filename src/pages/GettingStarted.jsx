@@ -255,27 +255,27 @@ function ConnectSpApi({ dark, onComplete }) {
       <h1 className={`font-semibold text-2xl mb-3 ${dark ? 'text-white' : 'text-[#1A1A1A]'}`}>
         Connect your Amazon Seller account
       </h1>
-      <p className={`text-sm mb-4 leading-relaxed max-w-md mx-auto ${dark ? 'text-white/50' : 'text-[#1A1A1A]/50'}`}>
+      <p className={`text-xs mb-4 leading-relaxed max-w-md mx-auto ${dark ? 'text-white/50' : 'text-[#1A1A1A]/50'}`}>
         DragonBot connects to your Amazon Seller Central account in <strong className={dark ? 'text-white/70' : 'text-[#1A1A1A]/70'}>read-only mode</strong> — it can pull sales data, inventory levels, reports, and analytics, but <strong className={dark ? 'text-white/70' : 'text-[#1A1A1A]/70'}>cannot make any changes</strong> to your account.
       </p>
 
       <div className={`text-left mb-6 p-4 rounded-xl border ${dark ? 'border-white/5 bg-white/[0.02]' : 'border-gray-100 bg-gray-50'}`}>
         <div className="space-y-2">
           <div className="flex items-start gap-2">
-            <Lock size={14} className="text-[#2F7D4F] mt-0.5 flex-shrink-0" />
-            <span className={`text-xs ${dark ? 'text-white/50' : 'text-[#1A1A1A]/50'}`}>
+            <Lock size={12} className="text-[#2F7D4F] mt-0.5 flex-shrink-0" />
+            <span className={`text-[11px] ${dark ? 'text-white/50' : 'text-[#1A1A1A]/50'}`}>
               <strong className={dark ? 'text-white/70' : 'text-[#1A1A1A]/70'}>100% secure & compliant</strong> — fully compliant with Amazon's Terms of Service. Your credentials are encrypted and never shared.
             </span>
           </div>
           <div className="flex items-start gap-2">
-            <Eye size={14} className="text-[#2F7D4F] mt-0.5 flex-shrink-0" />
-            <span className={`text-xs ${dark ? 'text-white/50' : 'text-[#1A1A1A]/50'}`}>
+            <Eye size={12} className="text-[#2F7D4F] mt-0.5 flex-shrink-0" />
+            <span className={`text-[11px] ${dark ? 'text-white/50' : 'text-[#1A1A1A]/50'}`}>
               <strong className={dark ? 'text-white/70' : 'text-[#1A1A1A]/70'}>Read-only by default</strong> — DragonBot can only view your data. You can enable write access later in Settings if you choose.
             </span>
           </div>
           <div className="flex items-start gap-2">
-            <Plus size={14} className="text-[#2F7D4F] mt-0.5 flex-shrink-0" />
-            <span className={`text-xs ${dark ? 'text-white/50' : 'text-[#1A1A1A]/50'}`}>
+            <Plus size={12} className="text-[#2F7D4F] mt-0.5 flex-shrink-0" />
+            <span className={`text-[11px] ${dark ? 'text-white/50' : 'text-[#1A1A1A]/50'}`}>
               You can connect additional Amazon accounts later from the Connections page.
             </span>
           </div>
@@ -523,9 +523,9 @@ function ConnectTools({ dark, onComplete }) {
   return (
     <div>
       <h1 className={`font-semibold text-2xl mb-2 ${dark ? 'text-white' : 'text-[#1A1A1A]'}`}>
-        Give DragonBot <span className="bg-gradient-to-r from-[#2F7D4F] to-[#98CC65] bg-clip-text text-transparent">tools to work with</span>
+        Give DragonBot <span className="bg-gradient-to-r from-[#2F7D4F] to-[#98CC65] bg-clip-text text-transparent">tools</span> to work with
       </h1>
-      <p className={`text-sm mb-5 leading-relaxed ${dark ? 'text-white/50' : 'text-[#1A1A1A]/50'}`}>
+      <p className={`text-xs mb-5 leading-relaxed ${dark ? 'text-white/50' : 'text-[#1A1A1A]/50'}`}>
         Just like any new hire, DragonBot works best when it can access your team's tools. Connect now or add them later from settings.
       </p>
 
@@ -537,7 +537,7 @@ function ConnectTools({ dark, onComplete }) {
               <Check size={14} className="text-[#2F7D4F] flex-shrink-0" />
               <span className={`text-sm font-medium truncate ${dark ? 'text-white' : 'text-[#1A1A1A]'}`}>Amazon SP-API</span>
               {conn.uniqueDisplayId && <span className={`text-xs ${dark ? 'text-white/40' : 'text-[#1A1A1A]/40'}`}>({conn.uniqueDisplayId})</span>}
-              <span className={`ml-auto text-[10px] px-1.5 py-0.5 rounded ${dark ? 'bg-white/5 text-white/30' : 'bg-gray-100 text-gray-400'}`}>read-only</span>
+              <span className={`ml-auto text-[10px] px-1.5 py-0.5 rounded ${dark ? 'bg-white/5 text-white/30' : 'bg-gray-100 text-gray-400'}`}>Read-only</span>
             </div>
           ))}
           {otherConns.map((conn) => (
@@ -660,7 +660,7 @@ function ConnectTools({ dark, onComplete }) {
           {browseTools.length > 0 && (
             <>
               <span className={`block text-xs font-medium mb-2 ${dark ? 'text-white/40' : 'text-[#1A1A1A]/40'}`}>Browse all tools</span>
-              <div className="grid grid-cols-3 gap-2 max-h-48 overflow-y-auto">
+              <div className="grid grid-cols-4 gap-2 max-h-48 overflow-y-auto">
                 {browseTools.map((tool) => (
                   <ToolButton key={tool.slug} tool={tool} dark={dark} connecting={connecting} onClick={() => handleConnect(tool)} />
                 ))}
