@@ -17,14 +17,15 @@ function SlackLogo({ className }) {
 
 // Logo URLs for popular tools (Pipedream asset CDN)
 const TOOL_LOGOS = {
-  amazon_selling_partner: 'https://assets.pipedream.net/s.v0/app_1lxhab/logo/orig', // Amazon
-  amazon_ads: 'https://assets.pipedream.net/s.v0/app_1lxhab/logo/orig',
-  google_drive: 'https://assets.pipedream.net/s.v0/app_1lxhk1/logo/orig',
-  google_sheets: 'https://assets.pipedream.net/s.v0/app_168hvn/logo/orig',
-  google_docs: 'https://upload.wikimedia.org/wikipedia/commons/0/01/Google_Docs_logo_%282014-2020%29.svg',
-  notion: 'https://upload.wikimedia.org/wikipedia/commons/4/45/Notion_app_logo.png',
-  airtable: 'https://upload.wikimedia.org/wikipedia/commons/4/4b/Airtable_Logo.svg',
-  shopify: 'https://upload.wikimedia.org/wikipedia/commons/0/0e/Shopify_logo_2018.svg',
+  amazon_selling_partner: '/logos/tools/amazon.png',
+  amazon_ads: '/logos/tools/amazon.png',
+  google_drive: '/logos/tools/google-drive.png',
+  google_sheets: '/logos/tools/google-sheets.png',
+  google_docs: '/logos/tools/google-docs.svg',
+  notion: '/logos/tools/notion.png',
+  airtable: '/logos/tools/airtable.svg',
+  shopify: '/logos/tools/shopify.svg',
+  gmail: '/logos/tools/gmail.png',
 };
 
 const MOST_POPULAR_SLUGS = [
@@ -105,7 +106,7 @@ function AddToSlack({ dark }) {
                 { src: TOOL_LOGOS.notion, alt: 'Notion' },
                 { src: TOOL_LOGOS.google_drive, alt: 'Drive' },
                 { src: TOOL_LOGOS.google_sheets, alt: 'Sheets' },
-                { src: 'https://assets.pipedream.net/s.v0/app_OQYhq7/logo/orig', alt: 'Gmail' },
+                { src: TOOL_LOGOS.gmail, alt: 'Gmail' },
                 { src: TOOL_LOGOS.airtable, alt: 'Airtable' },
                 { src: TOOL_LOGOS.shopify, alt: 'Shopify' },
                 { src: TOOL_LOGOS.google_docs, alt: 'Docs' },
