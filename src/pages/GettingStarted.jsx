@@ -63,7 +63,7 @@ function StepIndicator({ currentStep, dark }) {
 function AddToSlack({ dark }) {
   const token = getToken();
   return (
-    <div className="text-center max-w-2xl mx-auto">
+    <div className="text-center max-w-3xl mx-auto">
       <h1 className={`font-semibold text-3xl mb-2 ${dark ? 'text-white' : 'text-[#1A1A1A]'}`}>
         Add <span className="bg-gradient-to-r from-[#2F7D4F] to-[#98CC65] bg-clip-text text-transparent">DragonBot</span> to <span className="bg-gradient-to-r from-[#9B59B6] to-[#B794F4] bg-clip-text text-transparent">Slack</span>
       </h1>
@@ -74,16 +74,16 @@ function AddToSlack({ dark }) {
       {/* Three info panes */}
       <div className="grid grid-cols-3 gap-4 mb-8">
         {/* Pane 1: Authorize */}
-        <div className={`rounded-xl border flex flex-col overflow-hidden ${dark ? 'border-white/10 bg-white/[0.02]' : 'border-gray-200 bg-gray-50'}`}>
-          <div className="relative flex-1 flex items-center justify-center p-4 min-h-[100px]">
-            <span className={`absolute top-2 left-2 w-5 h-5 rounded-full text-[10px] font-bold flex items-center justify-center ${dark ? 'bg-white/10 text-white/50' : 'bg-gray-200 text-gray-500'}`}>1</span>
-            <div className="flex items-center gap-2">
-              <div className="w-10 h-10 rounded-xl overflow-hidden">
+        <div className={`rounded-xl border flex flex-col overflow-hidden ${dark ? 'border-white/10' : 'border-gray-200 bg-gray-50'}`}>
+          <div className="relative flex-1 flex items-center justify-center p-5 min-h-[110px]" style={{ background: 'radial-gradient(circle at center, rgba(47,125,79,0.15) 0%, transparent 70%)' }}>
+            <span className={`absolute top-2.5 left-2.5 w-5 h-5 rounded-full text-[10px] font-bold flex items-center justify-center ${dark ? 'bg-white/10 text-white/50' : 'bg-gray-200 text-gray-500'}`}>1</span>
+            <div className="flex items-center gap-3">
+              <div className="w-12 h-12 rounded-xl overflow-hidden shadow-lg">
                 <img src="/DragonBot-avatar-social.png" alt="DragonBot" className="w-full h-full object-cover" />
               </div>
               <div className={`text-lg ${dark ? 'text-white/20' : 'text-[#1A1A1A]/20'}`}>⟷</div>
-              <div className="w-10 h-10 rounded-xl bg-white/5 flex items-center justify-center">
-                <SlackLogo className="w-6 h-6" />
+              <div className="w-12 h-12 rounded-xl bg-white flex items-center justify-center shadow-lg">
+                <SlackLogo className="w-7 h-7" />
               </div>
             </div>
           </div>
@@ -96,21 +96,21 @@ function AddToSlack({ dark }) {
         </div>
 
         {/* Pane 2: Connect tools */}
-        <div className={`rounded-xl border flex flex-col overflow-hidden ${dark ? 'border-white/10 bg-white/[0.02]' : 'border-gray-200 bg-gray-50'}`}>
-          <div className="relative flex-1 flex items-center justify-center p-4 min-h-[100px]">
-            <span className={`absolute top-2 left-2 w-5 h-5 rounded-full text-[10px] font-bold flex items-center justify-center ${dark ? 'bg-white/10 text-white/50' : 'bg-gray-200 text-gray-500'}`}>2</span>
-            <div className="grid grid-cols-4 gap-1.5">
+        <div className={`rounded-xl border flex flex-col overflow-hidden ${dark ? 'border-white/10' : 'border-gray-200 bg-gray-50'}`}>
+          <div className="relative flex-1 flex items-center justify-center p-5 min-h-[110px]" style={{ background: 'radial-gradient(circle at center, rgba(47,125,79,0.15) 0%, transparent 70%)' }}>
+            <span className={`absolute top-2.5 left-2.5 w-5 h-5 rounded-full text-[10px] font-bold flex items-center justify-center ${dark ? 'bg-white/10 text-white/50' : 'bg-gray-200 text-gray-500'}`}>2</span>
+            <div className="grid grid-cols-4 gap-2">
               {[
                 { src: TOOL_LOGOS.amazon_selling_partner, alt: 'Amazon' },
-                { src: TOOL_LOGOS.notion, alt: 'Notion', whiteBg: true },
+                { src: 'https://upload.wikimedia.org/wikipedia/commons/4/45/Notion_app_logo.png', alt: 'Notion' },
                 { src: TOOL_LOGOS.google_drive, alt: 'Drive' },
                 { src: TOOL_LOGOS.google_sheets, alt: 'Sheets' },
                 { src: 'https://assets.pipedream.net/s.v0/app_OQYhq7/logo/orig', alt: 'Gmail' },
                 { src: TOOL_LOGOS.airtable, alt: 'Airtable' },
                 { src: TOOL_LOGOS.shopify, alt: 'Shopify' },
-                { src: TOOL_LOGOS.amazon_ads, alt: 'Ads' },
+                { src: TOOL_LOGOS.google_docs, alt: 'Docs' },
               ].map((t) => (
-                <div key={t.alt} className={`w-7 h-7 rounded-lg flex items-center justify-center ${t.whiteBg ? 'bg-white' : ''}`}>
+                <div key={t.alt} className="w-8 h-8 rounded-lg bg-white/10 flex items-center justify-center">
                   <img src={t.src} alt={t.alt} className="w-5 h-5 rounded object-contain" />
                 </div>
               ))}
@@ -125,15 +125,15 @@ function AddToSlack({ dark }) {
         </div>
 
         {/* Pane 3: Chat */}
-        <div className={`rounded-xl border flex flex-col overflow-hidden ${dark ? 'border-white/10 bg-white/[0.02]' : 'border-gray-200 bg-gray-50'}`}>
-          <div className="relative flex-1 flex items-center justify-center p-4 min-h-[100px]">
-            <span className={`absolute top-2 left-2 w-5 h-5 rounded-full text-[10px] font-bold flex items-center justify-center ${dark ? 'bg-white/10 text-white/50' : 'bg-gray-200 text-gray-500'}`}>3</span>
-            <div className={`w-full rounded-lg p-2.5 text-left ${dark ? 'bg-white/[0.04]' : 'bg-gray-100'}`}>
+        <div className={`rounded-xl border flex flex-col overflow-hidden ${dark ? 'border-white/10' : 'border-gray-200 bg-gray-50'}`}>
+          <div className="relative flex-1 flex items-center justify-center p-5 min-h-[110px]" style={{ background: 'radial-gradient(circle at center, rgba(47,125,79,0.15) 0%, transparent 70%)' }}>
+            <span className={`absolute top-2.5 left-2.5 w-5 h-5 rounded-full text-[10px] font-bold flex items-center justify-center ${dark ? 'bg-white/10 text-white/50' : 'bg-gray-200 text-gray-500'}`}>3</span>
+            <div className={`w-full rounded-lg p-3 text-left ${dark ? 'bg-white/[0.06]' : 'bg-gray-100'}`}>
               <div className="flex items-start gap-2">
-                <div className="w-6 h-6 rounded bg-blue-500/20 flex items-center justify-center text-[10px] font-bold text-blue-400 flex-shrink-0">J</div>
+                <div className="w-7 h-7 rounded bg-blue-500/20 flex items-center justify-center text-[10px] font-bold text-blue-400 flex-shrink-0">J</div>
                 <div>
-                  <span className={`text-[10px] font-semibold ${dark ? 'text-white/70' : 'text-[#1A1A1A]/70'}`}>Jake</span>
-                  <p className={`text-[10px] leading-relaxed mt-0.5 ${dark ? 'text-white/50' : 'text-[#1A1A1A]/50'}`}>
+                  <span className={`text-[11px] font-semibold ${dark ? 'text-white/70' : 'text-[#1A1A1A]/70'}`}>Jake</span>
+                  <p className={`text-[11px] leading-relaxed mt-0.5 ${dark ? 'text-white/50' : 'text-[#1A1A1A]/50'}`}>
                     <span className="text-[#2F7D4F] font-semibold">@DragonBot</span> analyze our PPC performance from the last 2 weeks
                   </p>
                 </div>
