@@ -333,19 +333,24 @@ function ConnectSpApi({ dark, onComplete }) {
   );
 }
 
-function ToolButton({ tool, dark, connecting, onClick }) {
+function ToolButton({ tool, dark, connecting, onClick, recommended }) {
   const isConnecting = connecting === tool.slug;
   const logo = TOOL_LOGOS[tool.slug] || tool.imgSrc;
   return (
     <button
       onClick={onClick}
       disabled={isConnecting}
-      className={`flex flex-col items-center gap-2 p-3 rounded-xl border text-center transition-colors disabled:opacity-50 ${
+      className={`relative flex flex-col items-center gap-2 p-3 rounded-xl border text-center transition-colors disabled:opacity-50 ${
         dark
           ? 'border-white/10 hover:border-white/20 hover:bg-white/5'
           : 'border-gray-200 hover:border-gray-300 hover:bg-gray-50'
       }`}
     >
+      {recommended && (
+        <span className="absolute -top-1.5 right-1.5 text-[7px] font-semibold px-1.5 py-0.5 rounded-full bg-[#2F7D4F] text-white">
+          Recommended
+        </span>
+      )}
       {logo ? (
         <img src={logo} alt={tool.name} className="w-7 h-7 rounded-lg object-contain" />
       ) : (
@@ -708,7 +713,7 @@ function ConnectTools({ dark, onComplete }) {
               <span className={`block text-xs font-medium mb-2 ${dark ? 'text-white/40' : 'text-[#1A1A1A]/40'}`}>Most popular</span>
               <div className="grid grid-cols-4 gap-2 mb-4">
                 {popularTools.map((tool) => (
-                  <ToolButton key={tool.slug} tool={tool} dark={dark} connecting={connecting} onClick={() => handleConnect(tool)} />
+                  <ToolButton key={tool.slug} tool={tool} dark={dark} connecting={connecting} onClick={() => handleConnect(tool)} recommended />
                 ))}
               </div>
             </>
