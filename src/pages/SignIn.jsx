@@ -20,7 +20,6 @@ const TESTIMONIALS = [
   { name: 'Mike R.', role: 'Brand Manager', avatar: '/avatar-mike.jpg', text: 'Customer support triage was drowning us. DragonBot drafts first responses and routes tickets instantly. Game changer.' },
 ];
 
-const BUILT_BY_COMPANIES = ['Amazon', 'Shopify', 'Meta', 'Google'];
 
 function TopBar() {
   return (
@@ -152,16 +151,12 @@ function TryForFree() {
           </div>
         </div>
 
-        {/* Built by + legal — pinned to bottom of left pane */}
+        {/* Built by sellers + legal — pinned to bottom of left pane */}
         <div className="text-center pt-8">
-          <p className="text-[10px] uppercase tracking-[0.15em] mb-3 text-white/50">
-            Built by eCommerce operators & engineers from
+          <p className="text-[15px] font-semibold text-white/60 mb-2">We sell on Amazon too</p>
+          <p className="text-[10px] font-medium text-white/50 uppercase tracking-[0.15em] mb-4">
+            10 years on Amazon · 8 figures sold · DragonBot is the employee we always wanted
           </p>
-          <div className="flex items-center justify-center gap-6 mb-4">
-            {BUILT_BY_COMPANIES.map((name) => (
-              <span key={name} className="font-semibold text-sm text-white/70">{name}</span>
-            ))}
-          </div>
           <p className="text-[10px] text-white/40">
             By signing up, you agree to the DragonBot{' '}
             <a href="https://getdragonbot.com/privacy" className="underline hover:text-white/60">Privacy Policy</a>
