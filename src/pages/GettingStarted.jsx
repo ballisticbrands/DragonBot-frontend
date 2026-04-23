@@ -28,10 +28,16 @@ const TOOL_LOGOS = {
   gmail: '/logos/tools/gmail.png',
 };
 
-const MOST_POPULAR_SLUGS = [
-  'amazon_ads', 'google_drive', 'notion', 'airtable',
-  'shopify', 'google_sheets', 'google_docs',
+const MOST_POPULAR = [
+  { slug: 'amazon_ads', name: 'Amazon Ads' },
+  { slug: 'google_drive', name: 'Google Drive' },
+  { slug: 'notion', name: 'Notion' },
+  { slug: 'airtable', name: 'Airtable' },
+  { slug: 'shopify', name: 'Shopify' },
+  { slug: 'google_sheets', name: 'Google Sheets' },
+  { slug: 'google_docs', name: 'Google Docs' },
 ];
+const MOST_POPULAR_SLUGS = MOST_POPULAR.map((t) => t.slug);
 
 const BACKEND_URL = import.meta.env.VITE_BACKEND_URL ?? 'https://api.getdragonbot.com';
 
@@ -515,15 +521,17 @@ function ConnectTools({ dark, onComplete }) {
   const otherConns = connections.filter((c) => c.provider !== 'amazon_selling_partner');
 
   // Split tools into "most popular" and "browse all"
-  const popularTools = MOST_POPULAR_SLUGS
-    .map((slug) => tools.find((t) => t.slug === slug))
-    .filter(Boolean);
+  // Always show all popular tools — use API data if available, fall back to static list
+  const popularTools = MOST_POPULAR.map((p) => {
+    const fromApi = tools.find((t) => t.slug === p.slug);
+    return fromApi || { slug: p.slug, name: p.name, imgSrc: TOOL_LOGOS[p.slug] || null };
+  });
   const browseTools = tools.filter((t) => !MOST_POPULAR_SLUGS.includes(t.slug));
 
   return (
     <div>
       <h1 className={`font-semibold text-2xl mb-2 ${dark ? 'text-white' : 'text-[#1A1A1A]'}`}>
-        Give DragonBot <span className="bg-gradient-to-r from-[#2F7D4F] to-[#98CC65] bg-clip-text text-transparent">tools</span> to work with
+        Give DragonBot <span className="bg-gradient-to-r from-[#2F7D4F] to-[#98CC65] bg-clip-text text-transparent">tools to work with</span>
       </h1>
       <p className={`text-xs mb-5 leading-relaxed ${dark ? 'text-white/50' : 'text-[#1A1A1A]/50'}`}>
         Just like any new hire, DragonBot works best when it can access your team's tools. Connect now or add them later from settings.
