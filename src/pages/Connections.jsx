@@ -67,7 +67,7 @@ export default function Connections({ dark }) {
   }, [search, showAddPanel]);
 
   async function handleConnect(tool) {
-    // Direct OAuth — skip form, go straight to OAuth consent screen
+    // Direct OAuth — open in a centered popup window
     if (tool.custom && tool.directOAuth) {
       setConnecting(tool.slug);
       setError('');
@@ -82,7 +82,28 @@ export default function Connections({ dark }) {
         });
         const data = await res.json();
         if (data.url) {
-          window.location.href = data.url;
+          const w = 600, h = 700;
+          const left = window.screenX + (window.outerWidth - w) / 2;
+          const top = window.screenY + (window.outerHeight - h) / 2;
+          const popup = window.open(data.url, 'dragonbot-connect', `width=${w},height=${h},left=${left},top=${top}`);
+          // Listen for completion message from the popup
+          const onMessage = (e) => {
+            if (e.data?.type === 'dragonbot-connection-complete') {
+              window.removeEventListener('message', onMessage);
+              setConnecting(null);
+              loadConnections();
+            }
+          };
+          window.addEventListener('message', onMessage);
+          // Also poll in case the popup was blocked or closed without completing
+          const pollTimer = setInterval(() => {
+            if (popup?.closed) {
+              clearInterval(pollTimer);
+              window.removeEventListener('message', onMessage);
+              setConnecting(null);
+              loadConnections();
+            }
+          }, 1000);
           return;
         }
         setError(data.error || 'Failed to start OAuth');
