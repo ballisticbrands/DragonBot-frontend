@@ -45,6 +45,15 @@ const PRESETS = [
     icon: Zap,
   },
   {
+    id: 'deepseek-flash',
+    model: 'deepseek/deepseek-v4-flash',
+    name: 'DeepSeek V4 Flash',
+    badge: '~95% cheaper',
+    badgeColor: '',
+    description: 'DeepSeek V4 Flash. Fast and extremely affordable — great for high-volume, everyday tasks.',
+    icon: Zap,
+  },
+  {
     id: 'glm',
     model: 'zai/glm-5.1',
     name: 'GLM 5.1',
