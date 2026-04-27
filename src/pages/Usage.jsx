@@ -67,6 +67,7 @@ export default function Usage({ dark }) {
   const [threadSort, setThreadSort] = useState('top');
   const [tsOpen, setTsOpen] = useState(false);
   const [threadPage, setThreadPage] = useState(0);
+  const [selectedDay, setSelectedDay] = useState(null); // null = all days, "YYYY-MM-DD" = filter
   const THREADS_PER_PAGE = 10;
 
   useEffect(() => {
@@ -85,6 +86,7 @@ export default function Usage({ dark }) {
       }
     })();
     setThreadPage(0);
+    setSelectedDay(null);
   }, [timeframe]);
 
   const maxDayCredits = useMemo(() => {
@@ -92,12 +94,27 @@ export default function Usage({ dark }) {
     return Math.max(0.01, ...data.byDay.map((d) => d.credits || 0));
   }, [data]);
 
+  // When a day is selected, re-aggregate threads from recentLogs for that day
+  const filteredThreads = useMemo(() => {
+    if (!selectedDay || !data?.recentLogs) return data?.threads || [];
+    const dayLogs = data.recentLogs.filter(l => l.createdAt?.slice(0, 10) === selectedDay);
+    const byTag = {};
+    for (const l of dayLogs) {
+      const tag = l.sessionTag || 'unknown';
+      if (!byTag[tag]) byTag[tag] = { sessionTag: tag, credits: 0, calls: 0, firstSeen: l.createdAt, lastSeen: l.createdAt };
+      byTag[tag].credits += l.creditCount || 0;
+      byTag[tag].calls += 1;
+      if (l.createdAt < byTag[tag].firstSeen) byTag[tag].firstSeen = l.createdAt;
+      if (l.createdAt > byTag[tag].lastSeen) byTag[tag].lastSeen = l.createdAt;
+    }
+    return Object.values(byTag).sort((a, b) => b.credits - a.credits);
+  }, [data, selectedDay]);
+
   const sortedThreads = useMemo(() => {
-    if (!data?.threads) return [];
-    const sorted = [...data.threads];
+    const sorted = [...filteredThreads];
     if (threadSort === 'newest') sorted.sort((a, b) => new Date(b.lastSeen) - new Date(a.lastSeen));
     return sorted;
-  }, [data, threadSort]);
+  }, [filteredThreads, threadSort]);
 
   const pagedThreads = useMemo(() => {
     const start = threadPage * THREADS_PER_PAGE;
@@ -172,8 +189,11 @@ export default function Usage({ dark }) {
                       const total = oneOff + scheduled;
                       const pctOneOff = total > 0 ? (oneOff / maxDayCredits) * 100 : 0;
                       const pctScheduled = total > 0 ? (scheduled / maxDayCredits) * 100 : 0;
+                      const isSelected = selectedDay === day.date;
                       return (
-                        <div key={day.date} className="flex-1 flex flex-col justify-end group relative h-full z-10">
+                        <div key={day.date}
+                          onClick={() => { setSelectedDay(prev => prev === day.date ? null : day.date); setThreadPage(0); }}
+                          className={`flex-1 flex flex-col justify-end group relative h-full z-10 cursor-pointer transition-opacity ${selectedDay && !isSelected ? 'opacity-30' : ''}`}>
                           <div className={`absolute left-1/2 -translate-x-1/2 bottom-[calc(100%+8px)] px-2.5 py-2 rounded text-[10px] whitespace-nowrap opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none shadow-lg ${c('bg-[#333] text-white', 'bg-gray-800 text-white')}`} style={{ zIndex: 100 }}>
                             <div className="font-medium mb-0.5">{formatDate(day.date)}</div>
                             <div className="flex items-center gap-1.5"><span className="inline-block h-2 w-2 rounded-[2px] bg-[#2F7D4F]" />One-off: {oneOff.toLocaleString(undefined, { maximumFractionDigits: 0 })} credits</div>
@@ -208,7 +228,17 @@ export default function Usage({ dark }) {
         {/* Threads Table */}
         <div className={`rounded-xl overflow-hidden ${c('bg-[#1a1a1a]', 'bg-white border border-gray-200')}`}>
           <div className="flex items-center justify-between p-5 pb-0">
-            <p className={`text-[11px] font-medium ${c('text-white/50', 'text-[#1A1A1A]/50')}`}>Breakdown by caller</p>
+            <div className="flex items-center gap-2">
+              <p className={`text-[11px] font-medium ${c('text-white/50', 'text-[#1A1A1A]/50')}`}>Breakdown by caller</p>
+              {selectedDay && (
+                <button
+                  onClick={() => setSelectedDay(null)}
+                  className={`flex items-center gap-1 text-[11px] px-2 py-0.5 rounded-full ${c('bg-[#2F7D4F]/15 text-[#2F7D4F] hover:bg-[#2F7D4F]/25', 'bg-[#2F7D4F]/10 text-[#2F7D4F] hover:bg-[#2F7D4F]/20')}`}
+                >
+                  {formatDate(selectedDay)} <span className="text-[9px]">✕</span>
+                </button>
+              )}
+            </div>
             <Dropdown dark={dark} label={THREAD_SORTS.find(s => s.value === threadSort)?.label} open={tsOpen} setOpen={setTsOpen}
               items={THREAD_SORTS.map(s => ({ label: s.label, onClick: () => { setThreadSort(s.value); setTsOpen(false); setThreadPage(0); } }))} />
           </div>
