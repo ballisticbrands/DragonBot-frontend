@@ -67,7 +67,8 @@ const PRESETS = [
 
 export default function Settings({ dark }) {
   const [currentModel, setCurrentModel] = useState(null);
-  const [heartbeatModel, setHeartbeatModel] = useState(null); // null = same as primary
+  const [heartbeatModel, setHeartbeatModel] = useState(null);
+  const [slackStreaming, setSlackStreaming] = useState('partial');
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
 
@@ -81,6 +82,7 @@ export default function Settings({ dark }) {
           const data = await res.json();
           setCurrentModel(data.model);
           setHeartbeatModel(data.heartbeatModel || null);
+          setSlackStreaming(data.slackStreaming || 'partial');
         }
       } catch (err) {
         console.error('Failed to load settings:', err);
@@ -136,6 +138,28 @@ export default function Settings({ dark }) {
     }
   }
 
+  async function selectSlackStreaming(mode) {
+    if (mode === slackStreaming || saving) return;
+    setSaving(true);
+    try {
+      const res = await fetch(`${BACKEND_URL}/api/settings/model`, {
+        method: 'PUT',
+        headers: {
+          Authorization: `Bearer ${getToken()}`,
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ slackStreaming: mode }),
+      });
+      if (res.ok) {
+        setSlackStreaming(mode);
+      }
+    } catch (err) {
+      console.error('Failed to update streaming mode:', err);
+    } finally {
+      setSaving(false);
+    }
+  }
+
   const c = (dv, lv) => dark ? dv : lv;
 
   const effectiveHeartbeat = heartbeatModel || currentModel;
@@ -178,6 +202,37 @@ export default function Settings({ dark }) {
                     />
                   ))}
                 </div>
+              </div>
+            </div>
+
+            {/* Slack streaming mode */}
+            <div className={`rounded-xl ${c('bg-[#1a1a1a]', 'bg-white border border-gray-200')}`}>
+              <div className="p-5 flex flex-col gap-2">
+                <h2 className={`text-base font-semibold ${c('text-white', 'text-[#1A1A1A]')}`}>Slack streaming</h2>
+                <p className={`text-sm max-w-xl ${c('text-white/50', 'text-[#1A1A1A]/50')}`}>
+                  Controls how DragonBot shows live responses in Slack while generating.
+                </p>
+              </div>
+
+              <div className="px-5 pb-5 flex max-w-xl flex-col gap-2">
+                {[
+                  { id: 'partial', name: 'Live preview', description: 'Replaces the message with the latest output as it generates. Feels like watching someone type.' },
+                  { id: 'progress', name: 'Progress status', description: 'Shows a "thinking..." status while generating, then sends the final message all at once.' },
+                  { id: 'block', name: 'Chunked updates', description: 'Appends blocks of text as they become available. More frequent updates but can feel jumpy.' },
+                  { id: 'off', name: 'Off', description: 'No live preview. The bot stays silent until the full response is ready, then sends it.' },
+                ].map((mode) => (
+                  <ModelCard
+                    key={`stream-${mode.id}`}
+                    dark={dark}
+                    name={mode.name}
+                    description={mode.description}
+                    badge={mode.id === 'partial' ? 'Default' : ''}
+                    badgeColor={mode.id === 'partial' ? c('bg-white/5 text-white/50', 'bg-gray-100 text-gray-500') : ''}
+                    selected={slackStreaming === mode.id}
+                    saving={saving}
+                    onClick={() => selectSlackStreaming(mode.id)}
+                  />
+                ))}
               </div>
             </div>
 
