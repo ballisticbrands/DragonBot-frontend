@@ -36,6 +36,15 @@ const PRESETS = [
     icon: Zap,
   },
   {
+    id: 'deepseek',
+    model: 'deepseek/deepseek-v4-pro',
+    name: 'DeepSeek V4 Pro',
+    badge: '~85% cheaper',
+    badgeColor: '',
+    description: 'DeepSeek V4 Pro. Near frontier intelligence at a fraction of the cost.',
+    icon: Zap,
+  },
+  {
     id: 'glm',
     model: 'zai/glm-5.1',
     name: 'GLM 5.1',
