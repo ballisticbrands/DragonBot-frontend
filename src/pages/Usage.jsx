@@ -94,27 +94,29 @@ export default function Usage({ dark }) {
     return Math.max(0.01, ...data.byDay.map((d) => d.credits || 0));
   }, [data]);
 
-  // When a day is selected, re-aggregate threads from recentLogs for that day
-  const filteredThreads = useMemo(() => {
-    if (!selectedDay || !data?.recentLogs) return data?.threads || [];
-    const dayLogs = data.recentLogs.filter(l => l.createdAt?.slice(0, 10) === selectedDay);
-    const byTag = {};
-    for (const l of dayLogs) {
-      const tag = l.sessionTag || 'unknown';
-      if (!byTag[tag]) byTag[tag] = { sessionTag: tag, credits: 0, calls: 0, firstSeen: l.createdAt, lastSeen: l.createdAt };
-      byTag[tag].credits += l.creditCount || 0;
-      byTag[tag].calls += 1;
-      if (l.createdAt < byTag[tag].firstSeen) byTag[tag].firstSeen = l.createdAt;
-      if (l.createdAt > byTag[tag].lastSeen) byTag[tag].lastSeen = l.createdAt;
-    }
-    return Object.values(byTag).sort((a, b) => b.credits - a.credits);
-  }, [data, selectedDay]);
+  // When a day is selected, fetch threads filtered to that day from the backend
+  const [dayThreads, setDayThreads] = useState(null); // null = use data.threads
+  const [dayThreadsLoading, setDayThreadsLoading] = useState(false);
+
+  useEffect(() => {
+    if (!selectedDay) { setDayThreads(null); return; }
+    setDayThreadsLoading(true);
+    const since = getSince(timeframe).toISOString();
+    fetch(`${BACKEND_URL}/api/usage?since=${since}&day=${selectedDay}`, {
+      headers: { Authorization: `Bearer ${getToken()}` },
+    })
+      .then(r => r.ok ? r.json() : null)
+      .then(d => { if (d) setDayThreads(d.threads); })
+      .catch(() => {})
+      .finally(() => setDayThreadsLoading(false));
+  }, [selectedDay, timeframe]);
 
   const sortedThreads = useMemo(() => {
-    const sorted = [...filteredThreads];
+    const threads = dayThreads ?? data?.threads ?? [];
+    const sorted = [...threads];
     if (threadSort === 'newest') sorted.sort((a, b) => new Date(b.lastSeen) - new Date(a.lastSeen));
     return sorted;
-  }, [filteredThreads, threadSort]);
+  }, [dayThreads, data, threadSort]);
 
   const pagedThreads = useMemo(() => {
     const start = threadPage * THREADS_PER_PAGE;
@@ -252,7 +254,9 @@ export default function Usage({ dark }) {
                 </tr>
               </thead>
               <tbody>
-                {pagedThreads.length === 0 ? (
+                {dayThreadsLoading ? (
+                  <tr><td colSpan={3} className={`py-6 px-5 text-center text-sm ${c('text-white/30', 'text-[#1A1A1A]/30')}`}>Loading...</td></tr>
+                ) : pagedThreads.length === 0 ? (
                   <tr><td colSpan={3} className={`py-6 px-5 text-center text-sm ${c('text-white/30', 'text-[#1A1A1A]/30')}`}>No threads yet.</td></tr>
                 ) : pagedThreads.map((t, i) => (
                   <tr key={i} className={`border-b last:border-0 ${c('border-white/5 hover:bg-white/[0.02]', 'border-gray-50 hover:bg-gray-50/50')}`}>
