@@ -136,6 +136,10 @@ export default function ResponseTimes({ dark }) {
                 <span>LLM time</span>
               </div>
               <div className="flex items-center gap-2">
+                <div className="h-2.5 w-2.5 rounded-[2px] bg-purple-500/60" />
+                <span>Tool calls</span>
+              </div>
+              <div className="flex items-center gap-2">
                 <div className={`h-2.5 w-2.5 rounded-[2px] ${c('bg-white/10', 'bg-gray-200')}`} />
                 <span>Other</span>
               </div>
@@ -164,10 +168,12 @@ export default function ResponseTimes({ dark }) {
                     {data.byDay.map((day) => {
                       const overhead = Math.max(0, day.avgOverheadMs || 0);
                       const llm = Math.max(0, day.avgLlmMs || 0);
+                      const tool = Math.max(0, day.avgToolMs || 0);
                       const total = Math.max(0, day.avgTotalMs || 0);
-                      const other = Math.max(0, total - overhead - llm);
+                      const other = Math.max(0, total - overhead - llm - tool);
                       const pctOverhead = (overhead / maxMs) * 100;
                       const pctLlm = (llm / maxMs) * 100;
+                      const pctTool = (tool / maxMs) * 100;
                       const pctOther = (other / maxMs) * 100;
                       return (
                         <div key={day.date} className="flex-1 flex flex-col justify-end group relative h-full z-10">
@@ -175,12 +181,14 @@ export default function ResponseTimes({ dark }) {
                             <div className="font-medium mb-0.5">{formatDate(day.date)} ({day.messageCount} msgs)</div>
                             <div className="flex items-center gap-1.5"><span className="inline-block h-2 w-2 rounded-[2px] bg-amber-500/70" />Overhead: {formatMs(overhead)}</div>
                             <div className="flex items-center gap-1.5"><span className="inline-block h-2 w-2 rounded-[2px] bg-blue-500/70" />LLM: {formatMs(llm)}</div>
+                            <div className="flex items-center gap-1.5"><span className="inline-block h-2 w-2 rounded-[2px] bg-purple-500/60" />Tools: {formatMs(tool)}</div>
                             <div className="flex items-center gap-1.5"><span className={`inline-block h-2 w-2 rounded-[2px] ${c('bg-white/10', 'bg-gray-200')}`} />Other: {formatMs(other)}</div>
                             <div className={`mt-0.5 pt-0.5 border-t border-white/20 font-medium`}>Total: {formatMs(total)}</div>
                             {day.p50TotalMs && <div>P50: {formatMs(day.p50TotalMs)} · P95: {formatMs(day.p95TotalMs)}</div>}
                           </div>
                           {pctOverhead > 0 && <div className="w-full bg-amber-500/70 rounded-t-[2px]" style={{ height: `${Math.max(pctOverhead, 1)}%` }} />}
                           {pctLlm > 0 && <div className="w-full bg-blue-500/70" style={{ height: `${Math.max(pctLlm, 1)}%` }} />}
+                          {pctTool > 0 && <div className="w-full bg-purple-500/60" style={{ height: `${Math.max(pctTool, 1)}%` }} />}
                           {pctOther > 0 && <div className={`w-full ${c('bg-white/10', 'bg-gray-200')}`} style={{ height: `${Math.max(pctOther, 1)}%` }} />}
                           {total === 0 && <div className={`w-full rounded-t-[2px] ${c('bg-white/5', 'bg-gray-100')}`} style={{ height: '1px' }} />}
                         </div>
@@ -213,13 +221,14 @@ export default function ResponseTimes({ dark }) {
                   <th className={`text-[11px] font-medium py-2 px-2 text-right ${c('text-white/40', 'text-[#1A1A1A]/40')}`}>Total</th>
                   <th className={`text-[11px] font-medium py-2 px-2 text-right ${c('text-white/40', 'text-[#1A1A1A]/40')}`}>Overhead</th>
                   <th className={`text-[11px] font-medium py-2 px-2 text-right ${c('text-white/40', 'text-[#1A1A1A]/40')}`}>LLM</th>
-                  <th className={`text-[11px] font-medium py-2 px-2 text-right ${c('text-white/40', 'text-[#1A1A1A]/40')}`}>Calls</th>
+                  <th className={`text-[11px] font-medium py-2 px-2 text-right ${c('text-white/40', 'text-[#1A1A1A]/40')}`}>Tools</th>
+                  <th className={`text-[11px] font-medium py-2 px-2 text-right ${c('text-white/40', 'text-[#1A1A1A]/40')}`}>LLM Calls</th>
                   <th className={`text-[11px] font-medium py-2 px-4 text-left ${c('text-white/40', 'text-[#1A1A1A]/40')}`}>Model</th>
                 </tr>
               </thead>
               <tbody>
                 {(!data.messages || data.messages.length === 0) ? (
-                  <tr><td colSpan={7} className={`py-6 px-4 text-center text-sm ${c('text-white/30', 'text-[#1A1A1A]/30')}`}>No messages yet.</td></tr>
+                  <tr><td colSpan={8} className={`py-6 px-4 text-center text-sm ${c('text-white/30', 'text-[#1A1A1A]/30')}`}>No messages yet.</td></tr>
                 ) : data.messages.slice(0, 50).map((m, i) => (
                   <tr key={i} className={`border-b last:border-0 ${c('border-white/5 hover:bg-white/[0.02]', 'border-gray-50 hover:bg-gray-50/50')}`}>
                     <td className={`py-2 px-4 ${c('text-white/60', 'text-[#1A1A1A]/60')}`}>{formatTime(m.eventReceivedAt)}</td>
@@ -227,6 +236,7 @@ export default function ResponseTimes({ dark }) {
                     <td className={`py-2 px-2 text-right font-medium ${c('text-white', 'text-[#1A1A1A]')}`}>{formatMs(m.totalResponseMs)}</td>
                     <td className={`py-2 px-2 text-right text-amber-500/80`}>{formatMs(m.overheadMs)}</td>
                     <td className={`py-2 px-2 text-right text-blue-400`}>{formatMs(m.llmTotalMs)}</td>
+                    <td className={`py-2 px-2 text-right text-purple-400`}>{formatMs(m.toolTotalMs)}</td>
                     <td className={`py-2 px-2 text-right ${c('text-white/40', 'text-[#1A1A1A]/40')}`}>{m.llmCallCount ?? '—'}</td>
                     <td className={`py-2 px-4 ${c('text-white/30', 'text-[#1A1A1A]/30')}`}><code className="text-[11px]">{m.model || '—'}</code></td>
                   </tr>
