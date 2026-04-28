@@ -10,6 +10,7 @@ import Skills from './pages/Skills.jsx';
 import Connections from './pages/Connections.jsx';
 import Slack from './pages/Slack.jsx';
 import Admin from './pages/Admin.jsx';
+import ResponseTimes from './pages/ResponseTimes.jsx';
 import Settings from './pages/Settings.jsx';
 import Sidebar from './components/Sidebar.jsx';
 
@@ -223,6 +224,14 @@ function AppLayout() {
             element={
               <PrivateRoute>
                 <Settings dark={dark} />
+              </PrivateRoute>
+            }
+          />
+          <Route
+            path="/admin/response-times"
+            element={
+              <PrivateRoute>
+                <ResponseTimes dark={dark} />
               </PrivateRoute>
             }
           />

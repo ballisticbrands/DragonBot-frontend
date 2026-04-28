@@ -14,7 +14,10 @@ const NAV_ITEMS = [
   { path: '/settings', label: 'Settings', icon: Settings },
 ];
 
-const ADMIN_NAV = { path: '/admin', label: 'Admin', icon: Shield };
+const ADMIN_NAV = [
+  { path: '/admin', label: 'Admin', icon: Shield },
+  { path: '/admin/response-times', label: 'Response Times', icon: Clock },
+];
 
 const THEME_OPTIONS = [
   { value: 'system', label: 'System', icon: Monitor },
@@ -139,7 +142,7 @@ export default function Sidebar({ dark, theme, onSetTheme }) {
 
       {/* Nav items */}
       <nav className="flex-1 px-3 space-y-1">
-        {[...NAV_ITEMS, ...(isAdmin ? [ADMIN_NAV] : [])].map(({ path, label, icon: Icon }) => {
+        {[...NAV_ITEMS, ...(isAdmin ? ADMIN_NAV : [])].map(({ path, label, icon: Icon }) => {
           const active = location.pathname === path || location.pathname.startsWith(path + '/');
           return (
             <button
