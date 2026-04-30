@@ -33,6 +33,7 @@ export default function Settings({ dark }) {
   const [currentModel, setCurrentModel] = useState(null);
   const [heartbeatModel, setHeartbeatModel] = useState(null);
   const [slackStreaming, setSlackStreaming] = useState('partial');
+  const [thinking, setThinking] = useState('off');
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
 
@@ -47,6 +48,7 @@ export default function Settings({ dark }) {
           setCurrentModel(data.model);
           setHeartbeatModel(data.heartbeatModel || null);
           setSlackStreaming(data.slackStreaming || 'partial');
+          setThinking(data.thinking || 'off');
         }
       } catch (err) {
         console.error('Failed to load settings:', err);
@@ -124,6 +126,28 @@ export default function Settings({ dark }) {
     }
   }
 
+  async function selectThinking(level) {
+    if (level === thinking || saving) return;
+    setSaving(true);
+    try {
+      const res = await fetch(`${BACKEND_URL}/api/settings/model`, {
+        method: 'PUT',
+        headers: {
+          Authorization: `Bearer ${getToken()}`,
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ thinking: level }),
+      });
+      if (res.ok) {
+        setThinking(level);
+      }
+    } catch (err) {
+      console.error('Failed to update thinking level:', err);
+    } finally {
+      setSaving(false);
+    }
+  }
+
   const c = (dv, lv) => dark ? dv : lv;
 
   const effectiveHeartbeat = heartbeatModel || currentModel;
@@ -166,6 +190,38 @@ export default function Settings({ dark }) {
                     selected={slackStreaming === mode.id}
                     saving={saving}
                     onClick={() => selectSlackStreaming(mode.id)}
+                  />
+                ))}
+              </div>
+            </div>
+
+            {/* Thinking level */}
+            <div className={`rounded-xl ${c('bg-[#1a1a1a]', 'bg-white border border-gray-200')}`}>
+              <div className="p-5 flex flex-col gap-2">
+                <h2 className={`text-base font-semibold ${c('text-white', 'text-[#1A1A1A]')}`}>Thinking</h2>
+                <p className={`text-sm max-w-xl ${c('text-white/50', 'text-[#1A1A1A]/50')}`}>
+                  Controls how much the model reasons before answering. More thinking = better answers on complex tasks, but slower and slightly more expensive. Reasoning is hidden from Slack by default (use <code className={`text-xs px-1 py-0.5 rounded ${c('bg-white/10', 'bg-gray-100')}`}>/reasoning on</code> in Slack to show it).
+                </p>
+              </div>
+
+              <div className="px-5 pb-5 flex max-w-xl flex-col gap-2">
+                {[
+                  { id: 'off', name: 'Off', description: 'No chain-of-thought reasoning. Fastest and cheapest, but may miss nuance on complex tasks.' },
+                  { id: 'minimal', name: 'Minimal', description: 'Brief internal reasoning. Small quality boost with minimal cost increase.' },
+                  { id: 'low', name: 'Low', description: 'Light reasoning. Good balance of quality and speed for everyday tasks.' },
+                  { id: 'medium', name: 'Medium', description: 'Moderate reasoning. Noticeably better on multi-step problems.' },
+                  { id: 'high', name: 'High', description: 'Deep reasoning. Best for complex analysis, research, and high-stakes decisions. Slower and more expensive.' },
+                ].map((level) => (
+                  <ModelCard
+                    key={`think-${level.id}`}
+                    dark={dark}
+                    name={level.name}
+                    description={level.description}
+                    badge={level.id === 'low' ? 'Recommended' : ''}
+                    badgeColor={level.id === 'low' ? 'bg-[#CCFFE5] text-[#006633]' : ''}
+                    selected={thinking === level.id}
+                    saving={saving}
+                    onClick={() => selectThinking(level.id)}
                   />
                 ))}
               </div>
