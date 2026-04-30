@@ -140,35 +140,6 @@ export default function Settings({ dark }) {
           <p className={`text-sm ${c('text-white/40', 'text-[#1A1A1A]/40')}`}>Loading...</p>
         ) : (
           <div className="flex flex-col gap-6">
-            {/* Default AI model */}
-            <div className={`rounded-xl ${c('bg-[#1a1a1a]', 'bg-white border border-gray-200')}`}>
-              <div className="p-5 flex flex-col gap-2">
-                <h2 className={`text-base font-semibold ${c('text-white', 'text-[#1A1A1A]')}`}>Default AI model</h2>
-                <p className={`text-sm max-w-xl ${c('text-white/50', 'text-[#1A1A1A]/50')}`}>
-                  Sets the default model for your DragonBot's conversations and scheduled tasks.
-                </p>
-              </div>
-
-              <div className="px-5 pb-5 flex max-w-xl flex-col gap-4">
-                <div className="flex flex-col gap-2">
-                  <span className={`text-sm font-medium ${c('text-white/40', 'text-[#1A1A1A]/40')}`}>Presets</span>
-                  {PRESETS.map((preset) => (
-                    <ModelCard
-                      key={preset.id}
-                      dark={dark}
-                      name={preset.name}
-                      description={preset.description}
-                      badge={preset.badge}
-                      badgeColor={preset.badgeColor}
-                      selected={currentModel === preset.model}
-                      saving={saving}
-                      onClick={() => selectModel(preset.model)}
-                    />
-                  ))}
-                </div>
-              </div>
-            </div>
-
             {/* Slack streaming mode */}
             <div className={`rounded-xl ${c('bg-[#1a1a1a]', 'bg-white border border-gray-200')}`}>
               <div className="p-5 flex flex-col gap-2">
@@ -197,6 +168,35 @@ export default function Settings({ dark }) {
                     onClick={() => selectSlackStreaming(mode.id)}
                   />
                 ))}
+              </div>
+            </div>
+
+            {/* Default AI model */}
+            <div className={`rounded-xl ${c('bg-[#1a1a1a]', 'bg-white border border-gray-200')}`}>
+              <div className="p-5 flex flex-col gap-2">
+                <h2 className={`text-base font-semibold ${c('text-white', 'text-[#1A1A1A]')}`}>Default AI model</h2>
+                <p className={`text-sm max-w-xl ${c('text-white/50', 'text-[#1A1A1A]/50')}`}>
+                  Sets the default model for your DragonBot's conversations and scheduled tasks.
+                </p>
+              </div>
+
+              <div className="px-5 pb-5 flex max-w-xl flex-col gap-4">
+                <div className="flex flex-col gap-2">
+                  <span className={`text-sm font-medium ${c('text-white/40', 'text-[#1A1A1A]/40')}`}>Presets</span>
+                  {PRESETS.map((preset) => (
+                    <ModelCard
+                      key={preset.id}
+                      dark={dark}
+                      name={preset.name}
+                      description={preset.description}
+                      badge={preset.badge}
+                      badgeColor={preset.badgeColor}
+                      selected={currentModel === preset.model}
+                      saving={saving}
+                      onClick={() => selectModel(preset.model)}
+                    />
+                  ))}
+                </div>
               </div>
             </div>
 
