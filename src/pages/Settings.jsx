@@ -26,24 +26,6 @@ const PRESETS = [
     description: 'DeepSeek V4 Pro. Near frontier intelligence. Best for complex, high-stakes workflows.',
     icon: Zap,
   },
-  {
-    id: 'gemini',
-    model: 'google/gemini-3.1-pro-preview',
-    name: 'Gemini 3.1 Pro',
-    badge: 'Preview',
-    badgeColor: '',
-    description: 'Google Gemini 3.1 Pro Preview. Very capable — may have occasional rough edges.',
-    icon: Zap,
-  },
-  {
-    id: 'glm',
-    model: 'zai/glm-5.1',
-    name: 'GLM 5.1',
-    badge: '~80% cheaper',
-    badgeColor: '',
-    description: 'Z AI GLM 5.1. 200K context, strong at coding and agentic tasks.',
-    icon: Zap,
-  },
 ];
 
 
