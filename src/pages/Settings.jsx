@@ -9,31 +9,13 @@ function getToken() {
 
 const PRESETS = [
   {
-    id: 'smartest',
-    model: 'anthropic/claude-opus-4-6',
-    name: 'Smartest',
-    badge: 'Recommended',
-    badgeColor: 'bg-[#CCFFE5] text-[#006633]',
-    description: 'Currently uses Claude Opus 4.6. Most capable model. Ideal for complex, high-stakes workflows.',
-    icon: Sparkles,
-  },
-  {
-    id: 'balanced',
-    model: 'anthropic/claude-sonnet-4-6',
-    name: 'Balanced',
-    badge: '~50% cheaper',
-    badgeColor: '',
-    description: 'Currently uses Claude Sonnet 4.6. Good balance of quality and cost for everyday tasks.',
-    icon: Zap,
-  },
-  {
     id: 'gemini',
     model: 'google/gemini-3.1-pro-preview',
-    name: 'Gemini (Preview)',
-    badge: '~65% cheaper',
-    badgeColor: '',
-    description: 'Google Gemini 3.1 Pro Preview. Very capable, significantly cheaper. Preview model — may have occasional rough edges.',
-    icon: Zap,
+    name: 'Gemini 3.1 Pro',
+    badge: 'Recommended',
+    badgeColor: 'bg-[#CCFFE5] text-[#006633]',
+    description: 'Google Gemini 3.1 Pro Preview. Very capable, great balance of quality and cost.',
+    icon: Sparkles,
   },
   {
     id: 'deepseek',
