@@ -33,7 +33,7 @@ export default function Settings({ dark }) {
   const [currentModel, setCurrentModel] = useState(null);
   const [heartbeatModel, setHeartbeatModel] = useState(null);
   const [slackStreaming, setSlackStreaming] = useState('partial');
-  const [thinking, setThinking] = useState('off');
+  const [thinkingDefault, setThinkingDefault] = useState('off');
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
 
@@ -48,7 +48,7 @@ export default function Settings({ dark }) {
           setCurrentModel(data.model);
           setHeartbeatModel(data.heartbeatModel || null);
           setSlackStreaming(data.slackStreaming || 'partial');
-          setThinking(data.thinking || 'off');
+          setThinkingDefault(data.thinkingDefault || 'off');
         }
       } catch (err) {
         console.error('Failed to load settings:', err);
@@ -127,7 +127,7 @@ export default function Settings({ dark }) {
   }
 
   async function selectThinking(level) {
-    if (level === thinking || saving) return;
+    if (level === thinkingDefault || saving) return;
     setSaving(true);
     try {
       const res = await fetch(`${BACKEND_URL}/api/settings/model`, {
@@ -136,10 +136,10 @@ export default function Settings({ dark }) {
           Authorization: `Bearer ${getToken()}`,
           'Content-Type': 'application/json',
         },
-        body: JSON.stringify({ thinking: level }),
+        body: JSON.stringify({ thinkingDefault: level }),
       });
       if (res.ok) {
-        setThinking(level);
+        setThinkingDefault(level);
       }
     } catch (err) {
       console.error('Failed to update thinking level:', err);
@@ -219,7 +219,7 @@ export default function Settings({ dark }) {
                     description={level.description}
                     badge={level.id === 'low' ? 'Recommended' : ''}
                     badgeColor={level.id === 'low' ? 'bg-[#CCFFE5] text-[#006633]' : ''}
-                    selected={thinking === level.id}
+                    selected={thinkingDefault === level.id}
                     saving={saving}
                     onClick={() => selectThinking(level.id)}
                   />
