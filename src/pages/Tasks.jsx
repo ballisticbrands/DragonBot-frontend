@@ -418,10 +418,10 @@ function RunDetailPopup({ run, dark, onClose }) {
                 <span className={c('text-white/60', 'text-[#1A1A1A]/60')}>{run.model}</span>
               </div>
             )}
-            {run.usage?.total_tokens && (
+            {(run.credits != null && run.credits > 0) && (
               <div className="flex justify-between">
-                <span className={c('text-white/40', 'text-[#1A1A1A]/40')}>Tokens</span>
-                <span className={c('text-white/60', 'text-[#1A1A1A]/60')}>{run.usage.total_tokens.toLocaleString()}</span>
+                <span className={c('text-white/40', 'text-[#1A1A1A]/40')}>Credits</span>
+                <span className={c('text-white/60', 'text-[#1A1A1A]/60')}>{run.credits.toLocaleString(undefined, { maximumFractionDigits: 2 })}</span>
               </div>
             )}
             {run.nextRunAtMs && (
