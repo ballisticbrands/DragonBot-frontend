@@ -263,6 +263,74 @@ export default function Connections({ dark }) {
     }
   }
 
+  // Reconnect a broken connection: delete the old one, then open the Pipedream
+  // OAuth modal for the same provider so the user gets a fresh refresh token.
+  async function handleReconnect(conn) {
+    setError('');
+    setConnecting(conn.provider);
+    try {
+      // Delete the broken connection first so we don't end up with duplicates
+      await fetch(`${BACKEND_URL}/api/connections/${conn.id}`, {
+        method: 'DELETE',
+        headers: { Authorization: `Bearer ${getToken()}` },
+      });
+      setConnections((prev) => prev.filter((c) => c.id !== conn.id));
+
+      // Reuse the Pipedream OAuth flow with the connection's provider slug
+      const tokenRes = await fetch(`${BACKEND_URL}/api/connect/token`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${getToken()}` },
+        body: JSON.stringify({ app_slug: conn.provider }),
+      });
+      if (!tokenRes.ok) {
+        const err = await tokenRes.json().catch(() => ({}));
+        setError(err.error || 'Failed to start reconnection');
+        setConnecting(null);
+        return;
+      }
+      const tokenData = await tokenRes.json();
+      const pd = createFrontendClient({
+        externalUserId: tokenData.externalUserId || 'user',
+        tokenCallback: async () => tokenData,
+      });
+      await pd.connectAccount({
+        app: conn.provider,
+        token: tokenData.token,
+        onSuccess: async (result) => {
+          await fetch(`${BACKEND_URL}/api/connections`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${getToken()}` },
+            body: JSON.stringify({
+              provider: conn.provider,
+              name: conn.name,
+              pipedreamAccountId: result.id,
+            }),
+          });
+          await loadConnections();
+          setConnecting(null);
+        },
+        onError: (err) => { setError(err.message || 'Reconnection failed'); setConnecting(null); },
+        onClose: () => { setConnecting(null); },
+      });
+    } catch (err) {
+      setError(err.message || 'Reconnection failed');
+      setConnecting(null);
+    }
+  }
+
+  // On-demand "Test connection" — calls /api/connections/:id/check
+  async function handleHealthCheck(id) {
+    try {
+      const res = await fetch(`${BACKEND_URL}/api/connections/${id}/check`, {
+        method: 'POST',
+        headers: { Authorization: `Bearer ${getToken()}` },
+      });
+      if (res.ok) await loadConnections();
+    } catch (err) {
+      console.error('Failed to check connection:', err);
+    }
+  }
+
   const c = (dv, lv) => dark ? dv : lv;
 
   return (
@@ -470,7 +538,14 @@ export default function Connections({ dark }) {
               ) : connections.length > 0 && (
                 <div className="space-y-2">
                   {[...connections].sort((a, b) => (a.name || a.provider || '').localeCompare(b.name || b.provider || '')).map((conn) => (
-                    <ConnectionRow key={conn.id} conn={conn} dark={dark} onDisconnect={() => handleDisconnect(conn.id)} />
+                    <ConnectionRow
+                      key={conn.id}
+                      conn={conn}
+                      dark={dark}
+                      onDisconnect={() => handleDisconnect(conn.id)}
+                      onReconnect={() => handleReconnect(conn)}
+                      onCheck={() => handleHealthCheck(conn.id)}
+                    />
                   ))}
                 </div>
               )}
@@ -482,10 +557,15 @@ export default function Connections({ dark }) {
   );
 }
 
-function ConnectionRow({ conn, dark, isGlobal, onDisconnect }) {
+function ConnectionRow({ conn, dark, isGlobal, onDisconnect, onReconnect, onCheck }) {
   const c = (dv, lv) => dark ? dv : lv;
+  const isBroken = conn.status === 'broken';
   return (
-    <div className={`flex items-center justify-between p-4 rounded-xl border ${c('bg-[#1a1a1a] border-white/10', 'bg-white border-gray-200')}`}>
+    <div className={`flex items-center justify-between p-4 rounded-xl border ${
+      isBroken
+        ? c('bg-red-500/5 border-red-500/30', 'bg-red-50 border-red-200')
+        : c('bg-[#1a1a1a] border-white/10', 'bg-white border-gray-200')
+    }`}>
       <div className="flex items-center gap-3 min-w-0">
         {conn.appImgSrc ? (
           <img src={conn.appImgSrc} alt={conn.name} className="w-8 h-8 rounded-lg object-contain flex-shrink-0" />
@@ -508,6 +588,11 @@ function ConnectionRow({ conn, dark, isGlobal, onDisconnect }) {
               </>
             )}
           </div>
+          {isBroken && conn.lastError && (
+            <div className={`text-xs mt-1 ${c('text-red-400/70', 'text-red-600/80')} truncate max-w-md`} title={conn.lastError}>
+              {conn.lastError}
+            </div>
+          )}
         </div>
       </div>
       <div className="flex items-center gap-3 flex-shrink-0">
@@ -516,13 +601,36 @@ function ConnectionRow({ conn, dark, isGlobal, onDisconnect }) {
             Read-only
           </span>
         )}
-        <span className={`text-xs px-2.5 py-1 rounded-full ${
-          conn.enabled !== false
-            ? 'bg-[#2F7D4F]/10 text-[#2F7D4F]'
-            : c('bg-white/5 text-white/30', 'bg-gray-100 text-gray-400')
-        }`}>
-          {conn.enabled !== false ? 'Active' : 'Disabled'}
-        </span>
+        {isBroken ? (
+          <span className={`text-xs px-2.5 py-1 rounded-full ${c('bg-red-500/15 text-red-400', 'bg-red-100 text-red-700')}`}>
+            Broken
+          </span>
+        ) : (
+          <span className={`text-xs px-2.5 py-1 rounded-full ${
+            conn.enabled !== false
+              ? 'bg-[#2F7D4F]/10 text-[#2F7D4F]'
+              : c('bg-white/5 text-white/30', 'bg-gray-100 text-gray-400')
+          }`}>
+            {conn.enabled !== false ? 'Active' : 'Disabled'}
+          </span>
+        )}
+        {isBroken && onReconnect && (
+          <button
+            onClick={onReconnect}
+            className={`text-xs px-3 py-1.5 rounded-lg font-medium ${c('bg-[#2F7D4F] hover:bg-[#3a9863] text-white', 'bg-[#2F7D4F] hover:bg-[#3a9863] text-white')}`}
+          >
+            Reconnect
+          </button>
+        )}
+        {!isBroken && onCheck && (
+          <button
+            onClick={onCheck}
+            className={`text-xs px-2.5 py-1 rounded-lg ${c('hover:bg-white/10 text-white/40', 'hover:bg-gray-100 text-gray-500')}`}
+            title="Test connection"
+          >
+            Test
+          </button>
+        )}
         {onDisconnect && (
           <button
             onClick={onDisconnect}
