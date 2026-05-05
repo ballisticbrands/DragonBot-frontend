@@ -139,6 +139,7 @@ export default function Unanswered({ dark }) {
                   <th className="px-5 py-2 font-medium">DragonBot</th>
                   <th className="px-5 py-2 font-medium">Channel</th>
                   <th className="px-5 py-2 font-medium">User</th>
+                  <th className="px-5 py-2 font-medium">Message</th>
                   <th className="px-5 py-2 font-medium">Sent at</th>
                   <th className="px-5 py-2 font-medium text-right">Age</th>
                 </tr>
@@ -184,7 +185,24 @@ export default function Unanswered({ dark }) {
                         <span className="font-mono text-xs">{r.slackUserId}</span>
                       )}
                     </td>
-                    <td className={`px-5 py-2 ${c('text-white/70', 'text-[#1A1A1A]/70')}`}>
+                    <td className={`px-5 py-2 max-w-md ${c('text-white/70', 'text-[#1A1A1A]/70')}`}>
+                      {r.messageText ? (
+                        r.slackTeamId ? (
+                          <a
+                            href={`slack://channel?team=${r.slackTeamId}&id=${r.slackChannel}&message=${r.slackEventTs}`}
+                            className="hover:underline block truncate"
+                            title={r.messageText}
+                          >
+                            {r.messageText}
+                          </a>
+                        ) : (
+                          <span className="block truncate" title={r.messageText}>{r.messageText}</span>
+                        )
+                      ) : (
+                        <span className={c('text-white/30', 'text-[#1A1A1A]/30')}>—</span>
+                      )}
+                    </td>
+                    <td className={`px-5 py-2 whitespace-nowrap ${c('text-white/70', 'text-[#1A1A1A]/70')}`}>
                       {formatTime(r.eventReceivedAt)}
                     </td>
                     <td className={`px-5 py-2 text-right tabular-nums ${ageColor(r.displayedAge ?? r.ageSeconds, dark)}`}>
