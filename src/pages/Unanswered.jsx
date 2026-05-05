@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useState } from 'react';
-import { RefreshCw, AlertCircle } from 'lucide-react';
+import { RefreshCw, AlertCircle, Activity } from 'lucide-react';
 
 const BACKEND_URL = import.meta.env.VITE_BACKEND_URL ?? 'https://api.getdragonbot.com';
 
@@ -36,11 +36,45 @@ function ageColor(seconds, dark) {
   return dark ? 'text-red-400' : 'text-red-600';
 }
 
+function StatusBadge({ runStatus, runStatusReason, dark }) {
+  const c = (dv, lv) => (dark ? dv : lv);
+  if (runStatus === 'success') {
+    return (
+      <span
+        title="OpenClaw run finished cleanly — but the bot didn't deliver a reply (or delivered one then went quiet)"
+        className={`inline-block text-xs font-medium px-2 py-0.5 rounded ${c('bg-emerald-500/15 text-emerald-400', 'bg-emerald-50 text-emerald-700')}`}
+      >
+        success (no reply)
+      </span>
+    );
+  }
+  if (runStatus === 'error') {
+    return (
+      <span
+        title={runStatusReason ? `Failure flags: ${runStatusReason}` : 'OpenClaw run finalStatus = error'}
+        className={`inline-block text-xs font-medium px-2 py-0.5 rounded ${c('bg-red-500/15 text-red-400', 'bg-red-50 text-red-700')}`}
+      >
+        error{runStatusReason ? ` · ${runStatusReason.split(',')[0]}` : ''}
+      </span>
+    );
+  }
+  return (
+    <span
+      title="Run not yet checked, or still in flight on disk. Click 'Update job status' to refresh."
+      className={`inline-block text-xs font-medium px-2 py-0.5 rounded ${c('bg-white/5 text-white/40', 'bg-gray-100 text-gray-500')}`}
+    >
+      pending
+    </span>
+  );
+}
+
 export default function Unanswered({ dark }) {
   const [rows, setRows] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
   const [lastLoadedAt, setLastLoadedAt] = useState(null);
+  const [scanning, setScanning] = useState(false);
+  const [scanResult, setScanResult] = useState(null);
 
   async function load() {
     try {
@@ -63,6 +97,28 @@ export default function Unanswered({ dark }) {
       setError(String(e?.message || e));
     } finally {
       setLoading(false);
+    }
+  }
+
+  async function scan() {
+    setScanning(true);
+    setScanResult(null);
+    try {
+      const res = await fetch(`${BACKEND_URL}/api/admin/unanswered/scan`, {
+        method: 'POST',
+        headers: { Authorization: `Bearer ${getToken()}` },
+      });
+      if (!res.ok) {
+        setScanResult({ error: `Scan failed (HTTP ${res.status})` });
+        return;
+      }
+      const data = await res.json();
+      setScanResult(data);
+      await load();
+    } catch (e) {
+      setScanResult({ error: String(e?.message || e) });
+    } finally {
+      setScanning(false);
     }
   }
 
@@ -98,19 +154,34 @@ export default function Unanswered({ dark }) {
               Unanswered messages
             </h1>
             <p className={`mt-1 text-sm ${c('text-white/50', 'text-[#1A1A1A]/50')}`}>
-              DMs and @-mentions every DragonBot has received but hasn't replied to. Updates every 30 seconds.
+              DMs and @-mentions where the bot didn't deliver a reply, or whose OpenClaw run errored
+              (timeout / abort / model error). Refreshes every 30 seconds; click <em>Update job status</em>
+              to fold in any newly-completed runs from disk.
             </p>
           </div>
-          <button
-            onClick={() => { setLoading(true); load(); }}
-            disabled={loading}
-            className={`flex items-center gap-2 text-sm px-3 py-1.5 rounded-md border transition-colors ${
-              c('bg-white/5 border-white/10 text-white hover:bg-white/10', 'bg-white border-gray-200 text-[#1A1A1A] hover:bg-gray-50')
-            } ${loading ? 'opacity-50 cursor-wait' : ''}`}
-          >
-            <RefreshCw size={14} className={loading ? 'animate-spin' : ''} />
-            Refresh
-          </button>
+          <div className="flex items-center gap-2">
+            <button
+              onClick={scan}
+              disabled={scanning || loading}
+              title="Scan OpenClaw trajectory files for every pending row and stamp success/error"
+              className={`flex items-center gap-2 text-sm px-3 py-1.5 rounded-md border transition-colors ${
+                c('bg-white/5 border-white/10 text-white hover:bg-white/10', 'bg-white border-gray-200 text-[#1A1A1A] hover:bg-gray-50')
+              } ${scanning ? 'opacity-50 cursor-wait' : ''}`}
+            >
+              <Activity size={14} className={scanning ? 'animate-pulse' : ''} />
+              {scanning ? 'Scanning…' : 'Update job status'}
+            </button>
+            <button
+              onClick={() => { setLoading(true); load(); }}
+              disabled={loading}
+              className={`flex items-center gap-2 text-sm px-3 py-1.5 rounded-md border transition-colors ${
+                c('bg-white/5 border-white/10 text-white hover:bg-white/10', 'bg-white border-gray-200 text-[#1A1A1A] hover:bg-gray-50')
+              } ${loading ? 'opacity-50 cursor-wait' : ''}`}
+            >
+              <RefreshCw size={14} className={loading ? 'animate-spin' : ''} />
+              Refresh
+            </button>
+          </div>
         </div>
 
         {error && (
@@ -119,18 +190,35 @@ export default function Unanswered({ dark }) {
           </div>
         )}
 
+        {scanResult && (
+          <div className={`mb-4 px-4 py-3 rounded-md text-sm ${
+            scanResult.error
+              ? c('bg-red-500/10 text-red-400', 'bg-red-50 text-red-700')
+              : c('bg-emerald-500/10 text-emerald-400', 'bg-emerald-50 text-emerald-700')
+          }`}>
+            {scanResult.error ? scanResult.error : (
+              <>
+                Scanned <b>{scanResult.scanned}</b> pending row{scanResult.scanned === 1 ? '' : 's'}:
+                {' '}<b>{scanResult.updatedSuccess}</b> marked success,
+                {' '}<b>{scanResult.updatedError}</b> marked error,
+                {' '}<b>{scanResult.stillPending}</b> still pending (run in flight or trajectory missing).
+              </>
+            )}
+          </div>
+        )}
+
         {loading && rows.length === 0 ? (
           <p className={`text-sm ${c('text-white/40', 'text-[#1A1A1A]/40')}`}>Loading…</p>
         ) : displayRows.length === 0 ? (
           <div className={`rounded-xl px-6 py-12 text-center ${c('bg-[#1a1a1a]', 'bg-white border border-gray-200')}`}>
             <p className={`text-sm ${c('text-white/50', 'text-[#1A1A1A]/50')}`}>
-              No unanswered messages. Every DM and @-mention has a reply.
+              No unanswered messages. Every DM and @-mention has a reply and a clean run.
             </p>
           </div>
         ) : (
           <div className={`rounded-xl overflow-hidden ${c('bg-[#1a1a1a]', 'bg-white border border-gray-200')}`}>
             <div className={`px-5 py-3 border-b text-xs flex items-baseline gap-3 ${c('border-white/5 text-white/50', 'border-gray-200 text-[#1A1A1A]/50')}`}>
-              <span>{displayRows.length} pending</span>
+              <span>{displayRows.length} unanswered</span>
               {lastLoadedAt && <span>· loaded {formatTime(lastLoadedAt)}</span>}
             </div>
             <table className="w-full text-sm">
@@ -140,6 +228,7 @@ export default function Unanswered({ dark }) {
                   <th className="px-5 py-2 font-medium">Channel</th>
                   <th className="px-5 py-2 font-medium">User</th>
                   <th className="px-5 py-2 font-medium">Message</th>
+                  <th className="px-5 py-2 font-medium">Status</th>
                   <th className="px-5 py-2 font-medium">Sent at</th>
                   <th className="px-5 py-2 font-medium text-right">Age</th>
                 </tr>
@@ -201,6 +290,9 @@ export default function Unanswered({ dark }) {
                       ) : (
                         <span className={c('text-white/30', 'text-[#1A1A1A]/30')}>—</span>
                       )}
+                    </td>
+                    <td className="px-5 py-2 whitespace-nowrap">
+                      <StatusBadge runStatus={r.runStatus} runStatusReason={r.runStatusReason} dark={dark} />
                     </td>
                     <td className={`px-5 py-2 whitespace-nowrap ${c('text-white/70', 'text-[#1A1A1A]/70')}`}>
                       {formatTime(r.eventReceivedAt)}
