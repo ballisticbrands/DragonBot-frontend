@@ -216,11 +216,12 @@ export default function Unanswered({ dark }) {
             </p>
           </div>
         ) : (
-          <div className={`rounded-xl overflow-hidden ${c('bg-[#1a1a1a]', 'bg-white border border-gray-200')}`}>
+          <div className={`rounded-xl ${c('bg-[#1a1a1a]', 'bg-white border border-gray-200')}`}>
             <div className={`px-5 py-3 border-b text-xs flex items-baseline gap-3 ${c('border-white/5 text-white/50', 'border-gray-200 text-[#1A1A1A]/50')}`}>
               <span>{displayRows.length} unanswered</span>
               {lastLoadedAt && <span>· loaded {formatTime(lastLoadedAt)}</span>}
             </div>
+            <div className="overflow-x-auto">
             <table className="w-full text-sm">
               <thead>
                 <tr className={`text-left text-xs uppercase tracking-wider ${c('text-white/40 border-b border-white/5', 'text-[#1A1A1A]/40 border-b border-gray-200')}`}>
@@ -230,6 +231,7 @@ export default function Unanswered({ dark }) {
                   <th className="px-5 py-2 font-medium">Message</th>
                   <th className="px-5 py-2 font-medium">Status</th>
                   <th className="px-5 py-2 font-medium">Sent at</th>
+                  <th className="px-5 py-2 font-medium">Client Msg ID</th>
                   <th className="px-5 py-2 font-medium text-right">Age</th>
                 </tr>
               </thead>
@@ -297,6 +299,13 @@ export default function Unanswered({ dark }) {
                     <td className={`px-5 py-2 whitespace-nowrap ${c('text-white/70', 'text-[#1A1A1A]/70')}`}>
                       {formatTime(r.eventReceivedAt)}
                     </td>
+                    <td className={`px-5 py-2 font-mono text-xs whitespace-nowrap ${c('text-white/50', 'text-[#1A1A1A]/50')}`}>
+                      {r.slackClientMsgId ? (
+                        <span title={r.slackClientMsgId}>{r.slackClientMsgId.slice(0, 8)}…</span>
+                      ) : (
+                        <span className={c('text-white/20', 'text-[#1A1A1A]/20')}>—</span>
+                      )}
+                    </td>
                     <td className={`px-5 py-2 text-right tabular-nums ${ageColor(r.displayedAge ?? r.ageSeconds, dark)}`}>
                       {formatAge(r.displayedAge ?? r.ageSeconds)}
                     </td>
@@ -304,6 +313,7 @@ export default function Unanswered({ dark }) {
                 ))}
               </tbody>
             </table>
+            </div>
           </div>
         )}
       </div>
