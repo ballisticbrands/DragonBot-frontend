@@ -154,11 +154,19 @@ export default function Unanswered({ dark }) {
                         )}
                       </div>
                     </td>
-                    <td className={`px-5 py-2 font-mono text-xs ${c('text-white/70', 'text-[#1A1A1A]/70')}`}>
-                      {r.slackChannel}
+                    <td className={`px-5 py-2 ${c('text-white/70', 'text-[#1A1A1A]/70')}`}>
+                      {r.slackChannelName ? (
+                        <span>#{r.slackChannelName}</span>
+                      ) : (
+                        <span className="font-mono text-xs">{r.slackChannel}</span>
+                      )}
                     </td>
-                    <td className={`px-5 py-2 font-mono text-xs ${c('text-white/70', 'text-[#1A1A1A]/70')}`}>
-                      {r.slackUserId}
+                    <td className={`px-5 py-2 ${c('text-white/70', 'text-[#1A1A1A]/70')}`}>
+                      {r.slackUserName ? (
+                        <span>{r.slackUserName}</span>
+                      ) : (
+                        <span className="font-mono text-xs">{r.slackUserId}</span>
+                      )}
                     </td>
                     <td className={`px-5 py-2 ${c('text-white/70', 'text-[#1A1A1A]/70')}`}>
                       {formatTime(r.eventReceivedAt)}
