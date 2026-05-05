@@ -11,6 +11,7 @@ import Connections from './pages/Connections.jsx';
 import Slack from './pages/Slack.jsx';
 import Admin from './pages/Admin.jsx';
 import ResponseTimes from './pages/ResponseTimes.jsx';
+import Unanswered from './pages/Unanswered.jsx';
 import Settings from './pages/Settings.jsx';
 import Sidebar from './components/Sidebar.jsx';
 
@@ -232,6 +233,14 @@ function AppLayout() {
             element={
               <PrivateRoute>
                 <ResponseTimes dark={dark} />
+              </PrivateRoute>
+            }
+          />
+          <Route
+            path="/admin/unanswered"
+            element={
+              <PrivateRoute>
+                <Unanswered dark={dark} />
               </PrivateRoute>
             }
           />
