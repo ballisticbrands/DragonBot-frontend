@@ -155,14 +155,30 @@ export default function Unanswered({ dark }) {
                       </div>
                     </td>
                     <td className={`px-5 py-2 ${c('text-white/70', 'text-[#1A1A1A]/70')}`}>
-                      {r.slackChannelName ? (
+                      {r.slackTeamId ? (
+                        <a
+                          href={`slack://channel?team=${r.slackTeamId}&id=${r.slackChannel}`}
+                          className={`hover:underline ${r.slackChannelName ? '' : 'font-mono text-xs'}`}
+                          title={`Open in Slack — ${r.slackChannel}`}
+                        >
+                          {r.slackChannelName ? `#${r.slackChannelName}` : r.slackChannel}
+                        </a>
+                      ) : r.slackChannelName ? (
                         <span>#{r.slackChannelName}</span>
                       ) : (
                         <span className="font-mono text-xs">{r.slackChannel}</span>
                       )}
                     </td>
                     <td className={`px-5 py-2 ${c('text-white/70', 'text-[#1A1A1A]/70')}`}>
-                      {r.slackUserName ? (
+                      {r.slackTeamId ? (
+                        <a
+                          href={`slack://user?team=${r.slackTeamId}&id=${r.slackUserId}`}
+                          className={`hover:underline ${r.slackUserName ? '' : 'font-mono text-xs'}`}
+                          title={`Open DM in Slack — ${r.slackUserId}`}
+                        >
+                          {r.slackUserName ?? r.slackUserId}
+                        </a>
+                      ) : r.slackUserName ? (
                         <span>{r.slackUserName}</span>
                       ) : (
                         <span className="font-mono text-xs">{r.slackUserId}</span>
