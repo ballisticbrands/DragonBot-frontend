@@ -1,6 +1,14 @@
 import { useState, useEffect, useMemo } from 'react';
 import { ChevronDown } from 'lucide-react';
 
+// Distinct, color-blind-friendly palette. Heaviest-spend models get the
+// first colors so the dominant stacks stay visually consistent.
+const MODEL_COLORS = [
+  '#2F7D4F', '#4a90e2', '#f5a623', '#bd10e0', '#50e3c2',
+  '#e94e77', '#9013fe', '#7ed321', '#ff7043', '#00bcd4',
+];
+const FALLBACK_COLOR = '#888';
+
 const BACKEND_URL = import.meta.env.VITE_BACKEND_URL ?? 'https://api.getdragonbot.com';
 
 function getToken() {
@@ -27,11 +35,6 @@ const TIMEFRAMES = [
   { label: 'Last 90 days', value: '90d' },
 ];
 
-const THREAD_SORTS = [
-  { label: 'Top spend', value: 'top' },
-  { label: 'Newest', value: 'newest' },
-];
-
 function formatCredits(n) {
   if (n == null || n === 0) return '0 credits';
   if (n >= 1000) return `${(n / 1000).toFixed(1)}k credits`;
@@ -43,31 +46,11 @@ function formatDate(dateStr) {
   return d.toLocaleDateString(undefined, { month: 'short', day: 'numeric' });
 }
 
-function sessionTagToTitle(tag) {
-  if (!tag || tag === 'unknown::') return 'One-off task';
-  if (tag.startsWith('heartbeat::')) return 'Heartbeat';
-  if (tag.startsWith('cron::')) {
-    const parts = tag.slice(6).split('::');
-    return `Scheduled task: ${parts[1] || parts[0] || 'Unknown'}`;
-  }
-  if (tag.startsWith('slack::')) {
-    const parts = tag.slice(7).split('::');
-    const name = parts[1] || parts[0] || 'Unknown';
-    return `DM: ${name}`;
-  }
-  return tag;
-}
-
 export default function LlmUsage({ dark }) {
   const [data, setData] = useState(null);
   const [loading, setLoading] = useState(true);
   const [timeframe, setTimeframe] = useState('month');
   const [tfOpen, setTfOpen] = useState(false);
-  const [threadSort, setThreadSort] = useState('top');
-  const [tsOpen, setTsOpen] = useState(false);
-  const [threadPage, setThreadPage] = useState(0);
-  const [selectedDay, setSelectedDay] = useState(null);
-  const THREADS_PER_PAGE = 10;
 
   useEffect(() => {
     (async () => {
@@ -84,8 +67,6 @@ export default function LlmUsage({ dark }) {
         setLoading(false);
       }
     })();
-    setThreadPage(0);
-    setSelectedDay(null);
   }, [timeframe]);
 
   const maxDayCredits = useMemo(() => {
@@ -93,35 +74,19 @@ export default function LlmUsage({ dark }) {
     return Math.max(0.01, ...data.byDay.map((d) => d.credits || 0));
   }, [data]);
 
-  const [dayThreads, setDayThreads] = useState(null);
-  const [dayThreadsLoading, setDayThreadsLoading] = useState(false);
+  const maxDayModelCredits = useMemo(() => {
+    if (!data?.byDayModel) return 1;
+    return Math.max(0.01, ...data.byDayModel.map((d) => d.total || 0));
+  }, [data]);
 
-  useEffect(() => {
-    if (!selectedDay) { setDayThreads(null); return; }
-    setDayThreadsLoading(true);
-    const since = getSince(timeframe).toISOString();
-    fetch(`${BACKEND_URL}/api/admin/llm-usage?since=${since}&day=${selectedDay}`, {
-      headers: { Authorization: `Bearer ${getToken()}` },
-    })
-      .then(r => r.ok ? r.json() : null)
-      .then(d => { if (d) setDayThreads(d.threads); })
-      .catch(() => {})
-      .finally(() => setDayThreadsLoading(false));
-  }, [selectedDay, timeframe]);
-
-  const sortedThreads = useMemo(() => {
-    const threads = dayThreads ?? data?.threads ?? [];
-    const sorted = [...threads];
-    if (threadSort === 'newest') sorted.sort((a, b) => new Date(b.lastSeen) - new Date(a.lastSeen));
-    return sorted;
-  }, [dayThreads, data, threadSort]);
-
-  const pagedThreads = useMemo(() => {
-    const start = threadPage * THREADS_PER_PAGE;
-    return sortedThreads.slice(start, start + THREADS_PER_PAGE);
-  }, [sortedThreads, threadPage]);
-
-  const totalThreadPages = Math.ceil((sortedThreads.length || 1) / THREADS_PER_PAGE);
+  // Map model name → palette color, ranked by total credits.
+  const modelColorMap = useMemo(() => {
+    const map = {};
+    (data?.models || []).forEach((m, i) => {
+      map[m.model] = MODEL_COLORS[i % MODEL_COLORS.length];
+    });
+    return map;
+  }, [data]);
 
   const c = (dv, lv) => dark ? dv : lv;
   const tfLabel = TIMEFRAMES.find(t => t.value === timeframe)?.label || 'This month';
@@ -188,11 +153,9 @@ export default function LlmUsage({ dark }) {
                       const total = oneOff + scheduled;
                       const pctOneOff = total > 0 ? (oneOff / maxDayCredits) * 100 : 0;
                       const pctScheduled = total > 0 ? (scheduled / maxDayCredits) * 100 : 0;
-                      const isSelected = selectedDay === day.date;
                       return (
                         <div key={day.date}
-                          onClick={() => { setSelectedDay(prev => prev === day.date ? null : day.date); setThreadPage(0); }}
-                          className={`flex-1 flex flex-col justify-end group relative h-full z-10 cursor-pointer transition-opacity ${selectedDay && !isSelected ? 'opacity-30' : ''}`}>
+                          className="flex-1 flex flex-col justify-end group relative h-full z-10">
                           <div className={`absolute left-1/2 -translate-x-1/2 bottom-[calc(100%+8px)] px-2.5 py-2 rounded text-[10px] whitespace-nowrap opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none shadow-lg ${c('bg-[#333] text-white', 'bg-gray-800 text-white')}`} style={{ zIndex: 100 }}>
                             <div className="font-medium mb-0.5">{formatDate(day.date)}</div>
                             <div className="flex items-center gap-1.5"><span className="inline-block h-2 w-2 rounded-[2px] bg-[#2F7D4F]" />One-off: {oneOff.toLocaleString(undefined, { maximumFractionDigits: 0 })} credits</div>
@@ -224,102 +187,84 @@ export default function LlmUsage({ dark }) {
           </div>
         </div>
 
-        {/* Threads Table */}
-        <div className={`rounded-xl overflow-hidden ${c('bg-[#1a1a1a]', 'bg-white border border-gray-200')}`}>
-          <div className="flex items-center justify-between p-5 pb-0">
-            <div className="flex items-center gap-2">
-              <p className={`text-[11px] font-medium ${c('text-white/50', 'text-[#1A1A1A]/50')}`}>Breakdown by caller</p>
-              {selectedDay && (
-                <button
-                  onClick={() => setSelectedDay(null)}
-                  className={`flex items-center gap-1 text-[11px] px-2 py-0.5 rounded-full ${c('bg-[#2F7D4F]/15 text-[#2F7D4F] hover:bg-[#2F7D4F]/25', 'bg-[#2F7D4F]/10 text-[#2F7D4F] hover:bg-[#2F7D4F]/20')}`}
-                >
-                  {formatDate(selectedDay)} <span className="text-[9px]">✕</span>
-                </button>
-              )}
+        {/* Daily Spend by Model */}
+        <div className={`rounded-xl ${c('bg-[#1a1a1a]', 'bg-white border border-gray-200')}`}>
+          <div className="flex items-center justify-between p-5 pb-0 gap-4">
+            <p className={`text-[11px] font-medium ${c('text-white/50', 'text-[#1A1A1A]/50')}`}>Daily Spend by Model</p>
+            <div className={`flex flex-wrap gap-x-4 gap-y-1 text-[11px] justify-end ${c('text-white/40', 'text-[#1A1A1A]/40')}`}>
+              {data.models?.map((m) => (
+                <div key={m.model} className="flex items-center gap-2">
+                  <div className="h-2.5 w-2.5 rounded-[2px]" style={{ backgroundColor: modelColorMap[m.model] || FALLBACK_COLOR }} />
+                  <span className="font-mono text-[10px]">{m.model}</span>
+                </div>
+              ))}
             </div>
-            <Dropdown dark={dark} label={THREAD_SORTS.find(s => s.value === threadSort)?.label} open={tsOpen} setOpen={setTsOpen}
-              items={THREAD_SORTS.map(s => ({ label: s.label, onClick: () => { setThreadSort(s.value); setTsOpen(false); setThreadPage(0); } }))} />
           </div>
-          <div className="overflow-x-auto">
-            <table className="w-full text-sm">
-              <thead>
-                <tr className={`border-b ${c('border-white/5', 'border-gray-100')}`}>
-                  <th className={`text-[11px] font-medium py-2 px-5 text-left ${c('text-white/40', 'text-[#1A1A1A]/40')}`}>Bot</th>
-                  <th className={`text-[11px] font-medium py-2 px-2 text-left ${c('text-white/40', 'text-[#1A1A1A]/40')}`}>Title</th>
-                  <th className={`text-[11px] font-medium py-2 px-2 text-left ${c('text-white/40', 'text-[#1A1A1A]/40')}`}>Created</th>
-                  <th className={`text-[11px] font-medium py-2 px-5 text-right ${c('text-white/40', 'text-[#1A1A1A]/40')}`}>Credits</th>
-                </tr>
-              </thead>
-              <tbody>
-                {dayThreadsLoading ? (
-                  <tr><td colSpan={4} className={`py-6 px-5 text-center text-sm ${c('text-white/30', 'text-[#1A1A1A]/30')}`}>Loading...</td></tr>
-                ) : pagedThreads.length === 0 ? (
-                  <tr><td colSpan={4} className={`py-6 px-5 text-center text-sm ${c('text-white/30', 'text-[#1A1A1A]/30')}`}>No threads yet.</td></tr>
-                ) : pagedThreads.map((t, i) => (
-                  <tr key={i} className={`border-b last:border-0 ${c('border-white/5 hover:bg-white/[0.02]', 'border-gray-50 hover:bg-gray-50/50')}`}>
-                    <td className={`py-2.5 px-5 max-w-[160px] truncate ${c('text-white/70', 'text-[#1A1A1A]/70')}`}>
-                      {t.botName || (t.dragonBotId ? t.dragonBotId.slice(0, 8) : '—')}
-                    </td>
-                    <td className={`py-2.5 px-2 max-w-[300px] truncate ${c('text-white', 'text-[#1A1A1A]')}`}>
-                      {sessionTagToTitle(t.sessionTag)}
-                    </td>
-                    <td className={`py-2.5 px-2 ${c('text-white/40', 'text-[#1A1A1A]/40')}`}>
-                      {formatDate(t.firstSeen)}
-                    </td>
-                    <td className={`py-2.5 px-5 text-right font-medium ${c('text-white', 'text-[#1A1A1A]')}`}>
-                      {Math.round(t.credits).toLocaleString()}
-                    </td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
-          <div className={`flex items-center justify-between p-5 pt-3 text-xs ${c('text-white/40', 'text-[#1A1A1A]/40')}`}>
-            <button onClick={() => setThreadPage(p => Math.max(0, p - 1))} disabled={threadPage === 0}
-              className={`px-3 py-1.5 rounded-md border ${c('border-white/10 hover:bg-white/5 disabled:opacity-30', 'border-gray-200 hover:bg-gray-50 disabled:opacity-30')}`}>
-              Prev
-            </button>
-            {totalThreadPages > 1 && <span>Page {threadPage + 1} of {totalThreadPages}</span>}
-            <button onClick={() => setThreadPage(p => Math.min(totalThreadPages - 1, p + 1))} disabled={threadPage >= totalThreadPages - 1}
-              className={`px-3 py-1.5 rounded-md border ${c('border-white/10 hover:bg-white/5 disabled:opacity-30', 'border-gray-200 hover:bg-gray-50 disabled:opacity-30')}`}>
-              Next
-            </button>
-          </div>
-        </div>
-
-        {/* Recent Calls */}
-        <div className={`rounded-xl overflow-hidden ${c('bg-[#1a1a1a]', 'bg-white border border-gray-200')}`}>
-          <div className="p-5 pb-0">
-            <p className={`text-[11px] font-medium ${c('text-white/50', 'text-[#1A1A1A]/50')}`}>Recent Calls</p>
-          </div>
-          <div className="max-h-80 overflow-y-auto p-5 pt-3">
-            {data.recentLogs.length === 0 ? (
-              <p className={`text-sm ${c('text-white/30', 'text-[#1A1A1A]/30')}`}>No calls yet.</p>
-            ) : (
-              <div className="space-y-1">
-                {data.recentLogs.map((log, i) => (
-                  <div key={i} className={`flex items-center justify-between py-2 px-3 rounded-lg text-sm ${c('hover:bg-white/5', 'hover:bg-gray-50')}`}>
-                    <div className="flex items-center gap-2 min-w-0">
-                      <span className={`w-1.5 h-1.5 rounded-full flex-shrink-0 ${log.success ? 'bg-[#2F7D4F]' : 'bg-red-400'}`} />
-                      <span className={`text-[10px] font-medium px-1.5 py-0.5 rounded flex-shrink-0 ${c('bg-white/5 text-white/60', 'bg-gray-100 text-[#1A1A1A]/60')}`}>
-                        {log.botName || (log.dragonBotId ? log.dragonBotId.slice(0, 8) : '—')}
+          <div className="px-5 pb-5 pt-3">
+            {(() => {
+              const yTicks = [0, Math.round(maxDayModelCredits / 2), Math.round(maxDayModelCredits)];
+              const formatTick = (n) => n >= 1000 ? `${(n / 1000).toFixed(1)}k` : n.toString();
+              const orderedModels = (data.models || []).map((m) => m.model);
+              return (
+                <div className="flex gap-2">
+                  {/* Y axis labels */}
+                  <div className="flex flex-col justify-between h-40 flex-shrink-0 py-0.5">
+                    {[...yTicks].reverse().map((tick, i) => (
+                      <span key={i} className={`text-[10px] tabular-nums text-right w-8 ${c('text-white/25', 'text-[#1A1A1A]/25')}`}>
+                        {formatTick(tick)}
                       </span>
-                      <code className={`font-mono text-xs truncate ${c('text-white/70', 'text-[#1A1A1A]/70')}`}>{log.tool}</code>
-                    </div>
-                    <div className="flex items-center gap-3 flex-shrink-0 text-xs">
-                      {log.creditCount > 0 && (
-                        <span className="tabular-nums text-[#2F7D4F] font-medium">{log.creditCount.toLocaleString(undefined, { maximumFractionDigits: 1 })}</span>
-                      )}
-                      {log.latencyMs && (
-                        <span className={`tabular-nums ${c('text-white/30', 'text-[#1A1A1A]/30')}`}>{log.latencyMs}ms</span>
-                      )}
-                      <span className={`tabular-nums ${c('text-white/20', 'text-[#1A1A1A]/20')}`}>
-                        {new Date(log.createdAt).toLocaleString(undefined, { month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit' })}
-                      </span>
-                    </div>
+                    ))}
                   </div>
-                ))}
+                  {/* Bars */}
+                  <div className="flex gap-[2px] h-40 flex-1 relative overflow-visible">
+                    {yTicks.map((tick, i) => (
+                      <div key={i} className={`absolute left-0 right-0 border-t ${c('border-white/5', 'border-gray-100')}`}
+                        style={{ bottom: `${(tick / maxDayModelCredits) * 100}%` }} />
+                    ))}
+                    {data.byDayModel?.map((day) => {
+                      // Stack heaviest model first (at bottom) using the global ordering.
+                      const stack = orderedModels
+                        .map((model) => ({ model, credits: day.credits[model] || 0 }))
+                        .filter((s) => s.credits > 0);
+                      const total = day.total || 0;
+                      return (
+                        <div key={day.date} className="flex-1 flex flex-col justify-end group relative h-full z-10">
+                          <div className={`absolute left-1/2 -translate-x-1/2 bottom-[calc(100%+8px)] px-2.5 py-2 rounded text-[10px] whitespace-nowrap opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none shadow-lg ${c('bg-[#333] text-white', 'bg-gray-800 text-white')}`} style={{ zIndex: 100 }}>
+                            <div className="font-medium mb-0.5">{formatDate(day.date)}</div>
+                            {stack.map((s) => (
+                              <div key={s.model} className="flex items-center gap-1.5">
+                                <span className="inline-block h-2 w-2 rounded-[2px]" style={{ backgroundColor: modelColorMap[s.model] || FALLBACK_COLOR }} />
+                                <span className="font-mono text-[9px]">{s.model}</span>: {s.credits.toLocaleString(undefined, { maximumFractionDigits: 0 })} credits
+                              </div>
+                            ))}
+                            <div className={`mt-0.5 pt-0.5 border-t ${c('border-white/20', 'border-white/20')} font-medium`}>Total: {total.toLocaleString(undefined, { maximumFractionDigits: 0 })} credits</div>
+                          </div>
+                          {stack.map((s, idx) => {
+                            const pct = (s.credits / maxDayModelCredits) * 100;
+                            // Round only the topmost stack to keep edges crisp.
+                            const isTop = idx === stack.length - 1;
+                            return (
+                              <div
+                                key={s.model}
+                                className={`w-full ${isTop ? 'rounded-t-[2px]' : ''}`}
+                                style={{ height: `${Math.max(pct, 1)}%`, backgroundColor: modelColorMap[s.model] || FALLBACK_COLOR }}
+                              />
+                            );
+                          })}
+                          {total === 0 && (
+                            <div className={`w-full rounded-t-[2px] ${c('bg-white/5', 'bg-gray-100')}`} style={{ height: '1px' }} />
+                          )}
+                        </div>
+                      );
+                    })}
+                  </div>
+                </div>
+              );
+            })()}
+            {data.byDayModel?.length > 0 && (
+              <div className="flex justify-between mt-2 ml-10">
+                <span className={`text-[10px] ${c('text-white/20', 'text-[#1A1A1A]/20')}`}>{data.byDayModel[0]?.date}</span>
+                <span className={`text-[10px] ${c('text-white/20', 'text-[#1A1A1A]/20')}`}>{data.byDayModel[data.byDayModel.length - 1]?.date}</span>
               </div>
             )}
           </div>
