@@ -12,6 +12,7 @@ import Slack from './pages/Slack.jsx';
 import Admin from './pages/Admin.jsx';
 import ResponseTimes from './pages/ResponseTimes.jsx';
 import Unanswered from './pages/Unanswered.jsx';
+import LlmUsage from './pages/LlmUsage.jsx';
 import Settings from './pages/Settings.jsx';
 import Sidebar from './components/Sidebar.jsx';
 
@@ -241,6 +242,14 @@ function AppLayout() {
             element={
               <PrivateRoute>
                 <Unanswered dark={dark} />
+              </PrivateRoute>
+            }
+          />
+          <Route
+            path="/admin/llm-usage"
+            element={
+              <PrivateRoute>
+                <LlmUsage dark={dark} />
               </PrivateRoute>
             }
           />

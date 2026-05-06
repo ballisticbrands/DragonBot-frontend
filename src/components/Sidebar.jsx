@@ -1,5 +1,5 @@
 import { useLocation, useNavigate } from 'react-router-dom';
-import { BarChart3, Clock, Puzzle, Plug, LogOut, Menu, X, Sun, Moon, Monitor, MessageSquare, Shield, Settings, AlertCircle } from 'lucide-react';
+import { BarChart3, Clock, Puzzle, Plug, LogOut, Menu, X, Sun, Moon, Monitor, MessageSquare, Shield, Settings, AlertCircle, Zap } from 'lucide-react';
 import { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
 
@@ -18,6 +18,7 @@ const ADMIN_NAV = [
   { path: '/admin', label: 'Admin', icon: Shield },
   { path: '/admin/response-times', label: 'Response Times', icon: Clock },
   { path: '/admin/unanswered', label: 'Unanswered', icon: AlertCircle },
+  { path: '/admin/llm-usage', label: 'LLM Usage', icon: Zap },
 ];
 
 const THEME_OPTIONS = [
