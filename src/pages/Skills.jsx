@@ -349,8 +349,8 @@ function SkillsFileExplorerView({ skills, loading, dark }) {
             <p className={`text-sm p-4 ${c('text-white/40', 'text-[#1A1A1A]/40')}`}>Loading...</p>
           ) : (
             <>
-              <ExplorerSection title="Core skills" icon={<Sparkles size={13} />} entries={coreEntries} dark={dark} selected={selected} onSelectFile={handleSelectFile} defaultCollapsed={false} />
               <ExplorerSection title="Custom skills" icon={<Box size={13} />} entries={customEntries} dark={dark} selected={selected} onSelectFile={handleSelectFile} defaultCollapsed={false} />
+              <ExplorerSection title="Core skills" icon={<Sparkles size={13} />} entries={coreEntries} dark={dark} selected={selected} onSelectFile={handleSelectFile} defaultCollapsed={false} />
               {coreEntries.length === 0 && customEntries.length === 0 && (
                 <p className={`text-sm p-4 ${c('text-white/40', 'text-[#1A1A1A]/40')}`}>No skills found.</p>
               )}
@@ -409,6 +409,7 @@ function SkillExplorerNode({ entry, dark, selected, onSelectFile }) {
   const [expanded, setExpanded] = useState(false);
   const [tree, setTree] = useState(null);
   const [loading, setLoading] = useState(false);
+  const [downloading, setDownloading] = useState(false);
   const c = (dv, lv) => dark ? dv : lv;
 
   async function toggle() {
@@ -435,18 +436,49 @@ function SkillExplorerNode({ entry, dark, selected, onSelectFile }) {
     }
   }
 
+  async function handleDownloadZip(e) {
+    e.stopPropagation();
+    if (downloading) return;
+    setDownloading(true);
+    try {
+      const url = `${BACKEND_URL}/api/skills/${encodeURIComponent(entry.dirName)}/download?source=${entry.source}`;
+      const res = await fetch(url, { headers: { Authorization: `Bearer ${getToken()}` } });
+      if (!res.ok) throw new Error(`Download failed (${res.status})`);
+      const blob = await res.blob();
+      const blobUrl = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = blobUrl;
+      a.download = `${entry.dirName}.zip`;
+      document.body.appendChild(a);
+      a.click();
+      a.remove();
+      URL.revokeObjectURL(blobUrl);
+    } catch (err) {
+      console.error('Skill zip download failed:', err);
+    } finally {
+      setDownloading(false);
+    }
+  }
+
   const isThisSkill = selected && selected.dirName === entry.dirName && selected.source === entry.source;
 
   return (
     <div>
-      <button
-        onClick={toggle}
-        className={`w-full flex items-center gap-1 pl-5 pr-3 py-1 text-sm ${c('text-white/80 hover:bg-white/5', 'text-[#1A1A1A]/80 hover:bg-gray-100')}`}
-      >
-        {expanded ? <ChevronDown size={12} className="opacity-50 flex-shrink-0" /> : <ChevronRight size={12} className="opacity-50 flex-shrink-0" />}
-        {expanded ? <FolderOpen size={13} className="flex-shrink-0 text-[#2F7D4F]" /> : <Folder size={13} className="flex-shrink-0 text-[#2F7D4F]" />}
-        <span className="truncate text-left">{entry.dirName}</span>
-      </button>
+      <div className={`group flex items-center gap-1 pl-5 pr-2 py-1 text-sm ${c('text-white/80 hover:bg-white/5', 'text-[#1A1A1A]/80 hover:bg-gray-100')}`}>
+        <button onClick={toggle} className="flex items-center gap-1 min-w-0 flex-1 text-left">
+          {expanded ? <ChevronDown size={12} className="opacity-50 flex-shrink-0" /> : <ChevronRight size={12} className="opacity-50 flex-shrink-0" />}
+          {expanded ? <FolderOpen size={13} className="flex-shrink-0 text-[#2F7D4F]" /> : <Folder size={13} className="flex-shrink-0 text-[#2F7D4F]" />}
+          <span className="truncate">{entry.dirName}</span>
+        </button>
+        <button
+          onClick={handleDownloadZip}
+          disabled={downloading}
+          title="Download skill as zip"
+          className={`flex-shrink-0 p-1 rounded opacity-0 group-hover:opacity-100 transition-opacity disabled:opacity-50 ${c('hover:bg-white/10 text-white/60', 'hover:bg-gray-200 text-[#1A1A1A]/60')}`}
+        >
+          <Download size={11} />
+        </button>
+      </div>
       {expanded && (
         <div className="pl-5">
           {loading ? (
