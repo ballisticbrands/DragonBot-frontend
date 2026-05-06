@@ -36,6 +36,16 @@ function ageColor(seconds, dark) {
   return dark ? 'text-red-400' : 'text-red-600';
 }
 
+// "anthropic/claude-sonnet-4-5-20250929" → "claude-sonnet-4-5"
+// "deepseek/deepseek-v4-flash" → "deepseek-v4-flash"
+// "google/gemini-3.1-pro-preview" → "gemini-3.1-pro"
+function shortenModelName(model) {
+  if (!model) return null;
+  const tail = model.split('/').pop() || model;
+  // Strip trailing date suffix like "-20250929"
+  return tail.replace(/-\d{8}$/, '').replace(/-preview$/, '');
+}
+
 function StatusBadge({ runStatus, runStatusReason, dark }) {
   const c = (dv, lv) => (dark ? dv : lv);
   if (runStatus === 'success') {
@@ -230,6 +240,8 @@ export default function Unanswered({ dark }) {
                   <th className="px-5 py-2 font-medium">User</th>
                   <th className="px-5 py-2 font-medium">Message</th>
                   <th className="px-5 py-2 font-medium">Status</th>
+                  <th className="px-5 py-2 font-medium">Model</th>
+                  <th className="px-5 py-2 font-medium text-right">Tools</th>
                   <th className="px-5 py-2 font-medium">Sent at</th>
                   <th className="px-5 py-2 font-medium">Client Msg ID</th>
                   <th className="px-5 py-2 font-medium text-right">Age</th>
@@ -295,6 +307,35 @@ export default function Unanswered({ dark }) {
                     </td>
                     <td className="px-5 py-2 whitespace-nowrap">
                       <StatusBadge runStatus={r.runStatus} runStatusReason={r.runStatusReason} dark={dark} />
+                    </td>
+                    <td className={`px-5 py-2 whitespace-nowrap text-xs ${c('text-white/70', 'text-[#1A1A1A]/70')}`}>
+                      {r.modelUsed ? (
+                        <span className="inline-flex items-center gap-1.5">
+                          <span title={r.modelUsed}>{shortenModelName(r.modelUsed)}</span>
+                          {r.fallbackOccurred ? (
+                            <span
+                              title="Fallback occurred — primary model failed and a fallback model produced this output"
+                              className={c('text-yellow-400', 'text-yellow-600')}
+                            >⚠</span>
+                          ) : (
+                            <span
+                              title="Primary model produced this output (no fallback)"
+                              className={c('text-emerald-400/60', 'text-emerald-700/60')}
+                            >✓</span>
+                          )}
+                        </span>
+                      ) : (
+                        <span className={c('text-white/30', 'text-[#1A1A1A]/30')}>—</span>
+                      )}
+                    </td>
+                    <td className={`px-5 py-2 text-right tabular-nums ${c('text-white/70', 'text-[#1A1A1A]/70')}`}>
+                      {r.toolCallCount != null ? (
+                        <span title={(r.toolsUsed && r.toolsUsed.length) ? r.toolsUsed.join(', ') : 'no tools used'}>
+                          {r.toolCallCount}
+                        </span>
+                      ) : (
+                        <span className={c('text-white/30', 'text-[#1A1A1A]/30')}>—</span>
+                      )}
                     </td>
                     <td className={`px-5 py-2 whitespace-nowrap ${c('text-white/70', 'text-[#1A1A1A]/70')}`}>
                       {formatTime(r.eventReceivedAt)}
