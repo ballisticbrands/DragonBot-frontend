@@ -17,7 +17,7 @@ const NAV_ITEMS = [
 const ADMIN_NAV = [
   { path: '/admin', label: 'Admin', icon: Shield },
   { path: '/admin/response-times', label: 'Response Times', icon: Clock },
-  { path: '/admin/unanswered', label: 'Unanswered', icon: AlertCircle },
+  { path: '/admin/unanswered', label: 'Problematic runs', icon: AlertCircle },
   { path: '/admin/llm-usage', label: 'LLM Usage', icon: Zap },
 ];
 

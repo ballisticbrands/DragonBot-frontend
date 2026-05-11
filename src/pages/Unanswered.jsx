@@ -46,6 +46,21 @@ function shortenModelName(model) {
   return tail.replace(/-\d{8}$/, '').replace(/-preview$/, '');
 }
 
+function KindBadge({ kind, dark }) {
+  const c = (dv, lv) => (dark ? dv : lv);
+  const styles = {
+    slack: c('bg-blue-500/15 text-blue-400', 'bg-blue-50 text-blue-700'),
+    heartbeat: c('bg-purple-500/15 text-purple-400', 'bg-purple-50 text-purple-700'),
+    cron: c('bg-indigo-500/15 text-indigo-400', 'bg-indigo-50 text-indigo-700'),
+  };
+  const style = styles[kind] || c('bg-white/5 text-white/40', 'bg-gray-100 text-gray-500');
+  return (
+    <span className={`inline-block text-xs font-medium px-2 py-0.5 rounded ${style}`}>
+      {kind || '—'}
+    </span>
+  );
+}
+
 function StatusBadge({ runStatus, runStatusReason, dark }) {
   const c = (dv, lv) => (dark ? dv : lv);
   if (runStatus === 'success') {
@@ -161,12 +176,13 @@ export default function Unanswered({ dark }) {
           <div>
             <h1 className={`text-2xl font-bold flex items-center gap-2 ${c('text-white', 'text-[#1A1A1A]')}`}>
               <AlertCircle size={24} className={displayRows.length > 0 ? 'text-yellow-500' : ''} />
-              Unanswered messages
+              Problematic runs
             </h1>
             <p className={`mt-1 text-sm ${c('text-white/50', 'text-[#1A1A1A]/50')}`}>
-              DMs and @-mentions where the bot didn't deliver a reply, or whose OpenClaw run errored
-              (timeout / abort / model error). Refreshes every 30 seconds; click <em>Update job status</em>
-              to fold in any newly-completed runs from disk.
+              Slack messages where the bot didn't reply, plus any run (slack / heartbeat / cron) whose
+              OpenClaw trajectory ended in error (timeout / abort / model error). Refreshes every 30
+              seconds; click <em>Update job status</em> to fold in any newly-completed runs from disk.
+              Heartbeat &amp; cron rows are populated by a backend scan that runs every 30 minutes.
             </p>
           </div>
           <div className="flex items-center gap-2">
@@ -222,13 +238,14 @@ export default function Unanswered({ dark }) {
         ) : displayRows.length === 0 ? (
           <div className={`rounded-xl px-6 py-12 text-center ${c('bg-[#1a1a1a]', 'bg-white border border-gray-200')}`}>
             <p className={`text-sm ${c('text-white/50', 'text-[#1A1A1A]/50')}`}>
-              No unanswered messages. Every DM and @-mention has a reply and a clean run.
+              No problematic runs. Every slack message has a reply, and every heartbeat / cron job
+              completed cleanly.
             </p>
           </div>
         ) : (
           <div className={`rounded-xl ${c('bg-[#1a1a1a]', 'bg-white border border-gray-200')}`}>
             <div className={`px-5 py-3 border-b text-xs flex items-baseline gap-3 ${c('border-white/5 text-white/50', 'border-gray-200 text-[#1A1A1A]/50')}`}>
-              <span>{displayRows.length} unanswered</span>
+              <span>{displayRows.length} problematic run{displayRows.length === 1 ? '' : 's'}</span>
               {lastLoadedAt && <span>· loaded {formatTime(lastLoadedAt)}</span>}
             </div>
             <div className="overflow-x-auto">
@@ -236,14 +253,15 @@ export default function Unanswered({ dark }) {
               <thead>
                 <tr className={`text-left text-xs uppercase tracking-wider ${c('text-white/40 border-b border-white/5', 'text-[#1A1A1A]/40 border-b border-gray-200')}`}>
                   <th className="px-5 py-2 font-medium">DragonBot</th>
-                  <th className="px-5 py-2 font-medium">Channel</th>
+                  <th className="px-5 py-2 font-medium">Kind</th>
+                  <th className="px-5 py-2 font-medium">Source</th>
                   <th className="px-5 py-2 font-medium">User</th>
                   <th className="px-5 py-2 font-medium">Message</th>
                   <th className="px-5 py-2 font-medium">Status</th>
                   <th className="px-5 py-2 font-medium">Model</th>
                   <th className="px-5 py-2 font-medium text-right">Tools</th>
                   <th className="px-5 py-2 font-medium">Sent at</th>
-                  <th className="px-5 py-2 font-medium">Client Msg ID</th>
+                  <th className="px-5 py-2 font-medium">ID</th>
                   <th className="px-5 py-2 font-medium text-right">Age</th>
                 </tr>
               </thead>
@@ -258,23 +276,43 @@ export default function Unanswered({ dark }) {
                         )}
                       </div>
                     </td>
+                    <td className="px-5 py-2 whitespace-nowrap">
+                      <KindBadge kind={r.kind} dark={dark} />
+                    </td>
                     <td className={`px-5 py-2 ${c('text-white/70', 'text-[#1A1A1A]/70')}`}>
-                      {r.slackTeamId ? (
-                        <a
-                          href={`slack://channel?team=${r.slackTeamId}&id=${r.slackChannel}`}
-                          className={`hover:underline ${r.slackChannelName ? '' : 'font-mono text-xs'}`}
-                          title={`Open in Slack — ${r.slackChannel}`}
-                        >
-                          {r.slackChannelName ? `#${r.slackChannelName}` : r.slackChannel}
-                        </a>
-                      ) : r.slackChannelName ? (
-                        <span>#{r.slackChannelName}</span>
+                      {r.kind === 'slack' ? (
+                        r.slackTeamId ? (
+                          <a
+                            href={`slack://channel?team=${r.slackTeamId}&id=${r.slackChannel}`}
+                            className={`hover:underline ${r.slackChannelName ? '' : 'font-mono text-xs'}`}
+                            title={`Open in Slack — ${r.slackChannel}`}
+                          >
+                            {r.slackChannelName ? `#${r.slackChannelName}` : r.slackChannel}
+                          </a>
+                        ) : r.slackChannelName ? (
+                          <span>#{r.slackChannelName}</span>
+                        ) : (
+                          <span className="font-mono text-xs">{r.slackChannel}</span>
+                        )
+                      ) : r.kind === 'cron' ? (
+                        <div className="flex flex-col">
+                          <span>{r.cronJobName ?? '—'}</span>
+                          {r.cronJobId && (
+                            <span className={`text-xs font-mono ${c('text-white/40', 'text-[#1A1A1A]/40')}`} title={r.cronJobId}>{r.cronJobId}</span>
+                          )}
+                        </div>
+                      ) : r.kind === 'heartbeat' ? (
+                        <span className={`font-mono text-xs ${c('text-white/60', 'text-[#1A1A1A]/60')}`} title={r.heartbeatSessionKey ?? undefined}>
+                          {r.heartbeatSessionKey ?? '—'}
+                        </span>
                       ) : (
-                        <span className="font-mono text-xs">{r.slackChannel}</span>
+                        <span className={c('text-white/30', 'text-[#1A1A1A]/30')}>—</span>
                       )}
                     </td>
                     <td className={`px-5 py-2 ${c('text-white/70', 'text-[#1A1A1A]/70')}`}>
-                      {r.slackTeamId ? (
+                      {r.kind !== 'slack' ? (
+                        <span className={c('text-white/30', 'text-[#1A1A1A]/30')}>—</span>
+                      ) : r.slackTeamId ? (
                         <a
                           href={`slack://user?team=${r.slackTeamId}&id=${r.slackUserId}`}
                           className={`hover:underline ${r.slackUserName ? '' : 'font-mono text-xs'}`}
@@ -290,7 +328,7 @@ export default function Unanswered({ dark }) {
                     </td>
                     <td className={`px-5 py-2 max-w-md ${c('text-white/70', 'text-[#1A1A1A]/70')}`}>
                       {r.messageText ? (
-                        r.slackTeamId ? (
+                        r.kind === 'slack' && r.slackTeamId ? (
                           <a
                             href={`slack://channel?team=${r.slackTeamId}&id=${r.slackChannel}&message=${r.slackEventTs}`}
                             className="hover:underline block truncate"
@@ -341,8 +379,14 @@ export default function Unanswered({ dark }) {
                       {formatTime(r.eventReceivedAt)}
                     </td>
                     <td className={`px-5 py-2 font-mono text-xs whitespace-nowrap ${c('text-white/50', 'text-[#1A1A1A]/50')}`}>
-                      {r.slackClientMsgId ? (
-                        <span title={r.slackClientMsgId}>{r.slackClientMsgId.slice(0, 8)}…</span>
+                      {r.kind === 'slack' ? (
+                        r.slackClientMsgId ? (
+                          <span title={r.slackClientMsgId}>{r.slackClientMsgId.slice(0, 8)}…</span>
+                        ) : (
+                          <span className={c('text-white/20', 'text-[#1A1A1A]/20')}>—</span>
+                        )
+                      ) : r.triggerKey ? (
+                        <span title={r.triggerKey}>{r.triggerKey.slice(0, 24)}…</span>
                       ) : (
                         <span className={c('text-white/20', 'text-[#1A1A1A]/20')}>—</span>
                       )}
