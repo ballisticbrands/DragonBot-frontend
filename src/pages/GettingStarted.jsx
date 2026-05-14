@@ -270,13 +270,14 @@ function ConnectSpApi({ dark, onComplete }) {
     }
   }
 
-  // Only `status: "ok"` connections enable Continue — pending = still
-  // provisioning (Airbyte source + BQ destination + sync-connection); broken
-  // = provisioning failed and the user needs to retry.
+  // Continue is enabled as long as we have an SP-API connection that's
+  // either ready (`ok`) or still provisioning (`pending`). Provisioning
+  // typically takes ~15-20s and continues in the background regardless of
+  // whether the user advances. `broken` requires a retry.
   const readyConnections = connections.filter((c) => c.status === 'ok');
   const pendingConnections = connections.filter((c) => c.status === 'pending');
   const brokenConnections = connections.filter((c) => c.status === 'broken');
-  const hasConnection = readyConnections.length > 0;
+  const hasConnection = readyConnections.length + pendingConnections.length > 0;
 
   return (
     <div className="text-center">
