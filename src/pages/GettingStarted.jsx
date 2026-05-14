@@ -207,6 +207,17 @@ function ConnectSpApi({ dark, onComplete }) {
     loadConnections().finally(() => setLoading(false));
   }, []);
 
+  // Poll while any SP-API connection is in `pending` state so the UI moves
+  // from "Provisioning…" → "Connected" without a manual refresh. The backend
+  // returns the popup HTML immediately after creating the pending row and
+  // provisions Airbyte + BigQuery asynchronously (~15s).
+  useEffect(() => {
+    const hasPending = connections.some((c) => c.status === 'pending');
+    if (!hasPending) return;
+    const timer = setInterval(loadConnections, 2000);
+    return () => clearInterval(timer);
+  }, [connections]);
+
   async function handleConnect() {
     // SP-API onboarding goes through the Airbyte OAuth flow:
     //   1. POST /api/connect/amazon-selling-partner/start → backend mints an
@@ -259,7 +270,13 @@ function ConnectSpApi({ dark, onComplete }) {
     }
   }
 
-  const hasConnection = connections.length > 0;
+  // Only `status: "ok"` connections enable Continue — pending = still
+  // provisioning (Airbyte source + BQ destination + sync-connection); broken
+  // = provisioning failed and the user needs to retry.
+  const readyConnections = connections.filter((c) => c.status === 'ok');
+  const pendingConnections = connections.filter((c) => c.status === 'pending');
+  const brokenConnections = connections.filter((c) => c.status === 'broken');
+  const hasConnection = readyConnections.length > 0;
 
   return (
     <div className="text-center">
@@ -299,12 +316,29 @@ function ConnectSpApi({ dark, onComplete }) {
       {/* Connected accounts */}
       {connections.length > 0 && (
         <div className="mb-6 text-left space-y-2">
-          {connections.map((conn) => (
+          {readyConnections.map((conn) => (
             <div key={conn.id} className={`flex items-center gap-3 p-3 rounded-xl border ${dark ? 'border-[#2F7D4F]/50 bg-[#2F7D4F]/10' : 'border-[#2F7D4F]/30 bg-[#2F7D4F]/5'}`}>
               <Check size={14} className="text-[#2F7D4F] flex-shrink-0" />
               <span className={`text-xs font-medium truncate ${dark ? 'text-white' : 'text-[#1A1A1A]'}`}>Amazon SP-API</span>
               {conn.uniqueDisplayId && <span className={`text-[10px] ${dark ? 'text-white/40' : 'text-[#1A1A1A]/40'}`}>({conn.uniqueDisplayId})</span>}
               <span className={`ml-auto text-[10px] px-1.5 py-0.5 rounded ${dark ? 'bg-white/5 text-white/30' : 'bg-gray-100 text-gray-400'}`}>Read-only</span>
+            </div>
+          ))}
+          {pendingConnections.map((conn) => (
+            <div key={conn.id} className={`flex items-center gap-3 p-3 rounded-xl border ${dark ? 'border-yellow-500/30 bg-yellow-500/5' : 'border-yellow-400/40 bg-yellow-400/5'}`}>
+              <div className={`h-3 w-3 rounded-full border-2 border-yellow-500 border-t-transparent animate-spin flex-shrink-0`} />
+              <span className={`text-xs font-medium truncate ${dark ? 'text-white' : 'text-[#1A1A1A]'}`}>Amazon SP-API</span>
+              <span className={`text-[10px] ${dark ? 'text-yellow-300/70' : 'text-yellow-700/70'}`}>Provisioning… (~15s)</span>
+            </div>
+          ))}
+          {brokenConnections.map((conn) => (
+            <div key={conn.id} className={`flex items-start gap-3 p-3 rounded-xl border ${dark ? 'border-red-500/40 bg-red-500/10' : 'border-red-400/40 bg-red-400/5'}`}>
+              <span className="text-red-500 flex-shrink-0 mt-0.5">⚠</span>
+              <div className="min-w-0 flex-1">
+                <div className={`text-xs font-medium ${dark ? 'text-white' : 'text-[#1A1A1A]'}`}>Amazon SP-API — setup failed</div>
+                {conn.lastError && <div className={`text-[10px] mt-0.5 break-words ${dark ? 'text-red-300/70' : 'text-red-700/70'}`}>{conn.lastError.slice(0, 200)}</div>}
+                <div className={`text-[10px] mt-0.5 ${dark ? 'text-white/40' : 'text-[#1A1A1A]/40'}`}>Click "Connect Amazon Account" to retry.</div>
+              </div>
             </div>
           ))}
         </div>
