@@ -208,43 +208,51 @@ function ConnectSpApi({ dark, onComplete }) {
   }, []);
 
   async function handleConnect() {
+    // SP-API onboarding goes through the Airbyte OAuth flow:
+    //   1. POST /api/connect/amazon-selling-partner/start → backend mints an
+    //      Airbyte consent URL.
+    //   2. Open it in a popup. User completes Amazon OAuth via Airbyte.
+    //   3. Airbyte redirects to our callback, which provisions the source,
+    //      BQ destination, and ETL sync, then posts a message and closes.
+    //   4. We listen for `dragonbot-connection-complete` to reload.
+    //
+    // The legacy Pipedream SP-API path (provider="amazon_selling_partner_pipedream")
+    // is no longer offered in onboarding — Airbyte is the only supported provider.
     setConnecting(true);
     setError('');
     try {
-      const tokenRes = await fetch(`${BACKEND_URL}/api/connect/token`, {
+      const startRes = await fetch(`${BACKEND_URL}/api/connect/amazon-selling-partner/start`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${getToken()}` },
-        body: JSON.stringify({ app_slug: 'amazon_selling_partner' }),
+        body: JSON.stringify({}),
       });
-      if (!tokenRes.ok) {
-        setError((await tokenRes.json().catch(() => ({}))).error || 'Failed');
+      const data = await startRes.json().catch(() => ({}));
+      if (!startRes.ok || !data.url) {
+        setError(data.error || 'Failed to start Amazon OAuth');
         setConnecting(false);
         return;
       }
-      const tokenData = await tokenRes.json();
-      const pd = createFrontendClient({
-        externalUserId: tokenData.externalUserId || 'user',
-        tokenCallback: async () => tokenData,
-      });
-      await pd.connectAccount({
-        app: 'amazon_selling_partner',
-        token: tokenData.token,
-        onSuccess: async (result) => {
-          const saveRes = await fetch(`${BACKEND_URL}/api/connections`, {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${getToken()}` },
-            body: JSON.stringify({ provider: 'amazon_selling_partner', name: 'Selling Partner API (SP-API)', pipedreamAccountId: result.id }),
-          });
-          if (!saveRes.ok) {
-            setError((await saveRes.json().catch(() => ({}))).error || 'Failed to save');
-          } else {
-            await loadConnections();
-          }
+      const w = 600, h = 700;
+      const left = window.screenX + (window.outerWidth - w) / 2;
+      const top = window.screenY + (window.outerHeight - h) / 2;
+      const popup = window.open(data.url, 'dragonbot-connect', `width=${w},height=${h},left=${left},top=${top}`);
+      const onMessage = (e) => {
+        if (e.data?.type === 'dragonbot-connection-complete') {
+          window.removeEventListener('message', onMessage);
+          clearInterval(pollTimer);
           setConnecting(false);
-        },
-        onError: (err) => { setError(err.message || 'Failed'); setConnecting(false); },
-        onClose: () => { setConnecting(false); },
-      });
+          loadConnections();
+        }
+      };
+      window.addEventListener('message', onMessage);
+      const pollTimer = setInterval(() => {
+        if (popup?.closed) {
+          clearInterval(pollTimer);
+          window.removeEventListener('message', onMessage);
+          setConnecting(false);
+          loadConnections();
+        }
+      }, 1000);
     } catch (err) {
       setError(err.message || 'Failed');
       setConnecting(false);
