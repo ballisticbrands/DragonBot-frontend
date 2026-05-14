@@ -1,5 +1,5 @@
 import { useState, useEffect, useMemo } from 'react';
-import { Puzzle, Search, Sparkles, Box, X, FileText, Layers, ChevronRight, ChevronDown, Folder, FolderOpen, File, Download } from 'lucide-react';
+import { Puzzle, Search, Sparkles, Box, X, FileText, Layers, ChevronRight, ChevronDown, Folder, FolderOpen, File, Download, Edit2, Save } from 'lucide-react';
 import Markdown from 'react-markdown';
 import remarkGfm from 'remark-gfm';
 
@@ -545,8 +545,20 @@ function TreeNode({ node, depth, dark, onSelectFile, selectedPath }) {
   );
 }
 
+// Extensions the backend's PUT endpoint will accept. Must mirror
+// WRITABLE_EXTS in backend/src/routes/auth.ts.
+const EDITABLE_EXTS = new Set([
+  '.md', '.txt', '.json', '.yaml', '.yml',
+  '.js', '.jsx', '.ts', '.tsx',
+  '.py', '.sh', '.html', '.css', '.xml', '.csv',
+]);
+
 function FileViewer({ selected, dark }) {
-  const [content, setContent] = useState(null);
+  const [content, setContent] = useState(null);     // last-saved server copy
+  const [draft, setDraft] = useState('');           // textarea buffer while editing
+  const [editing, setEditing] = useState(false);
+  const [saving, setSaving] = useState(false);
+  const [saveError, setSaveError] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const [downloading, setDownloading] = useState(false);
@@ -554,12 +566,20 @@ function FileViewer({ selected, dark }) {
 
   const isMarkdown = selected.filePath.toLowerCase().endsWith('.md');
   const fileName = selected.filePath.split('/').pop();
+  const ext = (() => {
+    const i = fileName.lastIndexOf('.');
+    return i >= 0 ? fileName.slice(i).toLowerCase() : '';
+  })();
+  const canEdit = EDITABLE_EXTS.has(ext);
+  const dirty = editing && draft !== (content ?? '');
 
   useEffect(() => {
     let cancelled = false;
     setLoading(true);
     setError(null);
     setContent(null);
+    setEditing(false);
+    setSaveError(null);
     (async () => {
       try {
         const url = `${BACKEND_URL}/api/skills/${encodeURIComponent(selected.dirName)}/file?source=${selected.source}&path=${encodeURIComponent(selected.filePath)}`;
@@ -601,6 +621,47 @@ function FileViewer({ selected, dark }) {
     }
   }
 
+  function handleEdit() {
+    setDraft(content ?? '');
+    setSaveError(null);
+    setEditing(true);
+  }
+
+  function handleCancel() {
+    if (dirty && !window.confirm('Discard unsaved changes?')) return;
+    setDraft('');
+    setSaveError(null);
+    setEditing(false);
+  }
+
+  async function handleSave() {
+    setSaving(true);
+    setSaveError(null);
+    try {
+      const url = `${BACKEND_URL}/api/skills/${encodeURIComponent(selected.dirName)}/file?source=${selected.source}&path=${encodeURIComponent(selected.filePath)}`;
+      const res = await fetch(url, {
+        method: 'PUT',
+        headers: {
+          Authorization: `Bearer ${getToken()}`,
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ content: draft }),
+      });
+      if (!res.ok) {
+        const errBody = await res.json().catch(() => ({}));
+        throw new Error(errBody.error || `Save failed (${res.status})`);
+      }
+      // Success: keep edit mode off, draft becomes the new server copy.
+      setContent(draft);
+      setEditing(false);
+      setDraft('');
+    } catch (err) {
+      setSaveError(String(err.message || err));
+    } finally {
+      setSaving(false);
+    }
+  }
+
   // Strip YAML frontmatter only for markdown rendering
   const mdContent = isMarkdown ? (content?.replace(/^---\n[\s\S]*?\n---\n*/, '') || '') : '';
 
@@ -619,22 +680,73 @@ function FileViewer({ selected, dark }) {
           }`}>
             {selected.source}
           </span>
+          {dirty && (
+            <span className="text-[10px] px-1.5 py-0.5 rounded flex-shrink-0 bg-amber-500/15 text-amber-500">
+              unsaved
+            </span>
+          )}
         </div>
-        <button
-          onClick={handleDownload}
-          disabled={downloading}
-          className={`flex items-center gap-1.5 px-2.5 py-1 rounded-md text-xs font-medium transition-colors disabled:opacity-50 ${c('bg-white/5 hover:bg-white/10 text-white/80', 'bg-white border border-gray-200 hover:bg-gray-50 text-[#1A1A1A]/80')}`}
-        >
-          <Download size={12} />
-          {downloading ? 'Downloading…' : 'Download'}
-        </button>
+        <div className="flex items-center gap-2">
+          {editing ? (
+            <>
+              <button
+                onClick={handleCancel}
+                disabled={saving}
+                className={`flex items-center gap-1.5 px-2.5 py-1 rounded-md text-xs font-medium transition-colors disabled:opacity-50 ${c('bg-white/5 hover:bg-white/10 text-white/80', 'bg-white border border-gray-200 hover:bg-gray-50 text-[#1A1A1A]/80')}`}
+              >
+                Cancel
+              </button>
+              <button
+                onClick={handleSave}
+                disabled={saving || !dirty}
+                className="flex items-center gap-1.5 px-2.5 py-1 rounded-md text-xs font-medium transition-colors disabled:opacity-50 bg-[#2F7D4F] hover:bg-[#256940] text-white"
+              >
+                <Save size={12} />
+                {saving ? 'Saving…' : 'Save'}
+              </button>
+            </>
+          ) : (
+            <>
+              {canEdit && content !== null && !loading && !error && (
+                <button
+                  onClick={handleEdit}
+                  className={`flex items-center gap-1.5 px-2.5 py-1 rounded-md text-xs font-medium transition-colors ${c('bg-white/5 hover:bg-white/10 text-white/80', 'bg-white border border-gray-200 hover:bg-gray-50 text-[#1A1A1A]/80')}`}
+                >
+                  <Edit2 size={12} />
+                  Edit
+                </button>
+              )}
+              <button
+                onClick={handleDownload}
+                disabled={downloading}
+                className={`flex items-center gap-1.5 px-2.5 py-1 rounded-md text-xs font-medium transition-colors disabled:opacity-50 ${c('bg-white/5 hover:bg-white/10 text-white/80', 'bg-white border border-gray-200 hover:bg-gray-50 text-[#1A1A1A]/80')}`}
+              >
+                <Download size={12} />
+                {downloading ? 'Downloading…' : 'Download'}
+              </button>
+            </>
+          )}
+        </div>
       </div>
+
+      {saveError && (
+        <div className="px-4 py-2 text-xs text-red-400 border-b border-red-500/20 bg-red-500/5 flex-shrink-0">
+          {saveError}
+        </div>
+      )}
 
       <div className="flex-1 overflow-auto">
         {loading ? (
           <p className={`text-sm p-4 ${c('text-white/40', 'text-[#1A1A1A]/40')}`}>Loading…</p>
         ) : error ? (
           <p className={`text-sm p-4 text-red-400`}>{error}</p>
+        ) : editing ? (
+          <textarea
+            value={draft}
+            onChange={(e) => setDraft(e.target.value)}
+            spellCheck={false}
+            className={`w-full h-full min-h-[400px] text-xs font-mono p-4 outline-none resize-none ${c('bg-[#0f0f0f] text-white/90', 'bg-white text-[#1A1A1A]/90')}`}
+          />
         ) : isMarkdown ? (
           <div className={`prose prose-sm max-w-none p-6 ${dark ? 'prose-invert' : ''}`}>
             <Markdown remarkPlugins={[remarkGfm]}>{mdContent}</Markdown>
