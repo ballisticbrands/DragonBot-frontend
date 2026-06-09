@@ -1,46 +1,37 @@
-@import url('https://fonts.googleapis.com/css2?family=Roboto+Mono:wght@400;500&display=swap');
-
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
 
 :root {
-  --primary: #2F7D4F;
-  --primary-light: #98CC65;
-  --dark: #0F3D2E;
-  --accent: #D63C3C;
-  --text: #1A1A1A;
-  --white: #FFFFFF;
+  --background: #ffffff;
+  --foreground: #0a0a0a;
+  --muted: #f5f5f5;
+  --muted-foreground: #6b6b6b;
+  --border: #e7e7e7;
+  --accent: #ea580c;       /* DragonBot orange — picks up the "fire" theme */
+  --accent-foreground: #ffffff;
+  --danger: #b91c1c;
+  --success: #15803d;
+  --card: #ffffff;
+  --code-bg: #0b0f17;
+  --code-fg: #e6edf3;
 }
 
+html,
 body {
+  background: var(--background);
+  color: var(--foreground);
   font-family: system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
-  color: var(--text);
-  background: var(--white);
+  height: 100%;
+  margin: 0;
+  padding: 0;
   -webkit-font-smoothing: antialiased;
-  -moz-osx-font-smoothing: grayscale;
 }
 
-h1, h2, h3, h4, h5, h6 {
-  font-family: system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+#root {
+  min-height: 100vh;
 }
 
-.font-mono-nav {
-  font-family: 'Roboto Mono', monospace;
-}
-
-/* Custom scrollbar */
-::-webkit-scrollbar {
-  width: 6px;
-}
-::-webkit-scrollbar-track {
-  background: transparent;
-}
-::-webkit-scrollbar-thumb {
-  background: #ccc;
-  border-radius: 3px;
-}
-
-html {
-  scroll-behavior: smooth;
+* {
+  border-color: var(--border);
 }

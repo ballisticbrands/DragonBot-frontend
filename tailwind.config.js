@@ -7,7 +7,11 @@ export default {
         sans: ['system-ui', '-apple-system', 'BlinkMacSystemFont', "'Segoe UI'", 'Roboto', 'sans-serif'],
         mono: ["'Roboto Mono'", 'monospace'],
       },
+      colors: {
+        background: 'var(--background)',
+        foreground: 'var(--foreground)',
+      },
     },
   },
-  plugins: [require('@tailwindcss/typography')],
+  plugins: [],
 };

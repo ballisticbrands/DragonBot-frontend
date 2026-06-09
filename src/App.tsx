@@ -1,0 +1,75 @@
+import { useEffect } from "react";
+import { Navigate, Route, Routes, useLocation } from "react-router-dom";
+import { useSession } from "@/lib/session";
+import { config } from "@/lib/config";
+import { AuthLayout } from "@/components/layout/AuthLayout";
+import { AppLayout } from "@/components/layout/AppLayout";
+import { Index } from "@/pages/Index";
+import { SignIn } from "@/pages/SignIn";
+import { SignUp } from "@/pages/SignUp";
+import { ForgotPassword } from "@/pages/ForgotPassword";
+import { Dashboard } from "@/pages/Dashboard";
+
+export default function App() {
+  // Update document title on route change so each page has a sensible
+  // tab title. Per-page titles override via the useEffect inside each
+  // page; this is the fallback.
+  const location = useLocation();
+  useEffect(() => {
+    document.title = `${config.brand.name} — Amazon Seller MCP for AI agents`;
+  }, [location.pathname]);
+
+  return (
+    <Routes>
+      <Route path="/" element={<Index />} />
+      <Route
+        path="/sign-in"
+        element={
+          <PublicOnly>
+            <AuthLayout>
+              <SignIn />
+            </AuthLayout>
+          </PublicOnly>
+        }
+      />
+      <Route
+        path="/sign-up"
+        element={
+          <PublicOnly>
+            <AuthLayout>
+              <SignUp />
+            </AuthLayout>
+          </PublicOnly>
+        }
+      />
+      <Route
+        path="/forgot-password"
+        element={
+          <AuthLayout>
+            <ForgotPassword />
+          </AuthLayout>
+        }
+      />
+      <Route
+        path="/dashboard"
+        element={
+          <AppLayout>
+            <Dashboard />
+          </AppLayout>
+        }
+      />
+      <Route path="*" element={<Navigate to="/" replace />} />
+    </Routes>
+  );
+}
+
+/**
+ * If the user is already signed in, bounce them to /dashboard. Used to
+ * wrap /sign-in and /sign-up so a logged-in user doesn't see them.
+ */
+function PublicOnly({ children }: { children: React.ReactNode }) {
+  const session = useSession();
+  if (session.status === "loading") return <div className="min-h-screen" />;
+  if (session.status === "authenticated") return <Navigate to="/dashboard" replace />;
+  return <>{children}</>;
+}
