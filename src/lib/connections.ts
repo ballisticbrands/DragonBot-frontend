@@ -40,7 +40,7 @@ async function startConnection(
 ): Promise<{ authorization_url?: string; error?: string }> {
   try {
     const resp = await apiFetch<{ authorization_url: string }>(startPath, { method: "POST" });
-    if (!resp.authorization_url) return { error: "No authorization URL returned." };
+    if (!resp.authorization_url) return { error: "We couldn't start the connection. Please try again." };
     return { authorization_url: resp.authorization_url };
   } catch (err) {
     if (err instanceof ApiError) return { error: err.message };
@@ -68,6 +68,6 @@ export async function disconnectConnection(id: string): Promise<{ error?: string
     return {};
   } catch (err) {
     if (err instanceof ApiError) return { error: err.message };
-    return { error: "Could not disconnect." };
+    return { error: "We couldn't disconnect this account. Please try again." };
   }
 }

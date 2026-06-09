@@ -14,13 +14,13 @@ async function exchange(path: string, payload: Record<string, unknown>): Promise
       body: JSON.stringify(payload),
       auth: false,
     });
-    if (!token) return { error: "Unexpected response from server." };
+    if (!token) return { error: "Something went wrong. Please try again." };
     setSessionToken(token);
     return {};
   } catch (err) {
     if (err instanceof ApiError) return { error: err.message };
-    if (err instanceof TypeError) return { error: "Could not reach the backend. Is it running?" };
-    return { error: err instanceof Error ? err.message : "Sign in failed." };
+    if (err instanceof TypeError) return { error: "We couldn't reach our servers. Please try again in a moment." };
+    return { error: "Something went wrong. Please try again." };
   }
 }
 
@@ -50,7 +50,7 @@ export async function requestPasswordReset(email: string): Promise<{ error?: str
     return {};
   } catch (err) {
     if (err instanceof ApiError) return { error: err.message };
-    return { error: "Could not send reset email." };
+    return { error: "We couldn't send the reset email. Please try again." };
   }
 }
 

@@ -11,23 +11,23 @@ export async function startCheckout(plan: PlanId): Promise<{ error?: string }> {
       method: "POST",
       body: JSON.stringify({ plan }),
     });
-    if (!url) return { error: "No checkout URL returned." };
+    if (!url) return { error: "We couldn't start checkout. Please try again." };
     window.location.href = url;
     return {};
   } catch (err) {
     if (err instanceof ApiError) return { error: err.message };
-    return { error: "Could not start checkout." };
+    return { error: "We couldn't start checkout. Please try again." };
   }
 }
 
 export async function openBillingPortal(): Promise<{ error?: string }> {
   try {
     const { url } = await apiFetch<{ url: string }>("/v1/billing/portal", { method: "POST" });
-    if (!url) return { error: "No portal URL returned." };
+    if (!url) return { error: "We couldn't open billing. Please try again." };
     window.location.href = url;
     return {};
   } catch (err) {
     if (err instanceof ApiError) return { error: err.message };
-    return { error: "Could not open billing portal." };
+    return { error: "We couldn't open billing. Please try again." };
   }
 }

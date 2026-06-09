@@ -74,7 +74,7 @@ function ConnectButton({
       return;
     }
     if (!res.authorization_url) {
-      setError("No authorization URL returned.");
+      setError("We couldn't start the connection. Please try again.");
       setPending(false);
       return;
     }
@@ -84,7 +84,7 @@ function ConnectButton({
       "popup=1,width=520,height=720,resizable=1,scrollbars=1",
     );
     if (!popup) {
-      setError("Popup blocked. Please allow popups for this site and retry.");
+      setError("Please allow popups for this site and try again.");
       setPending(false);
       return;
     }

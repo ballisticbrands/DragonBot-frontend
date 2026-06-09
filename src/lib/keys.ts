@@ -46,7 +46,7 @@ export async function createApiKey(input: {
     return { key };
   } catch (err) {
     if (err instanceof ApiError) return { error: err.message };
-    return { error: "Could not create key." };
+    return { error: "We couldn't create this key. Please try again." };
   }
 }
 
@@ -56,6 +56,6 @@ export async function revokeApiKey(id: string): Promise<{ error?: string }> {
     return {};
   } catch (err) {
     if (err instanceof ApiError) return { error: err.message };
-    return { error: "Could not revoke key." };
+    return { error: "We couldn't revoke this key. Please try again." };
   }
 }
