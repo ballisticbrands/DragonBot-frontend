@@ -1,0 +1,22 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>DragonBot</title>
+    <script>
+      // SPA fallback for GitHub Pages. GH Pages serves this file on any
+      // unknown path. Rewrite the URL to the SPA root so React loads,
+      // preserving the intended path + query so react-router can render
+      // the right route. Uses sessionStorage to round-trip the path
+      // because location.replace to '/' loses the original path
+      // otherwise — main.tsx reads it back on first paint.
+      (function () {
+        var path = location.pathname + location.search + location.hash;
+        sessionStorage.setItem('spa-redirect', path);
+        location.replace('/');
+      })();
+    </script>
+  </head>
+  <body></body>
+</html>
