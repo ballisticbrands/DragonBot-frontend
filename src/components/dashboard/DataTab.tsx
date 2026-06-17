@@ -385,17 +385,23 @@ function SyncProgress({
   const isDone = expected > 0 && status.tables_with_rows >= expected;
   const isFailed = last?.status === "failed";
 
-  // "Stalled" — last report was a while ago and nothing's landed
-  // recently. Catches the case where the orchestrator died mid-batch
-  // without stamping a lastSync, leaving the panel apparently mid-
-  // progress forever.
-  const stalledMs = 5 * 60_000;
-  const lastActivityIso = status.last_modified ?? last?.finishedAt ?? connectedAt ?? null;
+  // "Stalled" — nothing landed in a long while. Catches the orchestrator
+  // dying mid-batch without stamping a lastSync. Threshold is 15 min,
+  // not 5 — SP-API report processing on Amazon's side legitimately
+  // takes 5-10 min for the bigger inventory / orders reports, and we
+  // don't want to false-positive while a report is in flight. We use
+  // the MAX of (BQ table last_modified, orchestrator lastSync stamp,
+  // connectedAt) because either signal "the loader did something
+  // recently" or "the orchestrator stamped recently" means we're not
+  // actually stalled.
+  const stalledMs = 15 * 60_000;
+  const activityCandidates = [status.last_modified, last?.finishedAt, connectedAt]
+    .filter((s): s is string => typeof s === "string" && s.length > 0)
+    .map((s) => new Date(s).getTime())
+    .filter((n) => Number.isFinite(n));
+  const lastActivityMs = activityCandidates.length > 0 ? Math.max(...activityCandidates) : null;
   const isStalled =
-    !isDone &&
-    !isFailed &&
-    lastActivityIso != null &&
-    Date.now() - new Date(lastActivityIso).getTime() > stalledMs;
+    !isDone && !isFailed && lastActivityMs != null && Date.now() - lastActivityMs > stalledMs;
 
   // Show the retry button whenever the sync is in a "stable" state —
   // failed, stalled, or done. Hide while progress is actively landing
