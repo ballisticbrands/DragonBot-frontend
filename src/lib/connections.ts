@@ -112,3 +112,17 @@ export async function getSyncStatus(connectionId: string): Promise<SyncStatus | 
     return null;
   }
 }
+
+/** Kick off a fresh initial-sync batch for an SP-API connection that
+ *  previously failed (or that the user wants to refresh). Returns 202
+ *  on the backend and the orchestrator runs in the background — the
+ *  caller should re-poll getSyncStatus to see progress. */
+export async function triggerResync(connectionId: string): Promise<{ error?: string }> {
+  try {
+    await apiFetch(`/v1/connections/${encodeURIComponent(connectionId)}/sync`, { method: "POST" });
+    return {};
+  } catch (err) {
+    if (err instanceof ApiError) return { error: err.message };
+    return { error: "We couldn't restart the sync. Please try again." };
+  }
+}

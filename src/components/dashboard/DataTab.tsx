@@ -2,7 +2,13 @@ import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { Badge } from "@/components/ui/Badge";
 import { Card, CardBody, CardDescription, CardHeader, CardTitle } from "@/components/ui/Card";
 import { TOOL_DOMAINS } from "@/lib/tools";
-import { listConnections, getSyncStatus, type Connection, type SyncStatus } from "@/lib/connections";
+import {
+  listConnections,
+  getSyncStatus,
+  triggerResync,
+  type Connection,
+  type SyncStatus,
+} from "@/lib/connections";
 import { config } from "@/lib/config";
 import {
   ConnectAmazonAdsButton,
@@ -293,7 +299,30 @@ function SyncProgress({
 }) {
   const [status, setStatus] = useState<SyncStatus | null>(null);
   const [expanded, setExpanded] = useState(false);
+  const [retrying, setRetrying] = useState(false);
+  const [retryError, setRetryError] = useState<string | null>(null);
   const stopRef = useRef(false);
+  const refresh = useCallback(async () => {
+    const s = await getSyncStatus(connectionId);
+    setStatus(s);
+  }, [connectionId]);
+  const handleRetry = useCallback(async () => {
+    setRetrying(true);
+    setRetryError(null);
+    const result = await triggerResync(connectionId);
+    if (result.error) {
+      setRetryError(result.error);
+      setRetrying(false);
+      return;
+    }
+    // Refresh status immediately so the panel reflects the new run;
+    // the polling loop will keep things fresh afterwards.
+    await refresh();
+    // Leave `retrying` on for a short beat so the button text doesn't
+    // flicker back to "Retry sync" before the backend stamps a new
+    // lastSync. The polling loop catches up within ~10s.
+    setTimeout(() => setRetrying(false), 5_000);
+  }, [connectionId, refresh]);
 
   useEffect(() => {
     stopRef.current = false;
@@ -354,23 +383,59 @@ function SyncProgress({
     expected > 0 ? Math.min(100, Math.round((status.tables_with_rows / expected) * 100)) : 0;
   const last = status.last_sync;
   const isDone = expected > 0 && status.tables_with_rows >= expected;
+  const isFailed = last?.status === "failed";
+
+  // "Stalled" — last report was a while ago and nothing's landed
+  // recently. Catches the case where the orchestrator died mid-batch
+  // without stamping a lastSync, leaving the panel apparently mid-
+  // progress forever.
+  const stalledMs = 5 * 60_000;
+  const lastActivityIso = status.last_modified ?? last?.finishedAt ?? connectedAt ?? null;
+  const isStalled =
+    !isDone &&
+    !isFailed &&
+    lastActivityIso != null &&
+    Date.now() - new Date(lastActivityIso).getTime() > stalledMs;
+
+  // Show the retry button whenever the sync is in a "stable" state —
+  // failed, stalled, or done. Hide while progress is actively landing
+  // so people don't accidentally restart a healthy sync.
+  const showRetry = isFailed || isStalled || isDone;
 
   return (
     <div className="mt-4 rounded-md border border-[var(--border)] bg-[var(--surface-muted,transparent)] p-3">
       <div className="flex items-center justify-between gap-3">
         <div className="text-sm font-medium">Sync progress</div>
-        <button
-          type="button"
-          className="text-xs text-[var(--muted-foreground)] hover:underline"
-          onClick={() => setExpanded((v) => !v)}
-        >
-          {expanded ? "Hide details" : "Show details"}
-        </button>
+        <div className="flex items-center gap-3">
+          {showRetry && (
+            <button
+              type="button"
+              className="rounded border border-[var(--border)] px-2 py-0.5 text-xs hover:bg-[var(--border)] disabled:opacity-50"
+              onClick={handleRetry}
+              disabled={retrying}
+            >
+              {retrying ? "Restarting…" : isDone ? "Resync" : "Retry sync"}
+            </button>
+          )}
+          <button
+            type="button"
+            className="text-xs text-[var(--muted-foreground)] hover:underline"
+            onClick={() => setExpanded((v) => !v)}
+          >
+            {expanded ? "Hide details" : "Show details"}
+          </button>
+        </div>
       </div>
 
       <div className="mt-2 h-2 w-full overflow-hidden rounded-full bg-[var(--border)]">
         <div
-          className="h-full bg-[var(--accent,#3b82f6)] transition-all"
+          className={`h-full transition-all ${
+            isFailed
+              ? "bg-[var(--destructive,#dc2626)]"
+              : isStalled
+                ? "bg-[var(--warning,#d97706)]"
+                : "bg-[var(--accent,#3b82f6)]"
+          }`}
           style={{ width: `${progressPct}%` }}
         />
       </div>
@@ -381,25 +446,43 @@ function SyncProgress({
           {status.total_bytes > 0 && ` · ${formatBytes(status.total_bytes)}`}
         </span>
         <span>
-          {isDone
-            ? "Sync complete"
-            : eta
-              ? `~${eta} remaining`
-              : status.tables_with_rows === 0
-                ? "Waiting for first report…"
-                : "Estimating…"}
+          {isFailed
+            ? "Sync failed"
+            : isStalled
+              ? "Sync stalled"
+              : isDone
+                ? "Sync complete"
+                : eta
+                  ? `~${eta} remaining`
+                  : status.tables_with_rows === 0
+                    ? "Waiting for first report…"
+                    : "Estimating…"}
         </span>
       </div>
 
-      {last && (
+      {isFailed && last?.error && (
+        <div className="mt-2 rounded border border-[var(--destructive,#dc2626)] bg-[var(--destructive,#dc2626)]/10 p-2 text-xs">
+          <div className="font-medium text-[var(--destructive,#dc2626)]">
+            Last report failed
+            {last.reportType && (
+              <span className="ml-1 font-mono text-[var(--muted-foreground)]">
+                ({last.reportType})
+              </span>
+            )}
+          </div>
+          <div className="mt-1 break-words text-[var(--muted-foreground)]">{last.error}</div>
+        </div>
+      )}
+
+      {retryError && (
+        <div className="mt-2 text-xs text-[var(--destructive,#dc2626)]">{retryError}</div>
+      )}
+
+      {last && !isFailed && (
         <div className="mt-2 text-xs text-[var(--muted-foreground)]">
           Last report:{" "}
           <span className="font-mono">{last.reportType ?? last.reportTypeId ?? "—"}</span>{" "}
-          {last.status === "succeeded" ? (
-            <Badge tone="success">ok</Badge>
-          ) : (
-            <Badge tone="danger">failed</Badge>
-          )}
+          <Badge tone="success">ok</Badge>
           {last.finishedAt && ` · ${new Date(last.finishedAt).toLocaleTimeString()}`}
           {typeof last.rowsLoaded === "number" && ` · ${last.rowsLoaded.toLocaleString()} rows`}
         </div>
