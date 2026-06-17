@@ -71,3 +71,44 @@ export async function disconnectConnection(id: string): Promise<{ error?: string
     return { error: "We couldn't disconnect this account. Please try again." };
   }
 }
+
+export type SyncStatus = {
+  connection_id: string;
+  provider: "amazon_selling_partner" | "amazon_ads" | string;
+  dataset_id: string;
+  // Most recent per-report sync outcome stamped by runInitialSync.
+  // null until the first report finishes; updates as each report in
+  // the batch lands.
+  last_sync: {
+    reportType?: string;
+    reportTypeId?: string;
+    status: "succeeded" | "failed";
+    rowsLoaded?: number;
+    bytesLoaded?: number;
+    error?: string;
+    reportId?: string;
+    startedAt: string;
+    finishedAt: string;
+  } | null;
+  // Live view of the per-connection BigQuery dataset (`__TABLES__`
+  // metadata — no data scan, no billing).
+  tables: Array<{ name: string; row_count: number; bytes: number; last_modified: string }>;
+  total_rows: number;
+  total_bytes: number;
+  table_count: number;
+  tables_with_rows: number;
+  last_modified: string | null;
+  // Catalog the backend's auto-trigger fans out over. Used to render a
+  // "N of M reports" progress hint.
+  expected_reports: number;
+  marketplace_count: number;
+};
+
+export async function getSyncStatus(connectionId: string): Promise<SyncStatus | null> {
+  try {
+    return await apiFetch<SyncStatus>(`/v1/connections/${encodeURIComponent(connectionId)}/sync-status`);
+  } catch (err) {
+    if (err instanceof ApiError && err.status === 404) return null;
+    return null;
+  }
+}

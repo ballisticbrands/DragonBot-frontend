@@ -1,8 +1,8 @@
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { Badge } from "@/components/ui/Badge";
 import { Card, CardBody, CardDescription, CardHeader, CardTitle } from "@/components/ui/Card";
 import { TOOL_DOMAINS } from "@/lib/tools";
-import { listConnections, type Connection } from "@/lib/connections";
+import { listConnections, getSyncStatus, type Connection, type SyncStatus } from "@/lib/connections";
 import { config } from "@/lib/config";
 import {
   ConnectAmazonAdsButton,
@@ -201,6 +201,7 @@ function SpApiConnectionRow({
           <dt className="text-[var(--muted-foreground)]">Connected</dt>
           <dd>{conn.connected_at ? new Date(conn.connected_at).toLocaleString() : "—"}</dd>
         </dl>
+        <SyncProgress connectionId={conn.id} />
       </div>
       <div className="flex items-center gap-2 self-start">
         <StatusPill status={conn.status} />
@@ -254,6 +255,130 @@ function AdsConnectionRow({
       </div>
     </div>
   );
+}
+
+function SyncProgress({ connectionId }: { connectionId: string }) {
+  const [status, setStatus] = useState<SyncStatus | null>(null);
+  const [expanded, setExpanded] = useState(false);
+  const stopRef = useRef(false);
+
+  useEffect(() => {
+    stopRef.current = false;
+    let timer: ReturnType<typeof setTimeout> | null = null;
+
+    const tick = async () => {
+      const s = await getSyncStatus(connectionId);
+      if (stopRef.current) return;
+      setStatus(s);
+      // Poll faster while the sync is actively progressing (fewer
+      // tables than expected reports), slow down once everything has
+      // landed at least once.
+      const done =
+        s !== null &&
+        s.expected_reports > 0 &&
+        s.tables_with_rows >= s.expected_reports * Math.max(1, s.marketplace_count);
+      const delay = done ? 60_000 : 10_000;
+      timer = setTimeout(tick, delay);
+    };
+
+    void tick();
+    return () => {
+      stopRef.current = true;
+      if (timer) clearTimeout(timer);
+    };
+  }, [connectionId]);
+
+  const expected = useMemo(() => {
+    if (!status) return 0;
+    return status.expected_reports * Math.max(1, status.marketplace_count);
+  }, [status]);
+
+  if (!status) return null;
+
+  const progressPct =
+    expected > 0 ? Math.min(100, Math.round((status.tables_with_rows / expected) * 100)) : 0;
+  const last = status.last_sync;
+
+  return (
+    <div className="mt-4 rounded-md border border-[var(--border)] bg-[var(--surface-muted,transparent)] p-3">
+      <div className="flex items-center justify-between gap-3">
+        <div className="text-sm font-medium">Sync progress</div>
+        <button
+          type="button"
+          className="text-xs text-[var(--muted-foreground)] hover:underline"
+          onClick={() => setExpanded((v) => !v)}
+        >
+          {expanded ? "Hide details" : "Show details"}
+        </button>
+      </div>
+
+      <div className="mt-2 h-2 w-full overflow-hidden rounded-full bg-[var(--border)]">
+        <div
+          className="h-full bg-[var(--accent,#3b82f6)] transition-all"
+          style={{ width: `${progressPct}%` }}
+        />
+      </div>
+      <div className="mt-1 text-xs text-[var(--muted-foreground)]">
+        {status.tables_with_rows} / {expected || "?"} tables populated
+        {status.total_rows > 0 && ` · ${status.total_rows.toLocaleString()} rows`}
+        {status.total_bytes > 0 && ` · ${formatBytes(status.total_bytes)}`}
+      </div>
+
+      {last && (
+        <div className="mt-2 text-xs text-[var(--muted-foreground)]">
+          Last report:{" "}
+          <span className="font-mono">{last.reportType ?? last.reportTypeId ?? "—"}</span>{" "}
+          {last.status === "succeeded" ? (
+            <Badge tone="success">ok</Badge>
+          ) : (
+            <Badge tone="danger">failed</Badge>
+          )}
+          {last.finishedAt && ` · ${new Date(last.finishedAt).toLocaleTimeString()}`}
+          {typeof last.rowsLoaded === "number" && ` · ${last.rowsLoaded.toLocaleString()} rows`}
+        </div>
+      )}
+
+      {expanded && (
+        <div className="mt-3 max-h-64 overflow-auto">
+          {status.tables.length === 0 ? (
+            <p className="text-xs text-[var(--muted-foreground)]">
+              No tables yet. The first report should land within ~10 minutes of connecting.
+            </p>
+          ) : (
+            <table className="w-full text-xs">
+              <thead className="text-left text-[var(--muted-foreground)]">
+                <tr>
+                  <th className="py-1 pr-2 font-normal">Table</th>
+                  <th className="py-1 pr-2 font-normal">Rows</th>
+                  <th className="py-1 pr-2 font-normal">Size</th>
+                  <th className="py-1 font-normal">Updated</th>
+                </tr>
+              </thead>
+              <tbody>
+                {status.tables.map((t) => (
+                  <tr key={t.name} className="border-t border-[var(--border)]">
+                    <td className="py-1 pr-2 font-mono">{t.name}</td>
+                    <td className="py-1 pr-2">{t.row_count.toLocaleString()}</td>
+                    <td className="py-1 pr-2">{formatBytes(t.bytes)}</td>
+                    <td className="py-1 text-[var(--muted-foreground)]">
+                      {new Date(t.last_modified).toLocaleTimeString()}
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          )}
+        </div>
+      )}
+    </div>
+  );
+}
+
+function formatBytes(n: number): string {
+  if (n < 1024) return `${n} B`;
+  if (n < 1024 * 1024) return `${(n / 1024).toFixed(1)} KB`;
+  if (n < 1024 * 1024 * 1024) return `${(n / (1024 * 1024)).toFixed(1)} MB`;
+  return `${(n / (1024 * 1024 * 1024)).toFixed(2)} GB`;
 }
 
 function ConnectedCountBadge({ count }: { count: number }) {
