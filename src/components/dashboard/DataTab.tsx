@@ -383,7 +383,13 @@ function SyncProgress({
     expected > 0 ? Math.min(100, Math.round((status.tables_with_rows / expected) * 100)) : 0;
   const last = status.last_sync;
   const isDone = expected > 0 && status.tables_with_rows >= expected;
-  const isFailed = last?.status === "failed";
+  // `batch_progress` is set while the orchestrator is mid-batch and
+  // cleared when it completes. When it's set, last_sync is just the
+  // most recent slot's outcome — not the batch's verdict — so we
+  // must NOT show "Sync failed" yet even if the last report errored.
+  // The "failed" label only makes sense when the batch is done.
+  const isBatchInFlight = status.batch_progress != null;
+  const isFailed = !isBatchInFlight && last?.status === "failed";
 
   // "Stalled" — nothing landed in a long while. Catches the orchestrator
   // dying mid-batch without stamping a lastSync. Threshold is 15 min,

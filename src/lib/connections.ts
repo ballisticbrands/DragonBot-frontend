@@ -90,6 +90,16 @@ export type SyncStatus = {
     startedAt: string;
     finishedAt: string;
   } | null;
+  // Non-null while an initial-sync batch is actively running. Cleared
+  // by the orchestrator when the batch completes. Used by the UI to
+  // distinguish "retry just started, last_sync is still the OLD
+  // failed stamp" from "batch is genuinely done and last_sync is the
+  // final word."
+  batch_progress: {
+    startedAt: string;
+    nextIndex: number;
+    total: number;
+  } | null;
   // Live view of the per-connection BigQuery dataset (`__TABLES__`
   // metadata — no data scan, no billing).
   tables: Array<{ name: string; row_count: number; bytes: number; last_modified: string }>;
