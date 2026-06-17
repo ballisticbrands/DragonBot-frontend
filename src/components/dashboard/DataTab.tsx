@@ -165,21 +165,47 @@ function SpApiConnectionRow({
     <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
       <div className="flex-1">
         {total > 1 && (
-          <h4 className="mb-2 text-sm font-medium text-[var(--muted-foreground)]">
+          <h4 className="mb-2 text-xs font-medium uppercase tracking-wide text-[var(--muted-foreground)]">
             Account {index}
           </h4>
         )}
-        <dl className="grid grid-cols-2 gap-x-8 gap-y-2 text-sm">
-          {conn.account_name && (
-            <>
-              <dt className="text-[var(--muted-foreground)]">Account</dt>
-              <dd>{conn.account_name}</dd>
-            </>
+
+        {/* Identity block — the three things the user asked us to make
+            primary: store name, seller ID, marketplaces. All three are
+            now sourced directly from credentials.spapi (set by the
+            OAuth callback + the marketplaceParticipations probe), not
+            from Ads cross-pollination. */}
+        <div className="mb-3">
+          <h3 className="text-base font-semibold leading-tight">
+            {conn.account_name ?? <PendingHint />}
+          </h3>
+          {conn.seller_id && (
+            <p className="mt-0.5 font-mono text-xs text-[var(--muted-foreground)]">
+              Seller ID: {conn.seller_id}
+            </p>
           )}
-          <dt className="text-[var(--muted-foreground)]">Marketplaces</dt>
-          <dd>
-            {conn.countries && conn.countries.length > 0 ? conn.countries.join(", ") : <PendingHint />}
-          </dd>
+        </div>
+
+        <div className="mb-3">
+          <p className="mb-1.5 text-xs font-medium uppercase tracking-wide text-[var(--muted-foreground)]">
+            Marketplaces
+          </p>
+          {conn.countries && conn.countries.length > 0 ? (
+            <div className="flex flex-wrap gap-1.5">
+              {conn.countries.map((c) => (
+                <Badge key={c} tone="neutral">
+                  {c}
+                </Badge>
+              ))}
+            </div>
+          ) : (
+            <PendingHint />
+          )}
+        </div>
+
+        {/* Secondary metadata — kept small + dense so the identity
+            block above stays the visual focus. */}
+        <dl className="grid grid-cols-[max-content_1fr] gap-x-4 gap-y-1 text-xs">
           {conn.brands && conn.brands.length > 0 && (
             <>
               <dt className="text-[var(--muted-foreground)]">Brands</dt>
@@ -192,15 +218,16 @@ function SpApiConnectionRow({
               <dd>{conn.currencies.join(", ")}</dd>
             </>
           )}
-          <dt className="text-[var(--muted-foreground)]">Orders synced</dt>
-          <dd>
-            {typeof conn.synced_order_count === "number"
-              ? conn.synced_order_count.toLocaleString()
-              : <PendingHint />}
-          </dd>
+          {typeof conn.synced_order_count === "number" && (
+            <>
+              <dt className="text-[var(--muted-foreground)]">Orders synced</dt>
+              <dd>{conn.synced_order_count.toLocaleString()}</dd>
+            </>
+          )}
           <dt className="text-[var(--muted-foreground)]">Connected</dt>
           <dd>{conn.connected_at ? new Date(conn.connected_at).toLocaleString() : "—"}</dd>
         </dl>
+
         <SyncProgress connectionId={conn.id} />
       </div>
       <div className="flex items-center gap-2 self-start">
