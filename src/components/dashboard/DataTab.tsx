@@ -165,21 +165,47 @@ function SpApiConnectionRow({
     <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
       <div className="flex-1">
         {total > 1 && (
-          <h4 className="mb-2 text-sm font-medium text-[var(--muted-foreground)]">
+          <h4 className="mb-2 text-xs font-medium uppercase tracking-wide text-[var(--muted-foreground)]">
             Account {index}
           </h4>
         )}
-        <dl className="grid grid-cols-2 gap-x-8 gap-y-2 text-sm">
-          {conn.account_name && (
-            <>
-              <dt className="text-[var(--muted-foreground)]">Account</dt>
-              <dd>{conn.account_name}</dd>
-            </>
+
+        {/* Identity block — the three things the user asked us to make
+            primary: store name, seller ID, marketplaces. All three are
+            now sourced directly from credentials.spapi (set by the
+            OAuth callback + the marketplaceParticipations probe), not
+            from Ads cross-pollination. */}
+        <div className="mb-3">
+          <h3 className="text-base font-semibold leading-tight">
+            {conn.account_name ?? <PendingHint />}
+          </h3>
+          {conn.seller_id && (
+            <p className="mt-0.5 font-mono text-xs text-[var(--muted-foreground)]">
+              Seller ID: {conn.seller_id}
+            </p>
           )}
-          <dt className="text-[var(--muted-foreground)]">Marketplaces</dt>
-          <dd>
-            {conn.countries && conn.countries.length > 0 ? conn.countries.join(", ") : <PendingHint />}
-          </dd>
+        </div>
+
+        <div className="mb-3">
+          <p className="mb-1.5 text-xs font-medium uppercase tracking-wide text-[var(--muted-foreground)]">
+            Marketplaces
+          </p>
+          {conn.countries && conn.countries.length > 0 ? (
+            <div className="flex flex-wrap gap-1.5">
+              {conn.countries.map((c) => (
+                <Badge key={c} tone="neutral">
+                  {c}
+                </Badge>
+              ))}
+            </div>
+          ) : (
+            <PendingHint />
+          )}
+        </div>
+
+        {/* Secondary metadata — kept small + dense so the identity
+            block above stays the visual focus. */}
+        <dl className="grid grid-cols-[max-content_1fr] gap-x-4 gap-y-1 text-xs">
           {conn.brands && conn.brands.length > 0 && (
             <>
               <dt className="text-[var(--muted-foreground)]">Brands</dt>
@@ -192,16 +218,17 @@ function SpApiConnectionRow({
               <dd>{conn.currencies.join(", ")}</dd>
             </>
           )}
-          <dt className="text-[var(--muted-foreground)]">Orders synced</dt>
-          <dd>
-            {typeof conn.synced_order_count === "number"
-              ? conn.synced_order_count.toLocaleString()
-              : <PendingHint />}
-          </dd>
+          {typeof conn.synced_order_count === "number" && (
+            <>
+              <dt className="text-[var(--muted-foreground)]">Orders synced</dt>
+              <dd>{conn.synced_order_count.toLocaleString()}</dd>
+            </>
+          )}
           <dt className="text-[var(--muted-foreground)]">Connected</dt>
           <dd>{conn.connected_at ? new Date(conn.connected_at).toLocaleString() : "—"}</dd>
         </dl>
-        <SyncProgress connectionId={conn.id} />
+
+        <SyncProgress connectionId={conn.id} connectedAt={conn.connected_at ?? null} />
       </div>
       <div className="flex items-center gap-2 self-start">
         <StatusPill status={conn.status} />
@@ -257,7 +284,13 @@ function AdsConnectionRow({
   );
 }
 
-function SyncProgress({ connectionId }: { connectionId: string }) {
+function SyncProgress({
+  connectionId,
+  connectedAt,
+}: {
+  connectionId: string;
+  connectedAt: string | null;
+}) {
   const [status, setStatus] = useState<SyncStatus | null>(null);
   const [expanded, setExpanded] = useState(false);
   const stopRef = useRef(false);
@@ -293,11 +326,34 @@ function SyncProgress({ connectionId }: { connectionId: string }) {
     return status.expected_reports * Math.max(1, status.marketplace_count);
   }, [status]);
 
+  // ETA derived from observed throughput since the connection started.
+  // We use `connected_at` (set by the OAuth callback) as t0 — it's the
+  // closest stable signal we have to "sync started". Once at least one
+  // table has landed, rate = completed / elapsed; remaining time =
+  // (expected - completed) / rate. We only show the estimate after the
+  // second table lands so the rate isn't dominated by Amazon's
+  // ~minute-long first-report cold start.
+  const eta = useMemo(() => {
+    if (!status || !connectedAt || expected === 0) return null;
+    const completed = status.tables_with_rows;
+    if (completed >= expected) return null;
+    if (completed < 2) return null;
+    const startedMs = new Date(connectedAt).getTime();
+    if (!Number.isFinite(startedMs)) return null;
+    const elapsedMs = Date.now() - startedMs;
+    if (elapsedMs <= 0) return null;
+    const ratePerMs = completed / elapsedMs;
+    if (ratePerMs <= 0) return null;
+    const remainingMs = (expected - completed) / ratePerMs;
+    return formatDuration(remainingMs);
+  }, [status, connectedAt, expected]);
+
   if (!status) return null;
 
   const progressPct =
     expected > 0 ? Math.min(100, Math.round((status.tables_with_rows / expected) * 100)) : 0;
   const last = status.last_sync;
+  const isDone = expected > 0 && status.tables_with_rows >= expected;
 
   return (
     <div className="mt-4 rounded-md border border-[var(--border)] bg-[var(--surface-muted,transparent)] p-3">
@@ -318,10 +374,21 @@ function SyncProgress({ connectionId }: { connectionId: string }) {
           style={{ width: `${progressPct}%` }}
         />
       </div>
-      <div className="mt-1 text-xs text-[var(--muted-foreground)]">
-        {status.tables_with_rows} / {expected || "?"} tables populated
-        {status.total_rows > 0 && ` · ${status.total_rows.toLocaleString()} rows`}
-        {status.total_bytes > 0 && ` · ${formatBytes(status.total_bytes)}`}
+      <div className="mt-1 flex flex-wrap items-center justify-between gap-x-3 text-xs text-[var(--muted-foreground)]">
+        <span>
+          {status.tables_with_rows} / {expected || "?"} tables populated
+          {status.total_rows > 0 && ` · ${status.total_rows.toLocaleString()} rows`}
+          {status.total_bytes > 0 && ` · ${formatBytes(status.total_bytes)}`}
+        </span>
+        <span>
+          {isDone
+            ? "Sync complete"
+            : eta
+              ? `~${eta} remaining`
+              : status.tables_with_rows === 0
+                ? "Waiting for first report…"
+                : "Estimating…"}
+        </span>
       </div>
 
       {last && (
@@ -379,6 +446,17 @@ function formatBytes(n: number): string {
   if (n < 1024 * 1024) return `${(n / 1024).toFixed(1)} KB`;
   if (n < 1024 * 1024 * 1024) return `${(n / (1024 * 1024)).toFixed(1)} MB`;
   return `${(n / (1024 * 1024 * 1024)).toFixed(2)} GB`;
+}
+
+function formatDuration(ms: number): string {
+  if (!Number.isFinite(ms) || ms < 0) return "—";
+  const sec = Math.round(ms / 1000);
+  if (sec < 60) return `${Math.max(sec, 1)} sec`;
+  const min = Math.round(sec / 60);
+  if (min < 60) return `${min} min`;
+  const hr = Math.floor(min / 60);
+  const remMin = min % 60;
+  return remMin > 0 ? `${hr} hr ${remMin} min` : `${hr} hr`;
 }
 
 function ConnectedCountBadge({ count }: { count: number }) {
