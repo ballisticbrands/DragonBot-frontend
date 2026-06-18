@@ -259,28 +259,62 @@ function AdsConnectionRow({
     <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
       <div className="flex-1">
         {total > 1 && (
-          <h4 className="mb-2 text-sm font-medium text-[var(--muted-foreground)]">
+          <h4 className="mb-2 text-xs font-medium uppercase tracking-wide text-[var(--muted-foreground)]">
             Account {index}
           </h4>
         )}
-        <dl className="grid grid-cols-2 gap-x-8 gap-y-2 text-sm">
-          <dt className="text-[var(--muted-foreground)]">Account</dt>
-          <dd>{conn.account_name ?? <PendingHint />}</dd>
-          <dt className="text-[var(--muted-foreground)]">Account type</dt>
-          <dd className="capitalize">{conn.account_type ?? <PendingHint />}</dd>
-          <dt className="text-[var(--muted-foreground)]">Profiles</dt>
-          <dd>
-            {conn.profile_ids && conn.profile_ids.length > 0
-              ? `${conn.profile_ids.length}${
-                  conn.countries && conn.countries.length > 0
-                    ? ` (${conn.countries.join(", ")})`
-                    : ""
-                }`
-              : <PendingHint />}
-          </dd>
+
+        {/* Identity block — same layout as SP-API. account_name comes
+            from credentials.ads.profiles[0].accountName; seller_id is
+            populated only when all profiles agree on one merchant
+            token (vendor / agency profiles legitimately have no
+            sellerId, so the row hides when null). */}
+        <div className="mb-3">
+          <h3 className="text-base font-semibold leading-tight">
+            {conn.account_name ?? <PendingHint />}
+          </h3>
+          {conn.seller_id && (
+            <p className="mt-0.5 font-mono text-xs text-[var(--muted-foreground)]">
+              Seller ID: {conn.seller_id}
+            </p>
+          )}
+        </div>
+
+        <div className="mb-3">
+          <p className="mb-1.5 text-xs font-medium uppercase tracking-wide text-[var(--muted-foreground)]">
+            Marketplaces
+          </p>
+          {conn.countries && conn.countries.length > 0 ? (
+            <div className="flex flex-wrap gap-1.5">
+              {conn.countries.map((c) => (
+                <Badge key={c} tone="neutral">
+                  {c}
+                </Badge>
+              ))}
+            </div>
+          ) : (
+            <PendingHint />
+          )}
+        </div>
+
+        <dl className="grid grid-cols-[max-content_1fr] gap-x-4 gap-y-1 text-xs">
+          {conn.account_type && (
+            <>
+              <dt className="text-[var(--muted-foreground)]">Account type</dt>
+              <dd className="capitalize">{conn.account_type}</dd>
+            </>
+          )}
+          {conn.profile_ids && conn.profile_ids.length > 0 && (
+            <>
+              <dt className="text-[var(--muted-foreground)]">Profiles</dt>
+              <dd>{conn.profile_ids.length}</dd>
+            </>
+          )}
           <dt className="text-[var(--muted-foreground)]">Connected</dt>
           <dd>{conn.connected_at ? new Date(conn.connected_at).toLocaleString() : "—"}</dd>
         </dl>
+
+        <SyncProgress connectionId={conn.id} connectedAt={conn.connected_at ?? null} />
       </div>
       <div className="flex items-center gap-2 self-start">
         <StatusPill status={conn.status} />
