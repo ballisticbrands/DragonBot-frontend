@@ -10,8 +10,8 @@ export const config = {
   mcpUrl: import.meta.env.VITE_MCP_URL ?? "https://api.getdragonbot.com/mcp",
   // This frontend's own public URL — used for OAuth popup target_origin checks.
   appUrl: import.meta.env.VITE_APP_URL ?? "https://app.getdragonbot.com",
-  // Documentation home.
-  docsUrl: import.meta.env.VITE_DOCS_URL ?? "https://github.com/ballisticbrands/DragonBot/blob/main/README.md",
+  // Documentation home. Served by this same SPA under /docs.
+  docsUrl: import.meta.env.VITE_DOCS_URL ?? "/docs",
   // Brand. Surfaced in titles, headers, and the OAuth-popup postMessage type
   // (the backend sends `${tenantId}-oauth-result` per config/tenants/dragonbot.json).
   brand: {

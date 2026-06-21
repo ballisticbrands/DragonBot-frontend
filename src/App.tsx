@@ -9,6 +9,8 @@ import { SignIn } from "@/pages/SignIn";
 import { SignUp } from "@/pages/SignUp";
 import { ForgotPassword } from "@/pages/ForgotPassword";
 import { Dashboard } from "@/pages/Dashboard";
+import { Docs } from "@/pages/Docs";
+import { defaultDoc } from "@/docs/registry";
 
 export default function App() {
   // Update document title on route change so each page has a sensible
@@ -58,6 +60,8 @@ export default function App() {
           </AppLayout>
         }
       />
+      <Route path="/docs" element={<Navigate to={`/docs/${defaultDoc.slug}`} replace />} />
+      <Route path="/docs/:slug" element={<Docs />} />
       <Route path="*" element={<Navigate to="/" replace />} />
     </Routes>
   );

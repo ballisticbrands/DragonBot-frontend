@@ -35,7 +35,7 @@ export function AppLayout({ children }: { children: React.ReactNode }) {
                 Dashboard
               </Link>
               <a
-                href={config.docsUrl}
+                href="/docs"
                 className="text-[var(--muted-foreground)] hover:text-[var(--foreground)]"
                 target="_blank"
                 rel="noreferrer"
