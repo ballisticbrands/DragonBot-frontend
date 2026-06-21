@@ -1,6 +1,7 @@
 import { Link } from "react-router-dom";
 import { Screenshot } from "@/docs/components/Screenshot";
 import { Callout } from "@/docs/components/Callout";
+import { TableOfContents } from "@/docs/components/TableOfContents";
 
 // Getting started — walks a new user from account creation through
 // connecting Amazon and wiring DragonBot into their AI client. Steps mirror
@@ -17,8 +18,16 @@ export function GettingStarted() {
         with. The whole thing takes a few minutes.
       </p>
 
+      <TableOfContents
+        items={[
+          { id: "create-account", label: "Create your DragonBot account" },
+          { id: "connect-amazon", label: "Connect your Amazon accounts" },
+          { id: "connect-ai", label: "Connect DragonBot to your AI" },
+        ]}
+      />
+
       {/* ---------------------------------------------------------------- */}
-      <h2>1. Create your DragonBot account</h2>
+      <h2 id="create-account">1. Create your DragonBot account</h2>
       <p>
         Head to the <Link to="/sign-up">sign-up page</Link> and create your
         account. You'll start a free 7-day trial — no credit card required.
@@ -36,7 +45,7 @@ export function GettingStarted() {
       />
 
       {/* ---------------------------------------------------------------- */}
-      <h2>2. Connect your Amazon accounts</h2>
+      <h2 id="connect-amazon">2. Connect your Amazon accounts</h2>
       <p>
         DragonBot reads your Amazon data through official Amazon APIs. From your
         dashboard, open the <strong>Data</strong> tab to connect your accounts.
@@ -88,7 +97,7 @@ export function GettingStarted() {
       </Callout>
 
       {/* ---------------------------------------------------------------- */}
-      <h2>3. Connect DragonBot to your AI</h2>
+      <h2 id="connect-ai">3. Connect DragonBot to your AI</h2>
       <p>
         DragonBot works as an <strong>MCP server</strong> — it plugs into AI
         clients like Claude so your assistant can pull live data from your
