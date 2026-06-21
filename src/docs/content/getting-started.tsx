@@ -110,8 +110,6 @@ export function GettingStarted() {
           We recommend starting with{" "}
           <strong>Claude's FREE plan</strong> — it supports custom connectors at
           no cost.{" "}
-          {/* NOTE: this guide doesn't exist yet — create it, then this link
-              resolves. Until then it falls back to this page. */}
           <Link to="/docs/getting-started-with-claude">
             Follow our guide to getting started with Claude →
           </Link>

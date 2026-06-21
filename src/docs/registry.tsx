@@ -1,5 +1,6 @@
 import type { ReactNode } from "react";
 import { GettingStarted } from "@/docs/content/getting-started";
+import { GettingStartedWithClaude } from "@/docs/content/getting-started-with-claude";
 
 // A single documentation page. `slug` is the URL segment under /docs,
 // `title` shows in the sidebar + browser tab, and `Content` renders the
@@ -21,6 +22,12 @@ export const docs: Doc[] = [
     title: "Getting started",
     description: "Set up DragonBot and connect your first AI agent.",
     Content: GettingStarted,
+  },
+  {
+    slug: "getting-started-with-claude",
+    title: "Getting started with Claude",
+    description: "Create a free Claude account and connect DragonBot to it.",
+    Content: GettingStartedWithClaude,
   },
 ];
 
