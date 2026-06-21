@@ -1,47 +1,173 @@
-// Getting started — placeholder content. Replace the prose below with the
-// real onboarding walkthrough. Authored as semantic HTML; the .docs-prose
-// wrapper (applied by DocsLayout) handles all typographic styling.
+import { Link } from "react-router-dom";
+import { Screenshot } from "@/docs/components/Screenshot";
+import { Callout } from "@/docs/components/Callout";
+
+// Getting started — walks a new user from account creation through
+// connecting Amazon and wiring DragonBot into their AI client. Steps mirror
+// the real app UI (sign-up form, Dashboard → Data tab, Dashboard → Keys
+// tab). Swap the <Screenshot> placeholders for real images by dropping
+// files into public/docs/screenshots/ and passing a `src`.
 export function GettingStarted() {
   return (
     <>
       <h1>Getting started</h1>
       <p className="lead">
-        Welcome to the DragonBot documentation. This guide will walk you through
-        setting up DragonBot and connecting your first AI agent.
+        Set up DragonBot in three steps: create your account, connect your
+        Amazon Seller and Ads accounts, and link DragonBot to the AI you chat
+        with. The whole thing takes a few minutes.
       </p>
 
+      {/* ---------------------------------------------------------------- */}
+      <h2>1. Create your DragonBot account</h2>
       <p>
-        <em>
-          This page is a placeholder. Real content is coming soon — the sections
-          below outline what this guide will cover.
-        </em>
+        Head to the <Link to="/sign-up">sign-up page</Link> and create your
+        account. You'll start a free 7-day trial — no credit card required.
       </p>
+      <ol>
+        <li>Enter your name, work email, and a password (at least 8 characters).</li>
+        <li>
+          Click <strong>Create account</strong>. You'll land straight on your
+          dashboard.
+        </li>
+      </ol>
+      <Screenshot
+        alt="The DragonBot sign-up form — name, work email, and password fields with a Create account button."
+        caption="The sign-up form at app.getdragonbot.com/sign-up"
+      />
 
-      <h2>1. Create your account</h2>
+      {/* ---------------------------------------------------------------- */}
+      <h2>2. Connect your Amazon accounts</h2>
       <p>
-        Sign in to your DragonBot dashboard to get started. From there you can
-        mint scoped API keys and connect your Amazon Seller Central account.
+        DragonBot reads your Amazon data through official Amazon APIs. From your
+        dashboard, open the <strong>Data</strong> tab to connect your accounts.
       </p>
 
-      <h2>2. Mint an API key</h2>
+      <h3>Connect Amazon Seller Central</h3>
+      <ol>
+        <li>
+          In the <strong>Amazon Seller Central</strong> card, click{" "}
+          <strong>Connect Amazon Seller Central account</strong>.
+        </li>
+        <li>
+          A secure Amazon window opens. Sign in and authorize DragonBot to read
+          your Seller Central data (SP-API).
+        </li>
+        <li>
+          When you're done, the window closes and your account appears in the
+          card. You can connect multiple seller accounts.
+        </li>
+      </ol>
+      <Screenshot
+        alt="The Data tab showing the Amazon Seller Central card with a Connect Amazon Seller Central account button."
+        caption="Dashboard → Data → Amazon Seller Central"
+      />
+
+      <h3>Connect Amazon Ads</h3>
+      <ol>
+        <li>
+          In the <strong>Amazon Ads</strong> card, click{" "}
+          <strong>Connect Amazon Ads account</strong>.
+        </li>
+        <li>
+          Authorize DragonBot in the Amazon window that opens. You can connect
+          multiple ads accounts here too.
+        </li>
+      </ol>
+      <Screenshot
+        alt="The Data tab showing the Amazon Ads card with a Connect Amazon Ads account button."
+        caption="Dashboard → Data → Amazon Ads"
+      />
+
+      <Callout title="Your data is syncing">
+        <p>
+          After you connect, DragonBot begins pulling your historical data in
+          the background. The first reports usually land within ~10 minutes, and
+          each connection shows a live <strong>Sync progress</strong> bar. You
+          don't need to wait for it to finish before moving on.
+        </p>
+      </Callout>
+
+      {/* ---------------------------------------------------------------- */}
+      <h2>3. Connect DragonBot to your AI</h2>
       <p>
-        Generate a scoped API key from the dashboard. This key authorizes your AI
-        agent to talk to your DragonBot instance.
+        DragonBot works as an <strong>MCP server</strong> — it plugs into AI
+        clients like Claude so your assistant can pull live data from your
+        Amazon accounts. To connect, you'll create an API key and add it to your
+        AI client.
       </p>
 
-      <h2>3. Connect your agent</h2>
+      <Callout title="Not using AI yet?">
+        <p>
+          We recommend starting with{" "}
+          <strong>Claude's FREE plan</strong> — it supports custom connectors at
+          no cost.{" "}
+          {/* NOTE: this guide doesn't exist yet — create it, then this link
+              resolves. Until then it falls back to this page. */}
+          <Link to="/docs/getting-started-with-claude">
+            Follow our guide to getting started with Claude →
+          </Link>
+        </p>
+      </Callout>
+
+      <h3>Create an API key</h3>
+      <ol>
+        <li>
+          From your dashboard, open the <strong>Keys</strong> tab and click{" "}
+          <strong>Create key</strong>.
+        </li>
+        <li>
+          Give the key a name that describes where you'll use it (for example,{" "}
+          <code>claude-desktop</code>), and choose which tool scopes it can
+          access.
+        </li>
+        <li>
+          Click <strong>Create key</strong>. DragonBot shows your{" "}
+          <strong>API key</strong> and an <strong>MCP connector URL</strong>.
+        </li>
+      </ol>
+
+      <Callout tone="warn" title="Copy your key now">
+        <p>
+          This is the only time the full key is shown. Copy it somewhere safe
+          before you dismiss the banner — you can always revoke it and create a
+          new one if you lose it.
+        </p>
+      </Callout>
+
+      <Screenshot
+        alt="The Keys tab after creating a key, showing the API key and MCP connector URL with copy buttons."
+        caption="Dashboard → Keys → Create key"
+      />
+
+      <h3>Add it to your AI client</h3>
       <p>
-        Point Claude, ChatGPT, or Cursor at your DragonBot MCP endpoint using the
-        key you just created. Once connected, your agent can query Seller Central
-        and Amazon Advertising data on your behalf.
+        In your MCP client (such as Claude), add a new custom connector and paste
+        in the values DragonBot gave you:
       </p>
-
-      <h2>Next steps</h2>
       <ul>
-        <li>Explore the available MCP tools.</li>
-        <li>Review usage and billing in your dashboard.</li>
-        <li>Reach out to support if you get stuck.</li>
+        <li>
+          <strong>MCP connector URL</strong> — the server address your AI
+          connects to.
+        </li>
+        <li>
+          <strong>API key</strong> — provide this when the client asks for
+          authentication.
+        </li>
       </ul>
+      <p>
+        Once the connector is added, your AI can query your Amazon Seller and Ads
+        data on demand. Try asking it something like{" "}
+        <em>"What were my best-selling products last week?"</em> to confirm the
+        connection works.
+      </p>
+
+      <Callout title="You're all set">
+        <p>
+          That's it — your account is live, your Amazon data is syncing, and your
+          AI is connected. From here you can add more accounts or mint
+          additional scoped keys any time from your dashboard.
+        </p>
+      </Callout>
     </>
   );
 }

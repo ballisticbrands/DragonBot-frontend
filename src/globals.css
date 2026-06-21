@@ -83,6 +83,15 @@ body {
   padding-left: 1.5rem;
 }
 
+/* Tailwind's preflight strips list markers; restore them for doc prose. */
+.docs-prose ul {
+  list-style: disc;
+}
+
+.docs-prose ol {
+  list-style: decimal;
+}
+
 .docs-prose li {
   margin: 0.35rem 0;
 }
