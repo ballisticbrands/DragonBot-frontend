@@ -420,17 +420,31 @@ function SyncProgress({
 
   if (!status) return null;
 
-  const progressPct =
-    expected > 0 ? Math.min(100, Math.round((status.tables_with_rows / expected) * 100)) : 0;
   const last = status.last_sync;
-  const isDone = expected > 0 && status.tables_with_rows >= expected;
   // `batch_progress` is set while the orchestrator is mid-batch and
-  // cleared when it completes. When it's set, last_sync is just the
-  // most recent slot's outcome — not the batch's verdict — so we
-  // must NOT show "Sync failed" yet even if the last report errored.
-  // The "failed" label only makes sense when the batch is done.
+  // cleared when it completes. We use it (not table-population
+  // counts) as the source-of-truth for "is the sync done":
+  // many reports legitimately return empty data (seller has no
+  // stranded inventory, no FBA in some markets, no ad activity in
+  // a profile, etc.) so populated_tables < expected is the steady
+  // state for almost every account. "Done" means the orchestrator
+  // walked every catalog slot, regardless of whether each slot
+  // produced rows.
   const isBatchInFlight = status.batch_progress != null;
+  const isDone = !isBatchInFlight;
   const isFailed = !isBatchInFlight && last?.status === "failed";
+
+  // While a batch is running, show progress based on slots processed
+  // (batchProgress.nextIndex / total). Once finished, the bar is
+  // pinned at 100% — the populated-tables number is informational.
+  const bp = status.batch_progress;
+  const progressPct = isDone
+    ? 100
+    : bp && bp.total > 0
+      ? Math.min(100, Math.round((bp.nextIndex / bp.total) * 100))
+      : expected > 0
+        ? Math.min(100, Math.round((status.tables_with_rows / expected) * 100))
+        : 0;
 
   // "Stalled" — nothing landed in a long while. Catches the orchestrator
   // dying mid-batch without stamping a lastSync. Threshold is 15 min,
@@ -494,7 +508,11 @@ function SyncProgress({
       </div>
       <div className="mt-1 flex flex-wrap items-center justify-between gap-x-3 text-xs text-[var(--muted-foreground)]">
         <span>
-          {status.tables_with_rows} / {expected || "?"} tables populated
+          {isDone && bp == null
+            ? `${status.tables_with_rows} table${status.tables_with_rows === 1 ? "" : "s"} with data`
+            : bp
+              ? `${bp.nextIndex} / ${bp.total} reports processed`
+              : `${status.tables_with_rows} / ${expected || "?"} tables populated`}
           {status.total_rows > 0 && ` · ${status.total_rows.toLocaleString()} rows`}
           {status.total_bytes > 0 && ` · ${formatBytes(status.total_bytes)}`}
         </span>
@@ -507,7 +525,7 @@ function SyncProgress({
                 ? "Sync complete"
                 : eta
                   ? `~${eta} remaining`
-                  : status.tables_with_rows === 0
+                  : bp && bp.nextIndex === 0
                     ? "Waiting for first report…"
                     : "Estimating…"}
         </span>
