@@ -371,8 +371,8 @@ function SyncProgress({
       // landed at least once.
       const done =
         s !== null &&
-        s.expected_reports > 0 &&
-        s.tables_with_rows >= s.expected_reports * Math.max(1, s.marketplace_count);
+        s.expected_tables > 0 &&
+        s.tables_with_rows >= s.expected_tables;
       const delay = done ? 60_000 : 10_000;
       timer = setTimeout(tick, delay);
     };
@@ -386,6 +386,13 @@ function SyncProgress({
 
   const expected = useMemo(() => {
     if (!status) return 0;
+    // expected_tables is the precise ceiling the backend computes
+    // (handles multi-marketplace reports + agency-profile skipping).
+    // Falls back to the legacy product for older backend versions
+    // that don't surface expected_tables yet.
+    if (typeof status.expected_tables === "number" && status.expected_tables > 0) {
+      return status.expected_tables;
+    }
     return status.expected_reports * Math.max(1, status.marketplace_count);
   }, [status]);
 

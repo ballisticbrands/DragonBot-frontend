@@ -112,6 +112,11 @@ export type SyncStatus = {
   // "N of M reports" progress hint.
   expected_reports: number;
   marketplace_count: number;
+  // True ceiling for "tables that should land" — already accounts for
+  // multi-marketplace reports (1 table not N) and agency-profile
+  // filtering on the Ads side. Use this instead of
+  // expected_reports × marketplace_count for the dashboard denominator.
+  expected_tables: number;
 };
 
 export async function getSyncStatus(connectionId: string): Promise<SyncStatus | null> {
