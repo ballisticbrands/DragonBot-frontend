@@ -4,8 +4,10 @@
 
 import { ApiError, apiFetch } from "./api";
 import { clearSessionToken, setSessionToken } from "./session";
+import { identifyUserAcrossPlatforms, readAttribution } from "./attribution";
 
 type TokenResponse = { token: string; expires_in?: number };
+type MeResponse = { id: string; email: string; name?: string };
 
 async function exchange(path: string, payload: Record<string, unknown>): Promise<{ error?: string }> {
   try {
@@ -16,6 +18,20 @@ async function exchange(path: string, payload: Record<string, unknown>): Promise
     });
     if (!token) return { error: "Something went wrong. Please try again." };
     setSessionToken(token);
+
+    // Fire-and-forget: fetch the user id + broadcast it into GA4 /
+    // Clarity / Meta so future sessions from this user cross-reference
+    // back to the account. Failures are silent — attribution is best-
+    // effort and shouldn't block the sign-in/up flow.
+    void (async () => {
+      try {
+        const me = await apiFetch<MeResponse>("/v1/auth/me");
+        if (me?.id) identifyUserAcrossPlatforms(me.id);
+      } catch {
+        /* ignored — best-effort */
+      }
+    })();
+
     return {};
   } catch (err) {
     if (err instanceof ApiError) return { error: err.message };
@@ -36,7 +52,12 @@ export async function signUp(
 ): Promise<{ error?: string }> {
   if (!email || !password) return { error: "Email and password are required." };
   if (password.length < 8) return { error: "Password must be at least 8 characters." };
-  return exchange("/v1/auth/sign-up", { email, password, name });
+  // First-touch attribution: reads the blob localStorage stashed on the
+  // visitor's first landing (see src/lib/attribution.ts + main.tsx).
+  // Backend accepts it under `attribution` in the body; undefined =
+  // omit-the-field (matches an all-null attribution snapshot).
+  const attribution = readAttribution();
+  return exchange("/v1/auth/sign-up", { email, password, name, attribution });
 }
 
 export async function requestPasswordReset(email: string): Promise<{ error?: string }> {
