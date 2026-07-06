@@ -63,29 +63,6 @@ export function captureAttribution(): void {
   try {
     if (typeof window === "undefined") return; // SSR guard
 
-    // TEMP DIAGNOSTIC (added 2026-07-06) — persist the raw browser
-    // state at capture time so we can debug mis-attributed test
-    // signups. Survives navigation to /dashboard. Read back in
-    // DevTools console:
-    //   JSON.parse(localStorage.getItem('dragonbot_attribution_debug'))
-    // Delete this block once the root cause is found.
-    try {
-      const trace = {
-        at: new Date().toISOString(),
-        url: window.location.href,
-        pathname: window.location.pathname,
-        search: window.location.search,
-        referrer: document.referrer,
-        cookie: document.cookie,
-        session_spa_redirect: sessionStorage.getItem("spa-redirect"),
-        existing_ls: localStorage.getItem(STORAGE_KEY),
-      };
-      localStorage.setItem(
-        "dragonbot_attribution_debug",
-        JSON.stringify(trace, null, 2),
-      );
-    } catch { /* diagnostic best-effort */ }
-
     // First-touch semantics — but the correct semantics are "first
     // ATTRIBUTED touch", not "first touch at all." If the stored blob
     // has no UTMs and no click IDs, an earlier visit locked in a
