@@ -62,7 +62,23 @@ export interface Attribution {
 export function captureAttribution(): void {
   try {
     if (typeof window === "undefined") return; // SSR guard
-    if (localStorage.getItem(STORAGE_KEY)) return; // first-touch: already captured
+
+    // First-touch semantics — but the correct semantics are "first
+    // ATTRIBUTED touch", not "first touch at all." If the stored blob
+    // has no UTMs and no click IDs, an earlier visit locked in a
+    // blank / direct attribution — we let a later visit with a real
+    // signal overwrite it. Otherwise a user who bookmarked us first
+    // and later returned via a real campaign would be permanently
+    // stuck as "direct."
+    const existing = localStorage.getItem(STORAGE_KEY);
+    if (existing) {
+      try {
+        const parsed = JSON.parse(existing) as Attribution;
+        if (hasAttributionSignal(parsed)) return; // real first-touch — respect it
+      } catch {
+        // malformed stored blob — treat as fresh capture
+      }
+    }
 
     const params = new URLSearchParams(window.location.search);
     const blob: Attribution = { captured_at: new Date().toISOString() };
@@ -111,6 +127,25 @@ export function captureAttribution(): void {
     // third-party cookies with strict site isolation). Attribution is
     // best-effort — silently skip.
   }
+}
+
+/**
+ * True when a stored / candidate attribution blob has any real
+ * campaign / click-id signal. Used to decide whether first-touch
+ * should lock in — a blob with only landing_page + referrer isn't
+ * enough to shadow a later, properly-attributed visit.
+ */
+function hasAttributionSignal(a: Attribution): boolean {
+  return !!(
+    a.utm_source ||
+    a.utm_medium ||
+    a.utm_campaign ||
+    a.utm_content ||
+    a.utm_term ||
+    a.gclid ||
+    a.fbclid ||
+    a.msclkid
+  );
 }
 
 /**
