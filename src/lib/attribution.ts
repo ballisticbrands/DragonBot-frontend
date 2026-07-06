@@ -63,10 +63,12 @@ export function captureAttribution(): void {
   try {
     if (typeof window === "undefined") return; // SSR guard
 
-    // TEMP DIAGNOSTIC — remove after debugging the attribution flow
-    // (added 2026-07-06; two consecutive test signups mis-attributed
-    // despite the SPA-fallback fix). Persists to localStorage so the
-    // trace survives navigation into /dashboard after sign-up.
+    // TEMP DIAGNOSTIC (added 2026-07-06) — persist the raw browser
+    // state at capture time so we can debug mis-attributed test
+    // signups. Survives navigation to /dashboard. Read back in
+    // DevTools console:
+    //   JSON.parse(localStorage.getItem('dragonbot_attribution_debug'))
+    // Delete this block once the root cause is found.
     try {
       const trace = {
         at: new Date().toISOString(),
