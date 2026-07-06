@@ -16,6 +16,14 @@
 
 const STORAGE_KEY = "dragonbot_attribution_v1";
 
+// Companion cookie written by getdragonbot.com (the marketing site).
+// Same schema, but URL-encoded key=value&…&… so cookies play nice.
+// Domain=.getdragonbot.com means the LP writes it and the app can
+// read it — used as a fallback when the visitor navigated LP → app
+// but the URL params got dropped somewhere (e.g. an explicit link
+// without ?utm_… on it, or SPA-fallback URL rewriting).
+const COOKIE_NAME = "dragonbot_attribution";
+
 // GA4 measurement ID — kept in sync with the gtag('config', …) call in
 // index.html. Change both if you rotate the property.
 const GA4_MEASUREMENT_ID = "G-W5BRXVBQNR";
@@ -60,13 +68,34 @@ export function captureAttribution(): void {
     const params = new URLSearchParams(window.location.search);
     const blob: Attribution = { captured_at: new Date().toISOString() };
 
+    let urlHadAttribution = false;
     for (const k of UTM_KEYS) {
       const v = params.get(k);
-      if (v) blob[k] = v.slice(0, 256);
+      if (v) {
+        blob[k] = v.slice(0, 256);
+        urlHadAttribution = true;
+      }
     }
     for (const k of CLICK_ID_KEYS) {
       const v = params.get(k);
-      if (v) blob[k] = v.slice(0, 256);
+      if (v) {
+        blob[k] = v.slice(0, 256);
+        urlHadAttribution = true;
+      }
+    }
+
+    // Cookie fallback: if the URL didn't carry attribution but the LP
+    // (getdragonbot.com) previously did — its initAttribution wrote
+    // the values to a .getdragonbot.com-scoped cookie. Read that as a
+    // secondary source so we don't lose the visitor's real source when
+    // GitHub Pages' SPA fallback strips the URL query, when a link on
+    // the marketing site was untagged, or when a Sign Up button
+    // bypassed the click-rewrite path.
+    if (!urlHadAttribution) {
+      const cookieAttr = readCookieAttribution();
+      for (const [k, v] of Object.entries(cookieAttr)) {
+        (blob as Record<string, string>)[k] = v;
+      }
     }
 
     const referrer = document.referrer;
@@ -83,6 +112,33 @@ export function captureAttribution(): void {
     // localStorage disabled (Safari private mode, storage-full, blocked
     // third-party cookies with strict site isolation). Attribution is
     // best-effort — silently skip.
+  }
+}
+
+/**
+ * Parse UTMs + click IDs from the `.getdragonbot.com`-scoped
+ * `dragonbot_attribution` cookie written by the LP. Returns an empty
+ * object if the cookie is absent or malformed.
+ */
+function readCookieAttribution(): Partial<Attribution> {
+  try {
+    const match = document.cookie.match(
+      new RegExp("(?:^|; )" + COOKIE_NAME + "=([^;]*)"),
+    );
+    if (!match) return {};
+    const params = new URLSearchParams(decodeURIComponent(match[1]!));
+    const out: Partial<Attribution> = {};
+    for (const k of UTM_KEYS) {
+      const v = params.get(k);
+      if (v) out[k] = v.slice(0, 256);
+    }
+    for (const k of CLICK_ID_KEYS) {
+      const v = params.get(k);
+      if (v) out[k] = v.slice(0, 256);
+    }
+    return out;
+  } catch {
+    return {};
   }
 }
 
