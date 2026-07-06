@@ -16,7 +16,7 @@ import "./globals.css";
 // window.location, and captureAttribution reads window.location.search
 // to snapshot UTMs. If capture runs first it sees `/` (no UTMs) and
 // mis-attributes the visitor as a direct landing. Ordering bug caught
-// in prod 2026-07-06 on the first end-to-end test.
+// on the first end-to-end attribution test 2026-07-06.
 const redirectPath = sessionStorage.getItem("spa-redirect");
 if (redirectPath && redirectPath !== "/") {
   sessionStorage.removeItem("spa-redirect");

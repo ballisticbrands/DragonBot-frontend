@@ -16,12 +16,11 @@
 
 const STORAGE_KEY = "dragonbot_attribution_v1";
 
-// Companion cookie written by getdragonbot.com (the marketing site).
-// Same schema, but URL-encoded key=value&…&… so cookies play nice.
-// Domain=.getdragonbot.com means the LP writes it and the app can
-// read it — used as a fallback when the visitor navigated LP → app
-// but the URL params got dropped somewhere (e.g. an explicit link
-// without ?utm_… on it, or SPA-fallback URL rewriting).
+// Companion cookie written by getdragonbot.com (LP's initAttribution).
+// Domain=.getdragonbot.com means the LP writes it and the app can read
+// it — used as a fallback when the visitor navigated LP → app but the
+// URL params got dropped somewhere (e.g. an explicit link without
+// ?utm_… on it, or the GH-Pages SPA-fallback stripping the query).
 const COOKIE_NAME = "dragonbot_attribution";
 
 // GA4 measurement ID — kept in sync with the gtag('config', …) call in
@@ -88,9 +87,8 @@ export function captureAttribution(): void {
     // (getdragonbot.com) previously did — its initAttribution wrote
     // the values to a .getdragonbot.com-scoped cookie. Read that as a
     // secondary source so we don't lose the visitor's real source when
-    // GitHub Pages' SPA fallback strips the URL query, when a link on
-    // the marketing site was untagged, or when a Sign Up button
-    // bypassed the click-rewrite path.
+    // the URL query gets stripped somewhere in the flow (SPA fallback,
+    // untagged Sign Up link, etc.).
     if (!urlHadAttribution) {
       const cookieAttr = readCookieAttribution();
       for (const [k, v] of Object.entries(cookieAttr)) {
@@ -116,9 +114,26 @@ export function captureAttribution(): void {
 }
 
 /**
+ * Read the current attribution blob. Returns undefined when nothing
+ * has been captured (e.g. localStorage disabled, or the visitor
+ * bookmarked us and cleared their browser data between visits).
+ */
+export function readAttribution(): Attribution | undefined {
+  try {
+    if (typeof window === "undefined") return undefined;
+    const raw = localStorage.getItem(STORAGE_KEY);
+    return raw ? (JSON.parse(raw) as Attribution) : undefined;
+  } catch {
+    return undefined;
+  }
+}
+
+/**
  * Parse UTMs + click IDs from the `.getdragonbot.com`-scoped
- * `dragonbot_attribution` cookie written by the LP. Returns an empty
- * object if the cookie is absent or malformed.
+ * `dragonbot_attribution` cookie the LP's initAttribution writes.
+ * Returns an empty object if the cookie is absent or malformed. Used
+ * as a fallback source when the URL didn't carry attribution keys —
+ * see the call site in captureAttribution().
  */
 function readCookieAttribution(): Partial<Attribution> {
   try {
@@ -139,21 +154,6 @@ function readCookieAttribution(): Partial<Attribution> {
     return out;
   } catch {
     return {};
-  }
-}
-
-/**
- * Read the current attribution blob. Returns undefined when nothing
- * has been captured (e.g. localStorage disabled, or the visitor
- * bookmarked us and cleared their browser data between visits).
- */
-export function readAttribution(): Attribution | undefined {
-  try {
-    if (typeof window === "undefined") return undefined;
-    const raw = localStorage.getItem(STORAGE_KEY);
-    return raw ? (JSON.parse(raw) as Attribution) : undefined;
-  } catch {
-    return undefined;
   }
 }
 
