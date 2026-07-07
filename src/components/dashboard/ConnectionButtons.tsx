@@ -3,6 +3,7 @@ import { Button } from "@/components/ui/Button";
 import { config } from "@/lib/config";
 import {
   disconnectConnection,
+  reauthAmazonConnection,
   startAmazonAdsConnection,
   startAmazonConnection,
 } from "@/lib/connections";
@@ -149,6 +150,39 @@ export function ConnectAmazonAdsButton({
       popupName={`${config.brand.slug}-ads-oauth`}
       matchProvider="amazon-ads"
       onConnected={onConnected}
+    />
+  );
+}
+
+/**
+ * Re-authenticate an SP-API connection in place — same Amazon consent
+ * flow as ConnectAmazonButton, but the backend updates the existing
+ * Connection row's refresh token instead of creating a new one.
+ * Preserves the connection's BQ dataset and 30+ days of synced
+ * history. Use when the seller needs to expand SP-API scopes (Finance
+ * role for settlements, marketplace expansion, etc.) without losing
+ * everything.
+ */
+export function ReauthenticateAmazonButton({
+  id,
+  label = "Re-authenticate",
+  variant = "secondary",
+  onReauthenticated,
+}: {
+  id: string;
+  label?: string;
+  variant?: "primary" | "secondary";
+  onReauthenticated: () => void;
+}) {
+  return (
+    <ConnectButton
+      label={label}
+      pendingLabel="Waiting for Amazon…"
+      variant={variant}
+      action={() => reauthAmazonConnection(id)}
+      popupName={`${config.brand.slug}-spapi-reauth`}
+      matchProvider="amazon-selling-partner"
+      onConnected={onReauthenticated}
     />
   );
 }

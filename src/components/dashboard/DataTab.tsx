@@ -14,6 +14,7 @@ import {
   ConnectAmazonAdsButton,
   ConnectAmazonButton,
   DisconnectButton,
+  ReauthenticateAmazonButton,
 } from "./ConnectionButtons";
 import { CogsPanel } from "./CogsPanel";
 
@@ -243,6 +244,7 @@ function SpApiConnectionRow({
       </div>
       <div className="flex items-center gap-2 self-start">
         <StatusPill status={conn.status} />
+        <ReauthenticateAmazonButton id={conn.id} onReauthenticated={onDisconnected} />
         <DisconnectButton id={conn.id} onDisconnected={onDisconnected} />
       </div>
     </div>

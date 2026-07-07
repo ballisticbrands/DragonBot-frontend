@@ -62,6 +62,36 @@ export async function startAmazonAdsConnection() {
   );
 }
 
+/**
+ * Re-authenticate an existing SP-API connection without losing its
+ * BQ dataset / sync history. Backend UPDATES the row's refresh token
+ * in place on the OAuth callback instead of creating a new Connection.
+ *
+ * Use case: seller was connected with limited SP-API scopes (e.g. no
+ * Finance role for settlement reports) and needs to expand them.
+ * Disconnecting + reconnecting would create a new connection with a
+ * new BQ dataset (losing 30+ days of data); this endpoint preserves
+ * everything.
+ */
+export async function reauthAmazonConnection(connectionId: string) {
+  try {
+    const resp = await apiFetch<{ authorization_url: string }>(
+      "/v1/connect/amazon-selling-partner/reauth",
+      {
+        method: "POST",
+        body: JSON.stringify({ connection_id: connectionId }),
+      },
+    );
+    if (!resp.authorization_url) {
+      return { error: "We couldn't start the re-authorization. Please try again." };
+    }
+    return { authorization_url: resp.authorization_url };
+  } catch (err) {
+    if (err instanceof ApiError) return { error: err.message };
+    return { error: "Could not start the re-authorization." };
+  }
+}
+
 export async function disconnectConnection(id: string): Promise<{ error?: string }> {
   try {
     await apiFetch(`/v1/connections/${encodeURIComponent(id)}`, { method: "DELETE" });
