@@ -15,6 +15,7 @@ import {
   ConnectAmazonButton,
   DisconnectButton,
 } from "./ConnectionButtons";
+import { CogsPanel } from "./CogsPanel";
 
 export function DataTab() {
   const [connections, setConnections] = useState<Connection[] | null>(null);
@@ -235,6 +236,10 @@ function SpApiConnectionRow({
         </dl>
 
         <SyncProgress connectionId={conn.id} connectedAt={conn.connected_at ?? null} />
+
+        {/* Product costs (COGS) — user-uploaded, feeds profit metrics.
+            Seller (SP-API) connections only; the backend rejects ads. */}
+        <CogsPanel connectionId={conn.id} />
       </div>
       <div className="flex items-center gap-2 self-start">
         <StatusPill status={conn.status} />
