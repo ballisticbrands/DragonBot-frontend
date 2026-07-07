@@ -16,17 +16,21 @@ import {
   COGS_SAMPLE_CSV,
   clearCogs,
   downloadCogsExport,
+  getCogsCatalog,
   listCogs,
   uploadCogsCsv,
   upsertCogsRow,
+  type CatalogRow,
   type CogsRow,
   type CogsUploadResult,
 } from "@/lib/cogs";
 
 const PAGE_SIZE = 25;
+const CATALOG_PAGE_SIZE = 25;
 
 export function CogsPanel({ connectionId }: { connectionId: string }) {
   const [expanded, setExpanded] = useState(false);
+  const [view, setView] = useState<"products" | "bulk">("products");
   const [rows, setRows] = useState<CogsRow[] | null>(null);
   const [total, setTotal] = useState(0);
   const [offset, setOffset] = useState(0);
@@ -45,8 +49,8 @@ export function CogsPanel({ connectionId }: { connectionId: string }) {
   }, [connectionId, offset]);
 
   useEffect(() => {
-    if (expanded && rows === null) void refresh(0);
-  }, [expanded, rows, refresh]);
+    if (expanded && view === "bulk" && rows === null) void refresh(0);
+  }, [expanded, view, rows, refresh]);
 
   return (
     <div className="mt-3 rounded-md border border-[var(--border)]">
@@ -68,38 +72,289 @@ export function CogsPanel({ connectionId }: { connectionId: string }) {
       {expanded && (
         <div className="border-t border-[var(--border)] px-3 py-3">
           <p className="mb-3 text-xs text-[var(--muted-foreground)]">
-            Upload what you pay per unit (item + inbound shipping), per SKU. Costs are
-            effective-dated: a row applies from its “From” date until the next From date for the
-            same SKU. Your agent can then answer profit questions via the{" "}
-            <code className="font-mono">orders_with_cogs</code> report.
+            Enter what you pay per unit (item + inbound shipping) next to each of your products.
+            Costs are effective-dated, and your agent can then answer profit questions via the{" "}
+            <code className="font-mono">profit_by_sku_and_date</code> and{" "}
+            <code className="font-mono">profit_by_date</code> reports.
           </p>
 
-          <UploadForm connectionId={connectionId} onUploaded={() => void refresh(0)} />
+          <div className="mb-3 flex gap-1 border-b border-[var(--border)]">
+            {(["products", "bulk"] as const).map((v) => (
+              <button
+                key={v}
+                type="button"
+                onClick={() => setView(v)}
+                className={`-mb-px border-b-2 px-2 py-1.5 text-xs font-medium ${
+                  view === v
+                    ? "border-[var(--foreground)] text-[var(--foreground)]"
+                    : "border-transparent text-[var(--muted-foreground)] hover:text-[var(--foreground)]"
+                }`}
+              >
+                {v === "products" ? "Products" : "Bulk CSV & entries"}
+              </button>
+            ))}
+          </div>
 
-          {loadError && <p className="mt-3 text-xs text-[var(--danger)]">{loadError}</p>}
+          {view === "products" ? (
+            <CatalogEditor connectionId={connectionId} />
+          ) : (
+            <>
+              <UploadForm connectionId={connectionId} onUploaded={() => void refresh(0)} />
 
-          {rows === null && !loadError ? (
-            <p className="mt-3 text-sm text-[var(--muted-foreground)]">Loading…</p>
-          ) : rows !== null && total === 0 ? (
-            <p className="mt-3 text-sm text-[var(--muted-foreground)]">
-              No costs uploaded yet. Start from the sample file above, or import your SellerBoard
-              COGS export.
-            </p>
-          ) : rows !== null ? (
-            <CogsTable
-              rows={rows}
-              total={total}
-              offset={offset}
-              onPage={(o) => void refresh(o)}
-            />
-          ) : null}
+              {loadError && <p className="mt-3 text-xs text-[var(--danger)]">{loadError}</p>}
 
-          <EditorRow connectionId={connectionId} onSaved={() => void refresh(offset)} />
+              {rows === null && !loadError ? (
+                <p className="mt-3 text-sm text-[var(--muted-foreground)]">Loading…</p>
+              ) : rows !== null && total === 0 ? (
+                <p className="mt-3 text-sm text-[var(--muted-foreground)]">
+                  No costs uploaded yet. Fill them in on the Products tab, start from the sample
+                  file above, or import your SellerBoard COGS export.
+                </p>
+              ) : rows !== null ? (
+                <CogsTable
+                  rows={rows}
+                  total={total}
+                  offset={offset}
+                  onPage={(o) => void refresh(o)}
+                />
+              ) : null}
 
-          <PanelFooter connectionId={connectionId} total={total} onCleared={() => void refresh(0)} />
+              <EditorRow connectionId={connectionId} onSaved={() => void refresh(offset)} />
+
+              <PanelFooter connectionId={connectionId} total={total} onCleared={() => void refresh(0)} />
+            </>
+          )}
         </div>
       )}
     </div>
+  );
+}
+
+// ─── catalog editor (§20): costs next to your real products ──────────
+
+function CatalogEditor({ connectionId }: { connectionId: string }) {
+  const [rows, setRows] = useState<CatalogRow[] | null>(null);
+  const [total, setTotal] = useState(0);
+  const [offset, setOffset] = useState(0);
+  const [listingsSynced, setListingsSynced] = useState(true);
+  const [q, setQ] = useState("");
+  const [error, setError] = useState<string | null>(null);
+  const searchTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
+
+  const load = useCallback(async (newOffset: number, query: string) => {
+    const res = await getCogsCatalog(connectionId, {
+      limit: CATALOG_PAGE_SIZE,
+      offset: newOffset,
+      q: query || undefined,
+    });
+    if ("error" in res) {
+      setError(res.error);
+      return;
+    }
+    setError(null);
+    setRows(res.rows);
+    setTotal(res.total);
+    setListingsSynced(res.listingsSynced);
+    setOffset(newOffset);
+  }, [connectionId]);
+
+  useEffect(() => {
+    void load(0, "");
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [connectionId]);
+
+  function onSearch(value: string) {
+    setQ(value);
+    if (searchTimer.current) clearTimeout(searchTimer.current);
+    searchTimer.current = setTimeout(() => void load(0, value), 350);
+  }
+
+  if (rows === null && !error) {
+    return <p className="text-sm text-[var(--muted-foreground)]">Loading your products…</p>;
+  }
+  if (error) return <p className="text-xs text-[var(--danger)]">{error}</p>;
+  if (!listingsSynced) {
+    return (
+      <p className="text-sm text-[var(--muted-foreground)]">
+        Your product listings are still syncing from Amazon — check back shortly. You can use the
+        Bulk CSV tab meanwhile.
+      </p>
+    );
+  }
+  if (rows !== null && total === 0 && q === "") {
+    return <p className="text-sm text-[var(--muted-foreground)]">No listings found for this account.</p>;
+  }
+
+  return (
+    <div>
+      <Input
+        placeholder="Search by product name, ASIN, or SKU"
+        value={q}
+        onChange={(e) => onSearch(e.target.value)}
+        className="mb-2 h-8 max-w-sm"
+      />
+      <div className="overflow-x-auto rounded-md border border-[var(--border)]">
+        <table className="w-full text-sm">
+          <thead>
+            <tr className="bg-[var(--muted)] text-left text-xs uppercase tracking-wide text-[var(--muted-foreground)]">
+              <th className="px-3 py-2 font-medium">Product</th>
+              <th className="px-3 py-2 font-medium text-right">Price</th>
+              <th className="px-3 py-2 font-medium text-right">Stock</th>
+              <th className="px-3 py-2 font-medium text-right">Item cost</th>
+              <th className="px-3 py-2 font-medium text-right">Shipping / unit</th>
+              <th className="px-3 py-2 font-medium">Margin</th>
+            </tr>
+          </thead>
+          <tbody>
+            {rows!.map((r) => (
+              <CatalogCostRow key={`${r.sku}|${r.asin}`} connectionId={connectionId} row={r} />
+            ))}
+          </tbody>
+        </table>
+      </div>
+      {total > CATALOG_PAGE_SIZE && (
+        <div className="mt-2 flex items-center justify-between text-xs text-[var(--muted-foreground)]">
+          <span>
+            {offset + 1}–{Math.min(offset + CATALOG_PAGE_SIZE, total)} of {total.toLocaleString()} products
+          </span>
+          <div className="flex gap-2">
+            <Button size="sm" variant="secondary" disabled={offset === 0}
+              onClick={() => void load(Math.max(0, offset - CATALOG_PAGE_SIZE), q)}>
+              Previous
+            </Button>
+            <Button size="sm" variant="secondary" disabled={offset + CATALOG_PAGE_SIZE >= total}
+              onClick={() => void load(offset + CATALOG_PAGE_SIZE, q)}>
+              Next
+            </Button>
+          </div>
+        </div>
+      )}
+    </div>
+  );
+}
+
+function CatalogCostRow({ connectionId, row }: { connectionId: string; row: CatalogRow }) {
+  const [itemCost, setItemCost] = useState(row.cogs ? String(row.cogs.costItemValue) : "");
+  const [shipCost, setShipCost] = useState(row.cogs ? String(row.cogs.costShippingValue) : "");
+  const [saved, setSaved] = useState<CatalogRow["cogs"]>(row.cogs);
+  const [state, setState] = useState<"idle" | "saving" | "saved" | "error">("idle");
+  const [errMsg, setErrMsg] = useState<string | null>(null);
+
+  const dirty =
+    itemCost !== (saved ? String(saved.costItemValue) : "") ||
+    shipCost !== (saved ? String(saved.costShippingValue) : "");
+
+  async function save() {
+    if (!dirty) return;
+    const item = Number(itemCost);
+    const ship = Number(shipCost);
+    if ((itemCost !== "" && (!Number.isFinite(item) || item < 0)) ||
+        (shipCost !== "" && (!Number.isFinite(ship) || ship < 0))) {
+      setState("error");
+      setErrMsg("Costs must be non-negative numbers.");
+      return;
+    }
+    setState("saving");
+    setErrMsg(null);
+    const currency = saved?.currency ?? "USD";
+    const res = await upsertCogsRow(connectionId, {
+      childAsin: row.asin,
+      sku: row.sku,
+      // Match the currently-effective row when one exists (updates it);
+      // otherwise the cost applies from the beginning.
+      ...(saved ? { fromDate: saved.fromDate } : {}),
+      costItemValue: itemCost === "" ? 0 : item,
+      costShippingValue: shipCost === "" ? 0 : ship,
+      currency,
+    });
+    if ("error" in res) {
+      setState("error");
+      setErrMsg(res.error);
+      return;
+    }
+    setSaved({
+      costItemValue: itemCost === "" ? 0 : item,
+      costShippingValue: shipCost === "" ? 0 : ship,
+      currency,
+      fromDate: saved?.fromDate ?? COGS_FROM_SENTINEL,
+      supplierName: saved?.supplierName ?? null,
+    });
+    setState("saved");
+    setTimeout(() => setState("idle"), 2000);
+  }
+
+  // Rough unit margin using list price — real profit (fees, ads) lives
+  // in the profit reports; this is instant feedback while typing.
+  const unitCost =
+    (itemCost === "" ? 0 : Number(itemCost) || 0) + (shipCost === "" ? 0 : Number(shipCost) || 0);
+  const margin =
+    row.price && row.price > 0 && (itemCost !== "" || shipCost !== "")
+      ? (row.price - unitCost) / row.price
+      : null;
+
+  return (
+    <tr className="border-t border-[var(--border)] align-middle">
+      <td className="max-w-[22rem] px-3 py-1.5">
+        <div className="flex items-center gap-2">
+          {row.imageUrl ? (
+            <img src={row.imageUrl} alt="" className="h-8 w-8 shrink-0 rounded object-cover" loading="lazy" />
+          ) : (
+            <div className="h-8 w-8 shrink-0 rounded bg-[var(--muted)]" />
+          )}
+          <div className="min-w-0">
+            <p className="truncate text-xs font-medium" title={row.name ?? undefined}>
+              {row.name ?? "(unnamed listing)"}
+            </p>
+            <p className="truncate font-mono text-[10px] text-[var(--muted-foreground)]">
+              {row.asin} · {row.sku}
+            </p>
+          </div>
+        </div>
+      </td>
+      <td className="px-3 py-1.5 text-right tabular-nums text-xs">
+        {row.price !== null ? row.price.toFixed(2) : "—"}
+      </td>
+      <td className="px-3 py-1.5 text-right tabular-nums text-xs">
+        {row.quantity !== null ? row.quantity.toLocaleString() : "—"}
+      </td>
+      <td className="px-3 py-1.5 text-right">
+        <input
+          inputMode="decimal"
+          placeholder="0.00"
+          value={itemCost}
+          onChange={(e) => setItemCost(e.target.value)}
+          onBlur={() => void save()}
+          onKeyDown={(e) => { if (e.key === "Enter") (e.target as HTMLInputElement).blur(); }}
+          className="h-7 w-20 rounded border border-[var(--border)] bg-white px-2 text-right text-xs tabular-nums focus:outline-none focus:ring-1 focus:ring-[var(--accent)]"
+        />
+      </td>
+      <td className="px-3 py-1.5 text-right">
+        <input
+          inputMode="decimal"
+          placeholder="0.00"
+          value={shipCost}
+          onChange={(e) => setShipCost(e.target.value)}
+          onBlur={() => void save()}
+          onKeyDown={(e) => { if (e.key === "Enter") (e.target as HTMLInputElement).blur(); }}
+          className="h-7 w-20 rounded border border-[var(--border)] bg-white px-2 text-right text-xs tabular-nums focus:outline-none focus:ring-1 focus:ring-[var(--accent)]"
+        />
+      </td>
+      <td className="px-3 py-1.5 text-xs">
+        {state === "saving" ? (
+          <span className="text-[var(--muted-foreground)]">Saving…</span>
+        ) : state === "saved" ? (
+          <span className="text-[var(--success)]">Saved ✓</span>
+        ) : state === "error" ? (
+          <span className="text-[var(--danger)]" title={errMsg ?? undefined}>Failed</span>
+        ) : margin !== null ? (
+          <span className={margin < 0 ? "text-[var(--danger)]" : "text-[var(--muted-foreground)]"}>
+            {(margin * 100).toFixed(0)}% <span className="text-[10px]">(before fees)</span>
+          </span>
+        ) : (
+          <span className="text-[var(--muted-foreground)]">—</span>
+        )}
+      </td>
+    </tr>
   );
 }
 

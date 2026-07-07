@@ -33,6 +33,55 @@ export type CogsUploadResult = {
   errors: { line: number; message: string }[];
 };
 
+export type CatalogRow = {
+  sku: string;
+  asin: string;
+  name: string | null;
+  imageUrl: string | null;
+  price: number | null;
+  quantity: number | null;
+  status: string | null;
+  fulfillmentChannel: string | null;
+  /** Currently-effective cost, or null when the SKU has no COGS yet. */
+  cogs: {
+    costItemValue: number;
+    costShippingValue: number;
+    currency: string;
+    fromDate: string;
+    supplierName: string | null;
+  } | null;
+};
+
+export type CatalogPage = {
+  rows: CatalogRow[];
+  total: number;
+  /** false = listings report hasn't synced yet (fresh connection) —
+   *  distinct from "no products". */
+  listingsSynced: boolean;
+};
+
+/** The seller's real product catalog (from Amazon listings) merged with
+ *  current effective costs — the §20 "fill in costs next to your
+ *  products" editor's data source. */
+export async function getCogsCatalog(
+  connectionId: string,
+  opts: { limit?: number; offset?: number; q?: string } = {},
+): Promise<CatalogPage | { error: string }> {
+  const params = new URLSearchParams();
+  if (opts.limit) params.set("limit", String(opts.limit));
+  if (opts.offset) params.set("offset", String(opts.offset));
+  if (opts.q) params.set("q", opts.q);
+  const qs = params.toString();
+  try {
+    return await apiFetch<CatalogPage>(
+      `/v1/connections/${encodeURIComponent(connectionId)}/cogs/catalog${qs ? `?${qs}` : ""}`,
+    );
+  } catch (err) {
+    if (err instanceof ApiError) return { error: err.message };
+    return { error: "We couldn't load your product catalog. Please try again." };
+  }
+}
+
 export async function listCogs(
   connectionId: string,
   opts: { limit?: number; offset?: number } = {},
