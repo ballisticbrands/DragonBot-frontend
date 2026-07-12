@@ -14,6 +14,11 @@ export type SessionUser = {
   name?: string;
   plan?: "trial" | "full_suite";
   trial_ends_at?: string | null;
+  // ISO-8601 timestamp when the user verified their email, or null
+  // when they haven't yet. Drives the nag banner in AppLayout + the
+  // time_to_verify_seconds param on the GA4 event.
+  emailVerifiedAt?: string | null;
+  createdAt?: string;
 };
 
 export function getSessionToken(): string | null {

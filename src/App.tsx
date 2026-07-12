@@ -10,6 +10,7 @@ import { SignUp } from "@/pages/SignUp";
 import { ForgotPassword } from "@/pages/ForgotPassword";
 import { Dashboard } from "@/pages/Dashboard";
 import { Docs } from "@/pages/Docs";
+import { VerifyEmail } from "@/pages/VerifyEmail";
 import { defaultDoc } from "@/docs/registry";
 
 export default function App() {
@@ -62,6 +63,8 @@ export default function App() {
       />
       <Route path="/docs" element={<Navigate to={`/docs/${defaultDoc.slug}`} replace />} />
       <Route path="/docs/:slug" element={<Docs />} />
+      {/* /verify is public — the token in the URL is the credential. */}
+      <Route path="/verify" element={<VerifyEmail />} />
       <Route path="*" element={<Navigate to="/" replace />} />
     </Routes>
   );

@@ -95,3 +95,74 @@ export async function signOut(): Promise<void> {
   }
   clearSessionToken();
 }
+
+// ─── Email verification ────────────────────────────────────────────
+//
+// verifyEmail is called by the /verify page after reading the token
+// from the URL. Success returns enough for the caller to fire the
+// GA4 `email_verified` event with a time_to_verify_seconds param.
+//
+// resendVerification is called from the nag banner in AppLayout when
+// a signed-in but unverified user clicks "Resend the email."
+
+export type VerifyEmailSuccess = {
+  ok: true;
+  userId: string;
+  email: string;
+  verifiedAt: string;      // ISO
+  userCreatedAt: string;   // ISO
+};
+
+export type VerifyEmailFailure = {
+  error: string;
+  errorCode?: "invalid_token" | "expired_token";
+};
+
+export async function verifyEmail(token: string): Promise<VerifyEmailSuccess | VerifyEmailFailure> {
+  try {
+    const body = await apiFetch<VerifyEmailSuccess>("/v1/auth/verify", {
+      method: "POST",
+      body: JSON.stringify({ token }),
+      auth: false,
+    });
+    return body;
+  } catch (err) {
+    if (err instanceof ApiError) {
+      const code =
+        err.body &&
+        typeof err.body === "object" &&
+        "error_code" in err.body &&
+        typeof (err.body as { error_code: unknown }).error_code === "string"
+          ? ((err.body as { error_code: string }).error_code as "invalid_token" | "expired_token")
+          : undefined;
+      return { error: err.message, errorCode: code };
+    }
+    return { error: "We couldn't verify this link. Please try again in a moment." };
+  }
+}
+
+export type ResendVerificationResult =
+  | { ok: true; alreadyVerified?: boolean }
+  | { error: string; retryInSeconds?: number };
+
+export async function resendVerification(): Promise<ResendVerificationResult> {
+  try {
+    const body = await apiFetch<{ ok: true; alreadyVerified?: boolean }>(
+      "/v1/auth/resend-verification",
+      { method: "POST", body: JSON.stringify({}) },
+    );
+    return body;
+  } catch (err) {
+    if (err instanceof ApiError) {
+      const retry =
+        err.body &&
+        typeof err.body === "object" &&
+        "retry_in_seconds" in err.body &&
+        typeof (err.body as { retry_in_seconds: unknown }).retry_in_seconds === "number"
+          ? (err.body as { retry_in_seconds: number }).retry_in_seconds
+          : undefined;
+      return { error: err.message, retryInSeconds: retry };
+    }
+    return { error: "We couldn't send the email. Please try again in a moment." };
+  }
+}

@@ -2,6 +2,7 @@ import { Link, useNavigate } from "react-router-dom";
 import { useSession } from "@/lib/session";
 import { signOut } from "@/lib/auth";
 import { config } from "@/lib/config";
+import { VerifyEmailBanner } from "@/components/VerifyEmailBanner";
 
 export function AppLayout({ children }: { children: React.ReactNode }) {
   const session = useSession();
@@ -18,8 +19,12 @@ export function AppLayout({ children }: { children: React.ReactNode }) {
     return null;
   }
 
+  const needsVerification =
+    session.user.emailVerifiedAt === null || session.user.emailVerifiedAt === undefined;
+
   return (
     <div className="min-h-screen flex flex-col">
+      {needsVerification && <VerifyEmailBanner email={session.user.email} />}
       <header className="border-b border-[var(--border)] bg-white">
         <div className="mx-auto flex max-w-6xl items-center justify-between px-6 py-3">
           <div className="flex items-center gap-8">
