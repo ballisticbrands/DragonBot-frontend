@@ -49,6 +49,7 @@ export async function signUp(
   email: string,
   password: string,
   name: string,
+  turnstileToken?: string,
 ): Promise<{ error?: string }> {
   if (!email || !password) return { error: "Email and password are required." };
   if (password.length < 8) return { error: "Password must be at least 8 characters." };
@@ -57,7 +58,18 @@ export async function signUp(
   // Backend accepts it under `attribution` in the body; undefined =
   // omit-the-field (matches an all-null attribution snapshot).
   const attribution = readAttribution();
-  return exchange("/v1/auth/sign-up", { email, password, name, attribution });
+  // turnstile_token is optional in the request; the backend also
+  // treats it as optional when its secret key isn't configured, so a
+  // preview build without Turnstile still works. The SignUp form
+  // supplies the string "skipped" when the widget is disabled — the
+  // backend's verifyTurnstile short-circuits on both paths.
+  return exchange("/v1/auth/sign-up", {
+    email,
+    password,
+    name,
+    attribution,
+    turnstile_token: turnstileToken,
+  });
 }
 
 export async function requestPasswordReset(email: string): Promise<{ error?: string }> {
