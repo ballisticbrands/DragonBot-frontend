@@ -1,7 +1,8 @@
-import { useEffect, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/Button";
 import { Input, Label } from "@/components/ui/Input";
+import { Turnstile } from "@/components/Turnstile";
 import { signUp } from "@/lib/auth";
 import { config } from "@/lib/config";
 
@@ -12,6 +13,13 @@ export function SignUp() {
   const [password, setPassword] = useState("");
   const [error, setError] = useState<string | null>(null);
   const [pending, setPending] = useState(false);
+  // Turnstile token from the Cloudflare widget. Cleared when the
+  // token expires so the user can't submit a stale one. When the
+  // widget is disabled (VITE_TURNSTILE_SITE_KEY unset), <Turnstile>
+  // synthesizes "skipped" here — the backend recognizes the sentinel.
+  const [turnstileToken, setTurnstileToken] = useState<string | null>(null);
+  const onTurnstileToken = useCallback((tok: string) => setTurnstileToken(tok), []);
+  const onTurnstileExpired = useCallback(() => setTurnstileToken(null), []);
 
   useEffect(() => {
     document.title = `Sign up — ${config.brand.name}`;
@@ -19,9 +27,13 @@ export function SignUp() {
 
   async function onSubmit(e: React.FormEvent) {
     e.preventDefault();
+    if (!turnstileToken) {
+      setError("Please complete the challenge above before continuing.");
+      return;
+    }
     setError(null);
     setPending(true);
-    const res = await signUp(email, password, name);
+    const res = await signUp(email, password, name, turnstileToken);
     setPending(false);
     if (res.error) {
       setError(res.error);
@@ -73,8 +85,13 @@ export function SignUp() {
           />
           <p className="text-xs text-[var(--muted-foreground)]">At least 8 characters.</p>
         </div>
+        <Turnstile onToken={onTurnstileToken} onExpired={onTurnstileExpired} />
         {error && <p className="text-sm text-[var(--danger)]">{error}</p>}
-        <Button type="submit" disabled={pending} className="w-full">
+        <Button
+          type="submit"
+          disabled={pending || !turnstileToken}
+          className="w-full"
+        >
           {pending ? "Creating account…" : "Create account"}
         </Button>
       </form>

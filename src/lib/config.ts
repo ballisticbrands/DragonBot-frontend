@@ -20,6 +20,12 @@ export const config = {
     oauthMessageType: "dragonbot-oauth-result",
     supportEmail: "info@getdragonbot.com",
   },
+  // Cloudflare Turnstile public site key. Paired with the backend's
+  // TURNSTILE_SECRET_KEY. When empty (local dev / preview builds), the
+  // <Turnstile> widget short-circuits with a "skipped" token — the
+  // backend's verifyTurnstile also skips when its secret is unset, so
+  // the two ends stay in agreement without any test-mode plumbing.
+  turnstileSiteKey: import.meta.env.VITE_TURNSTILE_SITE_KEY ?? "",
 };
 
 export const SESSION_KEY = "dragonbot_session";
