@@ -99,27 +99,41 @@ export function captureAttribution(): void {
       }
     }
 
-    // Cookie fallback: if the URL didn't carry attribution but the LP
-    // (getdragonbot.com) previously did — its initAttribution wrote
-    // the values to a .getdragonbot.com-scoped cookie. Read that as a
-    // secondary source so we don't lose the visitor's real source when
-    // the URL query gets stripped somewhere in the flow (SPA fallback,
-    // untagged Sign Up link, etc.).
-    if (!urlHadAttribution) {
-      const cookieAttr = readCookieAttribution();
-      for (const [k, v] of Object.entries(cookieAttr)) {
-        (blob as Record<string, string>)[k] = v;
-      }
+    // Cookie fallback: the LP (getdragonbot.com) writes the visitor's
+    // TRUE first touch — campaign, referrer, AND landing_page — to a
+    // .getdragonbot.com-scoped cookie its initAttribution sets (see
+    // DragonBotLP/src/lib/attribution.js). Read it so we don't lose the
+    // real source when the URL query gets stripped somewhere in the flow
+    // (SPA fallback, untagged Sign Up link, etc.).
+    //
+    // We read it even when the URL carried its own UTMs, because the
+    // cookie is the ONLY source of the real landing_page + referrer: the
+    // app's own URL is always /sign-up (the CTA target), which is not
+    // where the visitor actually landed. URL params still win for
+    // campaign fields (below) since a directly-tagged app link is a more
+    // specific signal than the cookie.
+    const cookieAttr = readCookieAttribution();
+    for (const [k, v] of Object.entries(cookieAttr)) {
+      const key = k as keyof Attribution;
+      // Don't let the cookie clobber a campaign field the URL already set.
+      if (urlHadAttribution && blob[key]) continue;
+      (blob as Record<string, string>)[k] = v;
     }
 
-    const referrer = document.referrer;
-    if (referrer) blob.referrer = referrer.slice(0, 2048);
-
-    // Full landing URL including query, but strip the fragment — never
-    // carries attribution + can contain sensitive tokens in some flows.
-    const landing =
-      window.location.origin + window.location.pathname + window.location.search;
-    blob.landing_page = landing.slice(0, 2048);
+    // Landing page + referrer: prefer the LP cookie's values (the real
+    // first touch). Fall back to this app's own URL/referrer only when
+    // the visitor landed directly on the app with no LP cookie — e.g. a
+    // bookmarked /sign-up, or a direct link that skipped getdragonbot.com.
+    if (!blob.referrer && document.referrer) {
+      blob.referrer = document.referrer.slice(0, 2048);
+    }
+    if (!blob.landing_page) {
+      // Full landing URL including query, but strip the fragment — never
+      // carries attribution + can contain sensitive tokens in some flows.
+      const landing =
+        window.location.origin + window.location.pathname + window.location.search;
+      blob.landing_page = landing.slice(0, 2048);
+    }
 
     localStorage.setItem(STORAGE_KEY, JSON.stringify(blob));
   } catch {
@@ -164,11 +178,11 @@ export function readAttribution(): Attribution | undefined {
 }
 
 /**
- * Parse UTMs + click IDs from the `.getdragonbot.com`-scoped
- * `dragonbot_attribution` cookie the LP's initAttribution writes.
- * Returns an empty object if the cookie is absent or malformed. Used
- * as a fallback source when the URL didn't carry attribution keys —
- * see the call site in captureAttribution().
+ * Parse first-touch attribution from the `.getdragonbot.com`-scoped
+ * `dragonbot_attribution` cookie the LP's initAttribution writes —
+ * UTMs, click IDs, and (critically) the real `landing_page` + `referrer`
+ * from getdragonbot.com. Returns an empty object if the cookie is absent
+ * or malformed. See the call site in captureAttribution().
  */
 function readCookieAttribution(): Partial<Attribution> {
   try {
@@ -186,6 +200,10 @@ function readCookieAttribution(): Partial<Attribution> {
       const v = params.get(k);
       if (v) out[k] = v.slice(0, 256);
     }
+    const referrer = params.get("referrer");
+    if (referrer) out.referrer = referrer.slice(0, 2048);
+    const landingPage = params.get("landing_page");
+    if (landingPage) out.landing_page = landingPage.slice(0, 2048);
     return out;
   } catch {
     return {};
