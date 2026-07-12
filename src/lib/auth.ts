@@ -26,7 +26,7 @@ async function exchange(path: string, payload: Record<string, unknown>): Promise
     void (async () => {
       try {
         const me = await apiFetch<MeResponse>("/v1/auth/me");
-        if (me?.id) identifyUserAcrossPlatforms(me.id);
+        if (me?.id) identifyUserAcrossPlatforms(me);
       } catch {
         /* ignored — best-effort */
       }

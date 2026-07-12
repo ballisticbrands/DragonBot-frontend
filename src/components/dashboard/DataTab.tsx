@@ -10,6 +10,7 @@ import {
   type SyncStatus,
 } from "@/lib/connections";
 import { config } from "@/lib/config";
+import { trackAccountConnected } from "@/lib/attribution";
 import {
   ConnectAmazonAdsButton,
   ConnectAmazonButton,
@@ -25,6 +26,20 @@ export function DataTab() {
     const list = await listConnections();
     setConnections(list);
   }, []);
+
+  // Fire an activation event + set a durable "serious user" property when
+  // a NEW account is connected, then refresh the list. Wired only to the
+  // connect buttons (not re-auth) so re-authentication doesn't count as a
+  // new activation.
+  const onSpApiConnected = useCallback(() => {
+    trackAccountConnected("amazon_seller");
+    void refresh();
+  }, [refresh]);
+
+  const onAdsConnected = useCallback(() => {
+    trackAccountConnected("amazon_ads");
+    void refresh();
+  }, [refresh]);
 
   useEffect(() => {
     void refresh();
@@ -62,7 +77,7 @@ export function DataTab() {
               </p>
               <ConnectAmazonButton
                 label="Connect Amazon Seller Central account"
-                onConnected={refresh}
+                onConnected={onSpApiConnected}
               />
             </div>
           ) : (
@@ -80,7 +95,7 @@ export function DataTab() {
                 <ConnectAmazonButton
                   label="Connect another Seller Central account"
                   variant="secondary"
-                  onConnected={refresh}
+                  onConnected={onSpApiConnected}
                 />
               </div>
             </div>
@@ -108,7 +123,7 @@ export function DataTab() {
                 Authorize {config.brand.name} to read from your Amazon Ads account via the
                 Advertising API.
               </p>
-              <ConnectAmazonAdsButton label="Connect Amazon Ads account" onConnected={refresh} />
+              <ConnectAmazonAdsButton label="Connect Amazon Ads account" onConnected={onAdsConnected} />
             </div>
           ) : (
             <div className="space-y-4">
@@ -125,7 +140,7 @@ export function DataTab() {
                 <ConnectAmazonAdsButton
                   label="Connect another Ads account"
                   variant="secondary"
-                  onConnected={refresh}
+                  onConnected={onAdsConnected}
                 />
               </div>
             </div>

@@ -207,25 +207,63 @@ declare global {
 }
 
 /**
- * Bind our internal user id into each analytics platform so future
- * sessions from this user cross-reference back to the account. Call
- * this immediately after a successful sign-up or sign-in.
- *
- * Each platform's `identify`/`config` call is a no-op when the tracker
- * script isn't loaded (checked via `typeof … === "function"`) — that
- * means the Meta pixel not yet being installed on the site is fine;
- * this code doesn't break, and starts working the moment the pixel
- * script lands in index.html.
+ * Map first-touch attribution to a single coarse, NON-PII source label
+ * safe to send to GA4 user properties + Clarity tags. Click-id presence
+ * wins over utm_source because our paid campaigns (Google Ads
+ * auto-tagging) carry a gclid but no utm_source. Falls back to "direct".
  */
-export function identifyUserAcrossPlatforms(userId: string): void {
+function deriveSignupSource(a: Attribution | undefined): string {
+  if (!a) return "direct";
+  if (a.gclid) return "google_ads";
+  if (a.fbclid) return "meta_ads";
+  if (a.msclkid) return "microsoft_ads";
+  if (a.utm_source) return a.utm_source;
+  return "direct";
+}
+
+/**
+ * Identify a signed-in/up user across our analytics platforms so their
+ * sessions cross-reference back to the account. Call immediately after
+ * a successful sign-up or sign-in.
+ *
+ * Fed the full user object (not just the id) so we can make sessions
+ * human-searchable — the point being to pull up a user's recording
+ * from their email without a DB round-trip to translate email→cuid.
+ *
+ * PII boundary — deliberate and load-bearing:
+ *   · Clarity — first-party session tool; email + name go in as custom
+ *               tags (filterable in the dashboard) + a friendly display
+ *               name on `identify`.
+ *   · GA4     — NEVER receives email/name. Google's ToS prohibits PII
+ *               and violating it risks property suspension. GA4 gets the
+ *               cuid as user_id + a coarse non-PII signup_source only;
+ *               cross-reference GA4→account by joining on user_id in
+ *               BigQuery.
+ *   · Meta    — external_id = cuid (an opaque id, not PII).
+ *
+ * Each platform's call is a no-op when the tracker script isn't loaded
+ * (checked via `typeof … === "function"`) — so the Meta pixel not yet
+ * being installed is fine; this code starts working the moment the
+ * pixel script lands in index.html.
+ */
+export function identifyUserAcrossPlatforms(user: {
+  id: string;
+  email?: string;
+  name?: string;
+}): void {
+  const { id: userId, email, name } = user;
   if (!userId) return;
+
+  const signupSource = deriveSignupSource(readAttribution());
 
   try {
     // GA4 — user_id becomes a property on every subsequent event in
     // this session AND stitches historical sessions from this device
-    // once user-id reporting is enabled on the property.
+    // once user-id reporting is enabled on the property. NON-PII only:
+    // never send email/name here (Google ToS).
     if (typeof window.gtag === "function") {
       window.gtag("config", GA4_MEASUREMENT_ID, { user_id: userId });
+      window.gtag("set", "user_properties", { signup_source: signupSource });
       // Also fire a canonical conversion event GA4 can attribute.
       window.gtag("event", "sign_up", { method: "email" });
     }
@@ -234,11 +272,15 @@ export function identifyUserAcrossPlatforms(userId: string): void {
   }
 
   try {
-    // Clarity — tags this + future sessions with our user id. Filter
-    // sessions in the Clarity UI by this value to find any user's
-    // recordings.
+    // Clarity — tag this + future sessions with the account's real
+    // identity, not just the opaque cuid. The 5th `identify` arg is a
+    // friendly display name; custom tags set via `set` are filterable
+    // in the Clarity dashboard, so support can search by email/name.
     if (typeof window.clarity === "function") {
-      window.clarity("identify", userId);
+      window.clarity("identify", userId, undefined, undefined, email ?? name ?? userId);
+      if (email) window.clarity("set", "email", email);
+      if (name) window.clarity("set", "name", name);
+      window.clarity("set", "signup_source", signupSource);
     }
   } catch {
     /* best-effort */
@@ -250,6 +292,67 @@ export function identifyUserAcrossPlatforms(userId: string): void {
     // Audiences. No-op when fbq isn't defined (pixel not installed).
     if (typeof window.fbq === "function") {
       window.fbq("trackCustom", "CompleteRegistration", { external_id: userId });
+    }
+  } catch {
+    /* best-effort */
+  }
+}
+
+// ─── Amazon account-connection events ─────────────────────────────
+
+type ConnectionProvider = "amazon_seller" | "amazon_ads";
+
+/**
+ * Fire a "connected an Amazon account" event across analytics platforms
+ * and flip a durable user property, so we can segment "serious" users
+ * (connected seller / ads / both) for reporting + ad targeting.
+ *
+ * Call ONLY on a genuinely NEW connection — wire it from the connect
+ * buttons, never the re-authenticate button (a re-auth reuses an
+ * existing connection and shouldn't count as an activation). Runs under
+ * the already-identified user (identifyUserAcrossPlatforms fired at
+ * sign-in), so no user id is needed here.
+ *
+ * PII boundary matches identify(): GA4 gets the event + a boolean-ish
+ * user property only (no email/name — Google ToS); Clarity gets a
+ * custom event + filterable tag; Meta is a no-op until the pixel lands
+ * in index.html.
+ */
+export function trackAccountConnected(provider: ConnectionProvider): void {
+  const isSeller = provider === "amazon_seller";
+  const eventName = isSeller ? "connect_amazon_seller" : "connect_amazon_ads";
+  // Durable user property: lets GA4 audiences + Clarity segments filter
+  // "serious" users. Idempotent — re-connecting just re-sets "true".
+  const userProp = isSeller ? "spapi_connected" : "ads_connected";
+
+  try {
+    // GA4 — event (importable to Google Ads as a conversion) + a
+    // user-scoped property (register it as a custom dimension to use in
+    // reports/audiences). NON-PII only.
+    if (typeof window.gtag === "function") {
+      window.gtag("event", eventName, { provider });
+      window.gtag("set", "user_properties", { [userProp]: "true" });
+    }
+  } catch {
+    /* best-effort */
+  }
+
+  try {
+    // Clarity — custom event (usable in Funnels/Smart events) + a
+    // filterable tag so support can find connected users' recordings.
+    if (typeof window.clarity === "function") {
+      window.clarity("event", eventName);
+      window.clarity("set", userProp, "true");
+    }
+  } catch {
+    /* best-effort */
+  }
+
+  try {
+    // Meta pixel — a conversion event for Custom Audiences / lookalikes.
+    // No-op until the pixel script is added to index.html.
+    if (typeof window.fbq === "function") {
+      window.fbq("trackCustom", isSeller ? "ConnectSeller" : "ConnectAds");
     }
   } catch {
     /* best-effort */
