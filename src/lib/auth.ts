@@ -4,7 +4,7 @@
 
 import { ApiError, apiFetch } from "./api";
 import { clearSessionToken, setSessionToken } from "./session";
-import { identifyUserAcrossPlatforms, readAttribution } from "./attribution";
+import { identifyUserAcrossPlatforms, readAttribution, tagClarityIdentity } from "./attribution";
 
 type TokenResponse = { token: string; expires_in?: number };
 type MeResponse = { id: string; email: string; name?: string };
@@ -42,6 +42,9 @@ async function exchange(path: string, payload: Record<string, unknown>): Promise
 
 export async function signIn(email: string, password: string): Promise<{ error?: string }> {
   if (!email || !password) return { error: "Email and password are required." };
+  // Tag Clarity synchronously up front — don't wait on the async
+  // /v1/auth/me identify (which can silently fail on flaky connections).
+  tagClarityIdentity(email);
   return exchange("/v1/auth/sign-in", { email, password });
 }
 
@@ -53,6 +56,10 @@ export async function signUp(
 ): Promise<{ error?: string }> {
   if (!email || !password) return { error: "Email and password are required." };
   if (password.length < 8) return { error: "Password must be at least 8 characters." };
+  // Tag Clarity synchronously with the just-typed identity, BEFORE the
+  // token exchange — so the email/name tags land even if the visitor
+  // bounces or the async /v1/auth/me identify never completes.
+  tagClarityIdentity(email, name);
   // First-touch attribution: reads the blob localStorage stashed on the
   // visitor's first landing (see src/lib/attribution.ts + main.tsx).
   // Backend accepts it under `attribution` in the body; undefined =
