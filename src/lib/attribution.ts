@@ -290,15 +290,28 @@ export function identifyUserAcrossPlatforms(user: {
   }
 
   try {
-    // Clarity — tag this + future sessions with the account's real
-    // identity, not just the opaque cuid. The 5th `identify` arg is a
-    // friendly display name; custom tags set via `set` are filterable
-    // in the Clarity dashboard, so support can search by email/name.
+    // Clarity — set the filterable identity tags FIRST so they attach to
+    // the session even if identify() below errors. (Previously identify
+    // ran first in this same try block; if it threw, all three set()
+    // calls were skipped and the session recorded untagged.)
     if (typeof window.clarity === "function") {
-      window.clarity("identify", userId, undefined, undefined, email ?? name ?? userId);
       if (email) window.clarity("set", "email", email);
       if (name) window.clarity("set", "name", name);
       window.clarity("set", "signup_source", signupSource);
+    }
+  } catch {
+    /* best-effort */
+  }
+
+  try {
+    // Clarity identify is a separate best-effort call so its failure
+    // can't take the tags above down with it. Pass ONLY the custom id —
+    // reaching the friendly-name positional means passing bare
+    // `undefined` for the intermediate session-id / page-id args, which
+    // Clarity mishandles. The `email` tag already makes sessions
+    // searchable.
+    if (typeof window.clarity === "function") {
+      window.clarity("identify", userId);
     }
   } catch {
     /* best-effort */
@@ -311,6 +324,27 @@ export function identifyUserAcrossPlatforms(user: {
     if (typeof window.fbq === "function") {
       window.fbq("trackCustom", "CompleteRegistration", { external_id: userId });
     }
+  } catch {
+    /* best-effort */
+  }
+}
+
+/**
+ * Set Clarity's identity tags SYNCHRONOUSLY, the instant we know the
+ * user's email — call this at sign-up / sign-in submit, BEFORE the token
+ * exchange. `identifyUserAcrossPlatforms` (which runs later) only fires
+ * after an async `/v1/auth/me` round-trip; on a flaky mobile connection
+ * that request can fail/time out and the whole identify — tags included —
+ * silently never runs, even though Clarity has already recorded the
+ * session (→ recorded-but-untagged). Setting the email/name tags up front
+ * makes them land the moment Clarity is recording, independent of that
+ * round-trip. The later identify() still adds the cuid/user_id.
+ */
+export function tagClarityIdentity(email?: string, name?: string): void {
+  try {
+    if (typeof window.clarity !== "function") return;
+    if (email) window.clarity("set", "email", email);
+    if (name) window.clarity("set", "name", name);
   } catch {
     /* best-effort */
   }
