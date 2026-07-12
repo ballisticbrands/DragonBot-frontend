@@ -297,3 +297,64 @@ export function identifyUserAcrossPlatforms(user: {
     /* best-effort */
   }
 }
+
+// ─── Amazon account-connection events ─────────────────────────────
+
+type ConnectionProvider = "amazon_seller" | "amazon_ads";
+
+/**
+ * Fire a "connected an Amazon account" event across analytics platforms
+ * and flip a durable user property, so we can segment "serious" users
+ * (connected seller / ads / both) for reporting + ad targeting.
+ *
+ * Call ONLY on a genuinely NEW connection — wire it from the connect
+ * buttons, never the re-authenticate button (a re-auth reuses an
+ * existing connection and shouldn't count as an activation). Runs under
+ * the already-identified user (identifyUserAcrossPlatforms fired at
+ * sign-in), so no user id is needed here.
+ *
+ * PII boundary matches identify(): GA4 gets the event + a boolean-ish
+ * user property only (no email/name — Google ToS); Clarity gets a
+ * custom event + filterable tag; Meta is a no-op until the pixel lands
+ * in index.html.
+ */
+export function trackAccountConnected(provider: ConnectionProvider): void {
+  const isSeller = provider === "amazon_seller";
+  const eventName = isSeller ? "connect_amazon_seller" : "connect_amazon_ads";
+  // Durable user property: lets GA4 audiences + Clarity segments filter
+  // "serious" users. Idempotent — re-connecting just re-sets "true".
+  const userProp = isSeller ? "spapi_connected" : "ads_connected";
+
+  try {
+    // GA4 — event (importable to Google Ads as a conversion) + a
+    // user-scoped property (register it as a custom dimension to use in
+    // reports/audiences). NON-PII only.
+    if (typeof window.gtag === "function") {
+      window.gtag("event", eventName, { provider });
+      window.gtag("set", "user_properties", { [userProp]: "true" });
+    }
+  } catch {
+    /* best-effort */
+  }
+
+  try {
+    // Clarity — custom event (usable in Funnels/Smart events) + a
+    // filterable tag so support can find connected users' recordings.
+    if (typeof window.clarity === "function") {
+      window.clarity("event", eventName);
+      window.clarity("set", userProp, "true");
+    }
+  } catch {
+    /* best-effort */
+  }
+
+  try {
+    // Meta pixel — a conversion event for Custom Audiences / lookalikes.
+    // No-op until the pixel script is added to index.html.
+    if (typeof window.fbq === "function") {
+      window.fbq("trackCustom", isSeller ? "ConnectSeller" : "ConnectAds");
+    }
+  } catch {
+    /* best-effort */
+  }
+}
