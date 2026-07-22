@@ -1,5 +1,5 @@
 import { Link, NavLink } from "react-router-dom";
-import { config } from "@/lib/config";
+import { useBrand } from "@/lib/brand-context";
 import { docs } from "@/docs/registry";
 
 // Public documentation shell: a brand header plus a left sidebar listing
@@ -7,6 +7,7 @@ import { docs } from "@/docs/registry";
 // docs are public. The active doc renders into `children` wrapped in the
 // .docs-prose container (see globals.css) for typographic styling.
 export function DocsLayout({ children }: { children: React.ReactNode }) {
+  const brand = useBrand();
   return (
     <div className="min-h-screen flex flex-col">
       <header className="border-b border-[var(--border)] bg-white">
@@ -16,8 +17,8 @@ export function DocsLayout({ children }: { children: React.ReactNode }) {
               to="/docs"
               className="flex items-center gap-2 text-base font-semibold tracking-tight"
             >
-              <img src="/DragonBot-logo.png" alt={config.brand.name} className="h-7 w-7 rounded" />
-              {config.brand.name}
+              <img src="/DragonBot-logo.png" alt={brand.displayName} className="h-7 w-7 rounded" />
+              {brand.headerLabel}
               <span className="text-[var(--muted-foreground)] font-normal">Docs</span>
             </Link>
           </div>

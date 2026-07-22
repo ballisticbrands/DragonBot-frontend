@@ -6,27 +6,17 @@
     <link rel="icon" type="image/x-icon" href="/favicon.ico" />
     <link rel="apple-touch-icon" href="/apple-touch-icon.png" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <meta
-      name="description"
-      content="DragonBot is a hosted MCP server for Amazon sellers. Sign in, mint scoped API keys, and let Claude, ChatGPT, and Cursor run your Seller Central."
-    />
+    <!-- The description + title get overwritten by main.tsx once the
+         brand is detected from window.location.hostname. Kept as a
+         DragonBot fallback for anything that renders before the SPA
+         mounts. -->
+    <meta name="description" content="DragonBot is a hosted MCP server for Amazon sellers." />
     <title>DragonBot — Amazon Seller MCP for AI agents</title>
-    <!-- Microsoft Clarity -->
-    <script type="text/javascript">
-      (function(c,l,a,r,i,t,y){
-        c[a]=c[a]||function(){(c[a].q=c[a].q||[]).push(arguments)};
-        t=l.createElement(r);t.async=1;t.src="https://www.clarity.ms/tag/"+i;
-        y=l.getElementsByTagName(r)[0];y.parentNode.insertBefore(t,y);
-      })(window, document, "clarity", "script", "vlbup1aiix");
-    </script>
-    <!-- Google Analytics -->
-    <script async src="https://www.googletagmanager.com/gtag/js?id=G-W5BRXVBQNR"></script>
-    <script>
-      window.dataLayer = window.dataLayer || [];
-      function gtag(){dataLayer.push(arguments);}
-      gtag('js', new Date());
-      gtag('config', 'G-W5BRXVBQNR');
-    </script>
+    <!-- GA4 + Microsoft Clarity are injected at runtime from
+         src/main.tsx once we know which brand is being served. The
+         inline snippets used to live here but they hardcoded a single
+         brand's IDs, which doesn't work now that this bundle serves
+         multiple hosts. -->
   </head>
   <body>
     <div id="root"></div>

@@ -3,6 +3,14 @@
 // revalidatePath — components manually refetch after mutations).
 
 import { ApiError, apiFetch } from "./api";
+import { detectBrand } from "@/brands";
+
+// The active brand's app origin — sent as `return_to` on every OAuth
+// /start POST so the backend threads it through the state JWT and
+// bounces the seller back to THIS app after Amazon consent, not the
+// default (dragonbot). Stable per session — computed once at module
+// load from window.location.hostname.
+const RETURN_TO = detectBrand().appOrigin;
 
 export type Connection = {
   id: string;
@@ -39,7 +47,10 @@ async function startConnection(
   errorLabel: string,
 ): Promise<{ authorization_url?: string; error?: string }> {
   try {
-    const resp = await apiFetch<{ authorization_url: string }>(startPath, { method: "POST" });
+    const resp = await apiFetch<{ authorization_url: string }>(startPath, {
+      method: "POST",
+      body: JSON.stringify({ return_to: RETURN_TO }),
+    });
     if (!resp.authorization_url) return { error: "We couldn't start the connection. Please try again." };
     return { authorization_url: resp.authorization_url };
   } catch (err) {
@@ -79,7 +90,7 @@ export async function reauthAmazonConnection(connectionId: string) {
       "/v1/connect/amazon-selling-partner/reauth",
       {
         method: "POST",
-        body: JSON.stringify({ connection_id: connectionId }),
+        body: JSON.stringify({ connection_id: connectionId, return_to: RETURN_TO }),
       },
     );
     if (!resp.authorization_url) {

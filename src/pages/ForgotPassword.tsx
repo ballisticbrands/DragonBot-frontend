@@ -3,17 +3,18 @@ import { Link } from "react-router-dom";
 import { Button } from "@/components/ui/Button";
 import { Input, Label } from "@/components/ui/Input";
 import { requestPasswordReset } from "@/lib/auth";
-import { config } from "@/lib/config";
+import { useBrand } from "@/lib/brand-context";
 
 export function ForgotPassword() {
+  const brand = useBrand();
   const [email, setEmail] = useState("");
   const [error, setError] = useState<string | null>(null);
   const [sent, setSent] = useState(false);
   const [pending, setPending] = useState(false);
 
   useEffect(() => {
-    document.title = `Reset password — ${config.brand.name}`;
-  }, []);
+    document.title = `Reset password — ${brand.displayName}`;
+  }, [brand.displayName]);
 
   async function onSubmit(e: React.FormEvent) {
     e.preventDefault();

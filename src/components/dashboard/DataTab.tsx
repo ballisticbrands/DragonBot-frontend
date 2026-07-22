@@ -9,7 +9,7 @@ import {
   type Connection,
   type SyncStatus,
 } from "@/lib/connections";
-import { config } from "@/lib/config";
+import { useBrand } from "@/lib/brand-context";
 import { trackAccountConnected } from "@/lib/attribution";
 import {
   ConnectAmazonAdsButton,
@@ -20,6 +20,7 @@ import {
 import { CogsPanel } from "./CogsPanel";
 
 export function DataTab() {
+  const brand = useBrand();
   const [connections, setConnections] = useState<Connection[] | null>(null);
 
   const refresh = useCallback(async () => {
@@ -73,7 +74,7 @@ export function DataTab() {
           ) : amazons.length === 0 ? (
             <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
               <p className="text-sm text-[var(--muted-foreground)]">
-                Authorize {config.brand.name} to read from your Seller Central account via SP-API.
+                Authorize {brand.displayName} to read from your Seller Central account via SP-API.
               </p>
               <ConnectAmazonButton
                 label="Connect Amazon Seller Central account"
@@ -120,7 +121,7 @@ export function DataTab() {
           ) : amazonAds.length === 0 ? (
             <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
               <p className="text-sm text-[var(--muted-foreground)]">
-                Authorize {config.brand.name} to read from your Amazon Ads account via the
+                Authorize {brand.displayName} to read from your Amazon Ads account via the
                 Advertising API.
               </p>
               <ConnectAmazonAdsButton label="Connect Amazon Ads account" onConnected={onAdsConnected} />

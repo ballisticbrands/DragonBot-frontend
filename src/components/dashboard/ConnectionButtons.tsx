@@ -1,6 +1,7 @@
 import { useEffect, useRef, useState } from "react";
 import { Button } from "@/components/ui/Button";
 import { config } from "@/lib/config";
+import { useBrand } from "@/lib/brand-context";
 import {
   disconnectConnection,
   reauthAmazonConnection,
@@ -11,7 +12,6 @@ import {
 // Backend (where the OAuth popup loads) origin. Must match e.origin
 // on incoming postMessage. Built from config.apiUrl.
 const API_ORIGIN = new URL(config.apiUrl).origin;
-const OAUTH_TYPE = config.brand.oauthMessageType;
 
 type OAuthResultMessage = {
   type: string;
@@ -43,15 +43,17 @@ function ConnectButton({
   const [pending, setPending] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const popupRef = useRef<Window | null>(null);
+  const brand = useBrand();
+  const oauthType = brand.oauthMessageType;
 
   // Listen for the backend callback's postMessage. The callback HTML
   // lives at config.apiUrl's origin; anything else gets ignored.
-  // The message type is per-tenant (config.brand.oauthMessageType).
+  // The message type is brand-scoped (brand.oauthMessageType).
   useEffect(() => {
     function onMessage(e: MessageEvent) {
       if (e.origin !== API_ORIGIN) return;
       const data = e.data as OAuthResultMessage | undefined;
-      if (!data || data.type !== OAUTH_TYPE) return;
+      if (!data || data.type !== oauthType) return;
       if (data.provider !== matchProvider) return;
       setPending(false);
       if (data.status === "connected") {
@@ -63,7 +65,7 @@ function ConnectButton({
     }
     window.addEventListener("message", onMessage);
     return () => window.removeEventListener("message", onMessage);
-  }, [matchProvider, onConnected]);
+  }, [matchProvider, onConnected, oauthType]);
 
   async function onClick() {
     setPending(true);
@@ -119,13 +121,14 @@ export function ConnectAmazonButton({
   variant?: "primary" | "secondary";
   onConnected: () => void;
 }) {
+  const brand = useBrand();
   return (
     <ConnectButton
       label={label}
       pendingLabel="Waiting for Amazon…"
       variant={variant}
       action={startAmazonConnection}
-      popupName={`${config.brand.slug}-spapi-oauth`}
+      popupName={`${brand.id}-spapi-oauth`}
       matchProvider="amazon-selling-partner"
       onConnected={onConnected}
     />
@@ -141,13 +144,14 @@ export function ConnectAmazonAdsButton({
   variant?: "primary" | "secondary";
   onConnected: () => void;
 }) {
+  const brand = useBrand();
   return (
     <ConnectButton
       label={label}
       pendingLabel="Waiting for Amazon Ads…"
       variant={variant}
       action={startAmazonAdsConnection}
-      popupName={`${config.brand.slug}-ads-oauth`}
+      popupName={`${brand.id}-ads-oauth`}
       matchProvider="amazon-ads"
       onConnected={onConnected}
     />
@@ -174,13 +178,14 @@ export function ReauthenticateAmazonButton({
   variant?: "primary" | "secondary";
   onReauthenticated: () => void;
 }) {
+  const brand = useBrand();
   return (
     <ConnectButton
       label={label}
       pendingLabel="Waiting for Amazon…"
       variant={variant}
       action={() => reauthAmazonConnection(id)}
-      popupName={`${config.brand.slug}-spapi-reauth`}
+      popupName={`${brand.id}-spapi-reauth`}
       matchProvider="amazon-selling-partner"
       onConnected={onReauthenticated}
     />

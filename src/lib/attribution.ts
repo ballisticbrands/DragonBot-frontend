@@ -14,18 +14,20 @@
 //      guarded on the tracker's global being defined, so a missing
 //      script (e.g. Meta pixel not installed yet) is a silent no-op.
 
+import { detectBrand } from "@/brands";
+
 const STORAGE_KEY = "dragonbot_attribution_v1";
 
-// Companion cookie written by getdragonbot.com (LP's initAttribution).
-// Domain=.getdragonbot.com means the LP writes it and the app can read
-// it — used as a fallback when the visitor navigated LP → app but the
-// URL params got dropped somewhere (e.g. an explicit link without
-// ?utm_… on it, or the GH-Pages SPA-fallback stripping the query).
+// Companion cookie written by the LP (initAttribution). Cookie is
+// scoped to the parent domain (e.g. `.getdragonbot.com` /
+// `.dragonrefunds.com`) so the LP writes it and the app subdomain
+// reads it — used as a fallback when the visitor navigated LP → app
+// but the URL params got dropped somewhere (e.g. an explicit link
+// without ?utm_… on it, or the GH-Pages SPA-fallback stripping the
+// query). document.cookie auto-scopes by current hostname, so no
+// explicit domain check needed on the read side — whichever brand's
+// LP wrote the cookie is the one whose cookie is visible here.
 const COOKIE_NAME = "dragonbot_attribution";
-
-// GA4 measurement ID — kept in sync with the gtag('config', …) call in
-// index.html. Change both if you rotate the property.
-const GA4_MEASUREMENT_ID = "G-W5BRXVBQNR";
 
 const UTM_KEYS = [
   "utm_source",
@@ -280,7 +282,11 @@ export function identifyUserAcrossPlatforms(user: {
     // once user-id reporting is enabled on the property. NON-PII only:
     // never send email/name here (Google ToS).
     if (typeof window.gtag === "function") {
-      window.gtag("config", GA4_MEASUREMENT_ID, { user_id: userId });
+      // Per-brand GA4 property — DragonBot signups go to the DragonBot
+      // property, DragonRefunds signups go to the DragonRefunds
+      // property. Detection is O(1) hostname lookup.
+      const ga4Id = detectBrand().ga4MeasurementId;
+      window.gtag("config", ga4Id, { user_id: userId });
       window.gtag("set", "user_properties", { signup_source: signupSource });
       // Also fire a canonical conversion event GA4 can attribute.
       window.gtag("event", "sign_up", { method: "email" });

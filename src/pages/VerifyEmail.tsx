@@ -8,7 +8,7 @@
 import { useEffect, useState } from "react";
 import { Link, useNavigate, useSearchParams } from "react-router-dom";
 import { verifyEmail, type VerifyEmailSuccess, type VerifyEmailFailure } from "@/lib/auth";
-import { config } from "@/lib/config";
+import { useBrand } from "@/lib/brand-context";
 
 type UiState =
   | { kind: "loading" }
@@ -18,11 +18,12 @@ type UiState =
 export function VerifyEmail() {
   const [params] = useSearchParams();
   const navigate = useNavigate();
+  const brand = useBrand();
   const [state, setState] = useState<UiState>({ kind: "loading" });
 
   useEffect(() => {
-    document.title = `Verify your email — ${config.brand.name}`;
-  }, []);
+    document.title = `Verify your email — ${brand.displayName}`;
+  }, [brand.displayName]);
 
   useEffect(() => {
     const token = params.get("token") ?? "";

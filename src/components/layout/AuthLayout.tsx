@@ -1,13 +1,15 @@
 import { Link } from "react-router-dom";
 import { config } from "@/lib/config";
+import { useBrand } from "@/lib/brand-context";
 
 export function AuthLayout({ children }: { children: React.ReactNode }) {
+  const brand = useBrand();
   return (
     <div className="min-h-screen flex flex-col">
       <header className="flex items-center justify-between px-6 py-5">
         <Link to="/" className="flex items-center gap-2 text-base font-semibold tracking-tight">
-          <img src="/DragonBot-logo.png" alt={config.brand.name} className="h-7 w-7 rounded" />
-          {config.brand.name}
+          <img src="/DragonBot-logo.png" alt={brand.displayName} className="h-7 w-7 rounded" />
+          {brand.headerLabel}
         </Link>
         <a
           href={config.docsUrl}
@@ -25,7 +27,7 @@ export function AuthLayout({ children }: { children: React.ReactNode }) {
         <a href={config.docsUrl} target="_blank" rel="noreferrer">
           Docs
         </a>
-        <a href={`mailto:${config.brand.supportEmail}`}>Support</a>
+        <a href={`mailto:${brand.supportEmail}`}>Support</a>
       </footer>
     </div>
   );

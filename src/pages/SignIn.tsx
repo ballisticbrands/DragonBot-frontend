@@ -3,18 +3,19 @@ import { Link, useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/Button";
 import { Input, Label } from "@/components/ui/Input";
 import { signIn } from "@/lib/auth";
-import { config } from "@/lib/config";
+import { useBrand } from "@/lib/brand-context";
 
 export function SignIn() {
   const navigate = useNavigate();
+  const brand = useBrand();
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [error, setError] = useState<string | null>(null);
   const [pending, setPending] = useState(false);
 
   useEffect(() => {
-    document.title = `Sign in — ${config.brand.name}`;
-  }, []);
+    document.title = `Sign in — ${brand.displayName}`;
+  }, [brand.displayName]);
 
   async function onSubmit(e: React.FormEvent) {
     e.preventDefault();

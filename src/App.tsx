@@ -1,7 +1,7 @@
 import { useEffect } from "react";
 import { Navigate, Route, Routes, useLocation } from "react-router-dom";
 import { useSession } from "@/lib/session";
-import { config } from "@/lib/config";
+import { useBrand } from "@/lib/brand-context";
 import { AuthLayout } from "@/components/layout/AuthLayout";
 import { AppLayout } from "@/components/layout/AppLayout";
 import { Index } from "@/pages/Index";
@@ -18,9 +18,10 @@ export default function App() {
   // tab title. Per-page titles override via the useEffect inside each
   // page; this is the fallback.
   const location = useLocation();
+  const brand = useBrand();
   useEffect(() => {
-    document.title = `${config.brand.name} — Amazon Seller MCP for AI agents`;
-  }, [location.pathname]);
+    document.title = `${brand.displayName} — Amazon Seller MCP for AI agents`;
+  }, [location.pathname, brand.displayName]);
 
   return (
     <Routes>

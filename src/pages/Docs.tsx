@@ -1,7 +1,7 @@
 import { useEffect } from "react";
 import { Navigate, useParams } from "react-router-dom";
 import { DocsLayout } from "@/components/layout/DocsLayout";
-import { config } from "@/lib/config";
+import { useBrand } from "@/lib/brand-context";
 import { getDoc, defaultDoc } from "@/docs/registry";
 
 /**
@@ -12,10 +12,11 @@ import { getDoc, defaultDoc } from "@/docs/registry";
 export function Docs() {
   const { slug } = useParams<{ slug: string }>();
   const doc = slug ? getDoc(slug) : undefined;
+  const brand = useBrand();
 
   useEffect(() => {
-    if (doc) document.title = `${doc.title} — ${config.brand.name} Docs`;
-  }, [doc]);
+    if (doc) document.title = `${doc.title} — ${brand.displayName} Docs`;
+  }, [doc, brand.displayName]);
 
   if (!doc) return <Navigate to={`/docs/${defaultDoc.slug}`} replace />;
 

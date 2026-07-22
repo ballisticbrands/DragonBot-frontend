@@ -4,10 +4,11 @@ import { Button } from "@/components/ui/Button";
 import { Input, Label } from "@/components/ui/Input";
 import { Turnstile } from "@/components/Turnstile";
 import { signUp } from "@/lib/auth";
-import { config } from "@/lib/config";
+import { useBrand } from "@/lib/brand-context";
 
 export function SignUp() {
   const navigate = useNavigate();
+  const brand = useBrand();
   const [name, setName] = useState("");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
@@ -22,8 +23,8 @@ export function SignUp() {
   const onTurnstileExpired = useCallback(() => setTurnstileToken(null), []);
 
   useEffect(() => {
-    document.title = `Sign up — ${config.brand.name}`;
-  }, []);
+    document.title = `Sign up — ${brand.displayName}`;
+  }, [brand.displayName]);
 
   async function onSubmit(e: React.FormEvent) {
     e.preventDefault();

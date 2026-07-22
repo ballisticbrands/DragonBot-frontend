@@ -1,12 +1,13 @@
 import { Link, useNavigate } from "react-router-dom";
 import { useSession } from "@/lib/session";
 import { signOut } from "@/lib/auth";
-import { config } from "@/lib/config";
+import { useBrand } from "@/lib/brand-context";
 import { VerifyEmailBanner } from "@/components/VerifyEmailBanner";
 
 export function AppLayout({ children }: { children: React.ReactNode }) {
   const session = useSession();
   const navigate = useNavigate();
+  const brand = useBrand();
 
   // Route guard: bounce to /sign-in if not authenticated. Show a blank
   // shell while the /me probe is in flight (avoids a flash of the
@@ -32,8 +33,8 @@ export function AppLayout({ children }: { children: React.ReactNode }) {
               to="/dashboard"
               className="flex items-center gap-2 text-base font-semibold tracking-tight"
             >
-              <img src="/DragonBot-logo.png" alt={config.brand.name} className="h-7 w-7 rounded" />
-              {config.brand.name}
+              <img src="/DragonBot-logo.png" alt={brand.displayName} className="h-7 w-7 rounded" />
+              {brand.headerLabel}
             </Link>
             <nav className="flex items-center gap-5 text-sm">
               <Link to="/dashboard" className="text-[var(--foreground)]">

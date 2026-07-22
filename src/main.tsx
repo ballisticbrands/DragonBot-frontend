@@ -3,7 +3,69 @@ import { createRoot } from "react-dom/client";
 import { BrowserRouter } from "react-router-dom";
 import App from "./App";
 import { captureAttribution } from "./lib/attribution";
+import { detectBrand } from "./brands";
+import { BrandProvider } from "./lib/brand-context";
 import "./globals.css";
+
+// Detect the active brand BEFORE anything else — every downstream step
+// (analytics injection, attribution capture cookie domain, page title,
+// meta description) keys off it. Detection is O(1) hostname lookup.
+const brand = detectBrand();
+
+// Per-brand analytics injection. Moved out of index.html so a single
+// shared bundle can serve multiple brand hosts without shipping every
+// brand's IDs to every user. GA4 + Clarity scripts are injected into
+// <head> at runtime after brand detection resolves.
+//
+// Both bootstrap in the same way as their canonical inline snippets —
+// see the original DragonBot index.html for reference. The functions
+// mirror what the pasted GA4 + Clarity snippets from Google/Microsoft
+// produce.
+function injectGa4(measurementId: string): void {
+  if (!measurementId) return;
+  const s = document.createElement("script");
+  s.async = true;
+  s.src = `https://www.googletagmanager.com/gtag/js?id=${encodeURIComponent(measurementId)}`;
+  document.head.appendChild(s);
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  (window as any).dataLayer = (window as any).dataLayer || [];
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const gtag = function (...args: unknown[]) { (window as any).dataLayer.push(args); };
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  (window as any).gtag = gtag;
+  gtag("js", new Date());
+  gtag("config", measurementId);
+}
+
+function injectClarity(projectId: string): void {
+  if (!projectId) return;
+  // Verbatim port of the standard Clarity snippet — a small IIFE that
+  // creates the c[a] queue function and injects the tag script. Only
+  // change vs. the pasted code is projectId as an argument instead of
+  // an inline string.
+  ((c, l, a, r, i) => {
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    (c as any)[a] = (c as any)[a] || function (...args: unknown[]) {
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      ((c as any)[a].q = (c as any)[a].q || []).push(args);
+    };
+    const t = l.createElement(r) as HTMLScriptElement;
+    t.async = true;
+    t.src = "https://www.clarity.ms/tag/" + i;
+    const y = l.getElementsByTagName(r)[0];
+    y?.parentNode?.insertBefore(t, y);
+  })(window, document, "clarity", "script", projectId);
+}
+
+injectGa4(brand.ga4MeasurementId);
+injectClarity(brand.clarityId);
+
+// Brand-aware tab title + meta description. index.html no longer sets
+// brand-specific text — we swap it in here so both hosts get correct
+// SEO / share-preview metadata before the SPA even mounts.
+document.title = `${brand.displayName} — Amazon Seller MCP for AI agents`;
+const metaDesc = document.querySelector('meta[name="description"]');
+if (metaDesc) metaDesc.setAttribute("content", brand.metaDescription);
 
 // SPA fallback for GitHub Pages (see public/404.html). On a direct
 // hit to /dashboard or /sign-up, GH Pages serves 404.html, which
@@ -31,8 +93,10 @@ captureAttribution();
 
 createRoot(document.getElementById("root")!).render(
   <StrictMode>
-    <BrowserRouter>
-      <App />
-    </BrowserRouter>
+    <BrandProvider brand={brand}>
+      <BrowserRouter>
+        <App />
+      </BrowserRouter>
+    </BrandProvider>
   </StrictMode>,
 );

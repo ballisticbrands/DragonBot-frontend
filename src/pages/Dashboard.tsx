@@ -1,7 +1,7 @@
 import { useEffect } from "react";
 import { useSearchParams } from "react-router-dom";
 import { useSession } from "@/lib/session";
-import { config } from "@/lib/config";
+import { useBrand } from "@/lib/brand-context";
 import { DashboardTabs, type TabId } from "@/components/dashboard/DashboardTabs";
 import { DataTab } from "@/components/dashboard/DataTab";
 import { KeysTab } from "@/components/dashboard/KeysTab";
@@ -13,10 +13,11 @@ const TAB_IDS: TabId[] = ["data", "keys", "settings", "support"];
 export function Dashboard() {
   const [searchParams] = useSearchParams();
   const session = useSession();
+  const brand = useBrand();
 
   useEffect(() => {
-    document.title = `Dashboard — ${config.brand.name}`;
-  }, []);
+    document.title = `Dashboard — ${brand.displayName}`;
+  }, [brand.displayName]);
 
   const raw = searchParams.get("tab") ?? "data";
   const tab: TabId = (TAB_IDS as string[]).includes(raw) ? (raw as TabId) : "data";
