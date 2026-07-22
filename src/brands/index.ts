@@ -1,37 +1,21 @@
-// Brand registry + runtime detection.
+// Single-brand registry for dragonbot-frontend.
 //
-// The same JS bundle is served from both app.getdragonbot.com AND
-// app.dragonrefunds.com (single Cloudflare Pages project, two custom
-// domains). At mount time we read window.location.hostname and pick
-// the matching BrandConfig. That resolved brand flows to every UI
-// component via <BrandProvider> + useBrand().
+// This repo only builds the DragonBot app (deployed at
+// app.getdragonbot.com). Sibling repo dragonrefunds-frontend builds
+// the DragonRefunds app the same way with its own brand file.
 //
-// Adding a brand: create a new file under this directory exporting a
-// BrandConfig, add it to BY_HOST below, add its app.<host> to the
-// backend's CORS allowlist + src/lib/brand.ts, and set up Cloudflare
-// Pages + DNS for its hostname.
+// Kept as a module (rather than inlining into main.tsx) so the
+// eventual shared components package can consume a BrandConfig via
+// prop / provider and stay brand-agnostic.
 
-import type { BrandConfig } from "./types";
 import { DRAGONBOT } from "./dragonbot";
-import { DRAGONREFUNDS } from "./dragonrefunds";
 
 export type { BrandConfig } from "./types";
-export { DRAGONBOT, DRAGONREFUNDS };
+export { DRAGONBOT };
 
-const BY_HOST: Record<string, BrandConfig> = {
-  [DRAGONBOT.appHost]: DRAGONBOT,
-  [DRAGONREFUNDS.appHost]: DRAGONREFUNDS,
-};
-
-/**
- * Detect the active brand from the current window.location.hostname.
- * Falls back to DragonBot for localhost / preview URLs / any unknown
- * host — preserves developer ergonomics without silently applying the
- * wrong analytics IDs to a real user.
- */
-export function detectBrand(): BrandConfig {
-  const host = typeof window !== "undefined" ? window.location.hostname : "";
-  return BY_HOST[host] ?? DRAGONBOT;
+/** The one brand this repo builds. Consumers should call this
+ *  instead of importing DRAGONBOT directly — makes it a one-line
+ *  swap if we ever fork this repo again. */
+export function activeBrand() {
+  return DRAGONBOT;
 }
-
-export const ALL_BRANDS: readonly BrandConfig[] = [DRAGONBOT, DRAGONREFUNDS];

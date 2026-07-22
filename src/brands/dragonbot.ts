@@ -12,5 +12,4 @@ export const DRAGONBOT: BrandConfig = {
   ga4MeasurementId: "G-W5BRXVBQNR",
   clarityId: "vlbup1aiix",
   oauthMessageType: "dragonbot-oauth-result",
-  attributionCookieDomain: ".getdragonbot.com",
 };

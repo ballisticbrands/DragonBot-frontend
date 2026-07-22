@@ -3,14 +3,13 @@
 // revalidatePath — components manually refetch after mutations).
 
 import { ApiError, apiFetch } from "./api";
-import { detectBrand } from "@/brands";
+import { activeBrand } from "@/brands";
 
 // The active brand's app origin — sent as `return_to` on every OAuth
 // /start POST so the backend threads it through the state JWT and
 // bounces the seller back to THIS app after Amazon consent, not the
-// default (dragonbot). Stable per session — computed once at module
-// load from window.location.hostname.
-const RETURN_TO = detectBrand().appOrigin;
+// default. Constant per repo (single-brand).
+const RETURN_TO = activeBrand().appOrigin;
 
 export type Connection = {
   id: string;

@@ -14,7 +14,7 @@
 //      guarded on the tracker's global being defined, so a missing
 //      script (e.g. Meta pixel not installed yet) is a silent no-op.
 
-import { detectBrand } from "@/brands";
+import { activeBrand } from "@/brands";
 
 const STORAGE_KEY = "dragonbot_attribution_v1";
 
@@ -282,10 +282,7 @@ export function identifyUserAcrossPlatforms(user: {
     // once user-id reporting is enabled on the property. NON-PII only:
     // never send email/name here (Google ToS).
     if (typeof window.gtag === "function") {
-      // Per-brand GA4 property — DragonBot signups go to the DragonBot
-      // property, DragonRefunds signups go to the DragonRefunds
-      // property. Detection is O(1) hostname lookup.
-      const ga4Id = detectBrand().ga4MeasurementId;
+      const ga4Id = activeBrand().ga4MeasurementId;
       window.gtag("config", ga4Id, { user_id: userId });
       window.gtag("set", "user_properties", { signup_source: signupSource });
       // Also fire a canonical conversion event GA4 can attribute.

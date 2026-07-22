@@ -3,24 +3,20 @@ import { createRoot } from "react-dom/client";
 import { BrowserRouter } from "react-router-dom";
 import App from "./App";
 import { captureAttribution } from "./lib/attribution";
-import { detectBrand } from "./brands";
+import { activeBrand } from "./brands";
 import { BrandProvider } from "./lib/brand-context";
 import "./globals.css";
 
-// Detect the active brand BEFORE anything else — every downstream step
-// (analytics injection, attribution capture cookie domain, page title,
-// meta description) keys off it. Detection is O(1) hostname lookup.
-const brand = detectBrand();
+// This repo builds one brand (DragonBot). Every downstream step —
+// analytics injection, tab title, meta description — reads brand
+// config from here. When sibling repos like dragonrefunds-frontend
+// do the same they point at their own brand file.
+const brand = activeBrand();
 
-// Per-brand analytics injection. Moved out of index.html so a single
-// shared bundle can serve multiple brand hosts without shipping every
-// brand's IDs to every user. GA4 + Clarity scripts are injected into
-// <head> at runtime after brand detection resolves.
-//
-// Both bootstrap in the same way as their canonical inline snippets —
-// see the original DragonBot index.html for reference. The functions
-// mirror what the pasted GA4 + Clarity snippets from Google/Microsoft
-// produce.
+// Analytics injection at runtime rather than inline in index.html.
+// Keeps the pattern consistent with the sibling brand repo (its own
+// GA4 / Clarity IDs) and makes the eventual shared-package extract
+// easier — main.tsx of each brand does this the same way.
 function injectGa4(measurementId: string): void {
   if (!measurementId) return;
   const s = document.createElement("script");
