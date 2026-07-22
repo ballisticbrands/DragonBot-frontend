@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { Button } from "@/components/ui/Button";
+import { Button } from "@ballisticbrands/frontend-shared";
 import { openBillingPortal, startCheckout } from "@/lib/billing";
 import { PLANS, type PlanId } from "@/lib/tools";
 

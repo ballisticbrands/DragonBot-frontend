@@ -4,13 +4,12 @@ import { useSession } from "@ballisticbrands/frontend-shared";
 import { useBrand } from "@ballisticbrands/frontend-shared";
 import { AuthLayout } from "@/components/layout/AuthLayout";
 import { AppLayout } from "@/components/layout/AppLayout";
+import { ForgotPasswordPage, VerifyEmailPage } from "@ballisticbrands/frontend-shared";
 import { Index } from "@/pages/Index";
 import { SignIn } from "@/pages/SignIn";
 import { SignUp } from "@/pages/SignUp";
-import { ForgotPassword } from "@/pages/ForgotPassword";
 import { Dashboard } from "@/pages/Dashboard";
 import { Docs } from "@/pages/Docs";
-import { VerifyEmail } from "@/pages/VerifyEmail";
 import { defaultDoc } from "@/docs/registry";
 
 export default function App() {
@@ -50,7 +49,7 @@ export default function App() {
         path="/forgot-password"
         element={
           <AuthLayout>
-            <ForgotPassword />
+            <ForgotPasswordPage />
           </AuthLayout>
         }
       />
@@ -65,7 +64,7 @@ export default function App() {
       <Route path="/docs" element={<Navigate to={`/docs/${defaultDoc.slug}`} replace />} />
       <Route path="/docs/:slug" element={<Docs />} />
       {/* /verify is public — the token in the URL is the credential. */}
-      <Route path="/verify" element={<VerifyEmail />} />
+      <Route path="/verify" element={<VerifyEmailPage />} />
       <Route path="*" element={<Navigate to="/" replace />} />
     </Routes>
   );

@@ -1,8 +1,8 @@
 import { useState } from "react";
 import { Badge } from "@/components/ui/Badge";
-import { Button } from "@/components/ui/Button";
+import { Button } from "@ballisticbrands/frontend-shared";
 import { CopyButton } from "@/components/ui/CopyButton";
-import { Input, Label } from "@/components/ui/Input";
+import { Input, Label } from "@ballisticbrands/frontend-shared";
 import { createApiKey, revokeApiKey, type ApiKey, type MintedKey } from "@/lib/keys";
 import type { ToolDomain } from "@/lib/tools";
 

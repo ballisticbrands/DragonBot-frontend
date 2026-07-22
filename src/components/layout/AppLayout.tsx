@@ -2,7 +2,7 @@ import { Link, useNavigate } from "react-router-dom";
 import { useSession } from "@ballisticbrands/frontend-shared";
 import { signOut } from "@ballisticbrands/frontend-shared";
 import { useBrand } from "@ballisticbrands/frontend-shared";
-import { VerifyEmailBanner } from "@/components/VerifyEmailBanner";
+import { VerifyEmailBanner } from "@ballisticbrands/frontend-shared";
 
 export function AppLayout({ children }: { children: React.ReactNode }) {
   const session = useSession();

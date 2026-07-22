@@ -9,8 +9,8 @@
 // (orders_with_cogs) so profit questions become answerable.
 
 import { useCallback, useEffect, useRef, useState } from "react";
-import { Button } from "@/components/ui/Button";
-import { Input, Label } from "@/components/ui/Input";
+import { Button } from "@ballisticbrands/frontend-shared";
+import { Input, Label } from "@ballisticbrands/frontend-shared";
 import {
   COGS_FROM_SENTINEL,
   COGS_SAMPLE_CSV,

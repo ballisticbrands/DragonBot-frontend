@@ -20,7 +20,11 @@ const brand = activeBrand();
 // functions run. Sets the module-level singleton non-React code
 // (attribution helpers, fetch wrapper) reads apiUrl + brand from.
 // React components read brand via useBrand() from the same package.
-configureShared({ apiUrl: config.apiUrl, brand });
+configureShared({
+  apiUrl: config.apiUrl,
+  brand,
+  turnstileSiteKey: config.turnstileSiteKey,
+});
 
 // Per-brand analytics injection. Moved out of index.html so a single
 // codebase can serve differently-branded builds without shipping

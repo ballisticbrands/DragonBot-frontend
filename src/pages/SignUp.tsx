@@ -1,8 +1,8 @@
 import { useCallback, useEffect, useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
-import { Button } from "@/components/ui/Button";
-import { Input, Label } from "@/components/ui/Input";
-import { Turnstile } from "@/components/Turnstile";
+import { Button } from "@ballisticbrands/frontend-shared";
+import { Input, Label } from "@ballisticbrands/frontend-shared";
+import { Turnstile } from "@ballisticbrands/frontend-shared";
 import { signUp } from "@ballisticbrands/frontend-shared";
 import { useBrand } from "@ballisticbrands/frontend-shared";
 
