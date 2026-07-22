@@ -2,7 +2,7 @@
 // but as plain client-side fetch wrappers (no Server Actions, no
 // revalidatePath — components manually refetch after mutations).
 
-import { ApiError, apiFetch } from "./api";
+import { ApiError, apiFetch } from "@ballisticbrands/frontend-shared";
 import { activeBrand } from "@/brands";
 
 // The active brand's app origin — sent as `return_to` on every OAuth

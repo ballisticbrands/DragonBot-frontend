@@ -2,8 +2,8 @@ import { useEffect, useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/Button";
 import { Input, Label } from "@/components/ui/Input";
-import { signIn } from "@/lib/auth";
-import { useBrand } from "@/lib/brand-context";
+import { signIn } from "@ballisticbrands/frontend-shared";
+import { useBrand } from "@ballisticbrands/frontend-shared";
 
 export function SignIn() {
   const navigate = useNavigate();

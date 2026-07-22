@@ -7,8 +7,8 @@
 
 import { useEffect, useState } from "react";
 import { Link, useNavigate, useSearchParams } from "react-router-dom";
-import { verifyEmail, type VerifyEmailSuccess, type VerifyEmailFailure } from "@/lib/auth";
-import { useBrand } from "@/lib/brand-context";
+import { verifyEmail, type VerifyEmailSuccess, type VerifyEmailFailure } from "@ballisticbrands/frontend-shared";
+import { useBrand } from "@ballisticbrands/frontend-shared";
 
 type UiState =
   | { kind: "loading" }

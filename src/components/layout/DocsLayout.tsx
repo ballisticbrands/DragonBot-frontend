@@ -1,5 +1,5 @@
 import { Link, NavLink } from "react-router-dom";
-import { useBrand } from "@/lib/brand-context";
+import { useBrand } from "@ballisticbrands/frontend-shared";
 import { docs } from "@/docs/registry";
 
 // Public documentation shell: a brand header plus a left sidebar listing

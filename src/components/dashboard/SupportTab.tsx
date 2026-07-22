@@ -1,6 +1,6 @@
 import { Card, CardBody, CardDescription, CardHeader, CardTitle } from "@/components/ui/Card";
 import { config } from "@/lib/config";
-import { useBrand } from "@/lib/brand-context";
+import { useBrand } from "@ballisticbrands/frontend-shared";
 
 // FAQ text baked with the brand name at render time — moved from a
 // module-level const so it can vary per brand without shipping every

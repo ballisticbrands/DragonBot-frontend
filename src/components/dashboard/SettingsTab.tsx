@@ -1,7 +1,7 @@
 import { Badge } from "@/components/ui/Badge";
 import { Card, CardBody, CardDescription, CardHeader, CardTitle } from "@/components/ui/Card";
 import { PLANS } from "@/lib/tools";
-import type { SessionUser } from "@/lib/session";
+import type { SessionUser } from "@ballisticbrands/frontend-shared";
 import { BillingActions, PlanCard } from "./BillingButtons";
 
 export function SettingsTab({ user }: { user: SessionUser }) {

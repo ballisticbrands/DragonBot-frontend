@@ -1,7 +1,7 @@
 import { useEffect } from "react";
 import { useSearchParams } from "react-router-dom";
-import { useSession } from "@/lib/session";
-import { useBrand } from "@/lib/brand-context";
+import { useSession } from "@ballisticbrands/frontend-shared";
+import { useBrand } from "@ballisticbrands/frontend-shared";
 import { DashboardTabs, type TabId } from "@/components/dashboard/DashboardTabs";
 import { DataTab } from "@/components/dashboard/DataTab";
 import { KeysTab } from "@/components/dashboard/KeysTab";

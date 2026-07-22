@@ -1,7 +1,7 @@
 import { useEffect } from "react";
 import { Navigate, useParams } from "react-router-dom";
 import { DocsLayout } from "@/components/layout/DocsLayout";
-import { useBrand } from "@/lib/brand-context";
+import { useBrand } from "@ballisticbrands/frontend-shared";
 import { getDoc, defaultDoc } from "@/docs/registry";
 
 /**

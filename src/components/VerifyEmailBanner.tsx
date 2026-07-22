@@ -8,7 +8,7 @@
 // the link in another tab, or because they just landed on /verify.
 
 import { useEffect, useState } from "react";
-import { resendVerification } from "@/lib/auth";
+import { resendVerification } from "@ballisticbrands/frontend-shared";
 
 type BannerState =
   | { mode: "idle" }

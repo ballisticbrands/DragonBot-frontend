@@ -3,8 +3,8 @@ import { Link, useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/Button";
 import { Input, Label } from "@/components/ui/Input";
 import { Turnstile } from "@/components/Turnstile";
-import { signUp } from "@/lib/auth";
-import { useBrand } from "@/lib/brand-context";
+import { signUp } from "@ballisticbrands/frontend-shared";
+import { useBrand } from "@ballisticbrands/frontend-shared";
 
 export function SignUp() {
   const navigate = useNavigate();

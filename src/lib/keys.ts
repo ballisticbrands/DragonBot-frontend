@@ -1,6 +1,6 @@
 // API key management. Mirrors sellerconnect-frontend/src/app/actions/keys.ts.
 
-import { ApiError, apiFetch } from "./api";
+import { ApiError, apiFetch } from "@ballisticbrands/frontend-shared";
 import type { ToolDomain } from "./tools";
 
 export type ApiKey = {

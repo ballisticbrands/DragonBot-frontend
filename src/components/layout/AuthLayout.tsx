@@ -1,6 +1,6 @@
 import { Link } from "react-router-dom";
 import { config } from "@/lib/config";
-import { useBrand } from "@/lib/brand-context";
+import { useBrand } from "@ballisticbrands/frontend-shared";
 
 export function AuthLayout({ children }: { children: React.ReactNode }) {
   const brand = useBrand();

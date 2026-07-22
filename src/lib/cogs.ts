@@ -8,9 +8,9 @@
 // BigQuery `user_cogs` table + `orders_with_cogs` view after every
 // mutation, so profit queries pick changes up within seconds.
 
-import { ApiError, apiFetch } from "./api";
+import { ApiError, apiFetch } from "@ballisticbrands/frontend-shared";
 import { config } from "./config";
-import { getSessionToken } from "./session";
+import { getSessionToken } from "@ballisticbrands/frontend-shared";
 
 export type CogsRow = {
   childAsin: string;

@@ -1,7 +1,7 @@
 import { useEffect } from "react";
 import { Navigate, Route, Routes, useLocation } from "react-router-dom";
-import { useSession } from "@/lib/session";
-import { useBrand } from "@/lib/brand-context";
+import { useSession } from "@ballisticbrands/frontend-shared";
+import { useBrand } from "@ballisticbrands/frontend-shared";
 import { AuthLayout } from "@/components/layout/AuthLayout";
 import { AppLayout } from "@/components/layout/AppLayout";
 import { Index } from "@/pages/Index";

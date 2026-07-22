@@ -2,8 +2,8 @@ import { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
 import { Button } from "@/components/ui/Button";
 import { Input, Label } from "@/components/ui/Input";
-import { requestPasswordReset } from "@/lib/auth";
-import { useBrand } from "@/lib/brand-context";
+import { requestPasswordReset } from "@ballisticbrands/frontend-shared";
+import { useBrand } from "@ballisticbrands/frontend-shared";
 
 export function ForgotPassword() {
   const brand = useBrand();

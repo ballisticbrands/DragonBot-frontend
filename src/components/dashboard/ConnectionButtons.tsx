@@ -1,7 +1,7 @@
 import { useEffect, useRef, useState } from "react";
 import { Button } from "@/components/ui/Button";
 import { config } from "@/lib/config";
-import { useBrand } from "@/lib/brand-context";
+import { useBrand } from "@ballisticbrands/frontend-shared";
 import {
   disconnectConnection,
   reauthAmazonConnection,

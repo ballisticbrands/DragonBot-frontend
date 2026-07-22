@@ -9,8 +9,8 @@ import {
   type Connection,
   type SyncStatus,
 } from "@/lib/connections";
-import { useBrand } from "@/lib/brand-context";
-import { trackAccountConnected } from "@/lib/attribution";
+import { useBrand } from "@ballisticbrands/frontend-shared";
+import { trackAccountConnected } from "@ballisticbrands/frontend-shared";
 import {
   ConnectAmazonAdsButton,
   ConnectAmazonButton,

@@ -2,7 +2,7 @@
 // — but since this is client-side, we navigate to the returned URL via
 // window.location.href instead of Next.js's `redirect()`.
 
-import { ApiError, apiFetch } from "./api";
+import { ApiError, apiFetch } from "@ballisticbrands/frontend-shared";
 import type { PlanId } from "./tools";
 
 export async function startCheckout(plan: PlanId): Promise<{ error?: string }> {

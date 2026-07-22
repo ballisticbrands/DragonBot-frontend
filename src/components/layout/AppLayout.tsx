@@ -1,7 +1,7 @@
 import { Link, useNavigate } from "react-router-dom";
-import { useSession } from "@/lib/session";
-import { signOut } from "@/lib/auth";
-import { useBrand } from "@/lib/brand-context";
+import { useSession } from "@ballisticbrands/frontend-shared";
+import { signOut } from "@ballisticbrands/frontend-shared";
+import { useBrand } from "@ballisticbrands/frontend-shared";
 import { VerifyEmailBanner } from "@/components/VerifyEmailBanner";
 
 export function AppLayout({ children }: { children: React.ReactNode }) {

@@ -1,5 +1,5 @@
 import { Navigate } from "react-router-dom";
-import { useSession } from "@/lib/session";
+import { useSession } from "@ballisticbrands/frontend-shared";
 
 /**
  * Root route. Redirects to /dashboard if signed in, /sign-in otherwise.
