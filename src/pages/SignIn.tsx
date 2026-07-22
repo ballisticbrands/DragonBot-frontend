@@ -1,34 +1,23 @@
-import { useEffect, useState } from "react";
+import { useEffect } from "react";
 import { Link, useNavigate } from "react-router-dom";
-import { Button } from "@ballisticbrands/frontend-shared";
-import { Input, Label } from "@ballisticbrands/frontend-shared";
-import { signIn } from "@ballisticbrands/frontend-shared";
-import { useBrand } from "@ballisticbrands/frontend-shared";
+import {
+  Button,
+  Input,
+  Label,
+  useBrand,
+  useSignInForm,
+} from "@ballisticbrands/frontend-shared";
 
 export function SignIn() {
   const navigate = useNavigate();
   const brand = useBrand();
-  const [email, setEmail] = useState("");
-  const [password, setPassword] = useState("");
-  const [error, setError] = useState<string | null>(null);
-  const [pending, setPending] = useState(false);
+  const form = useSignInForm({
+    onSuccess: () => navigate("/dashboard", { replace: true }),
+  });
 
   useEffect(() => {
     document.title = `Sign in — ${brand.displayName}`;
   }, [brand.displayName]);
-
-  async function onSubmit(e: React.FormEvent) {
-    e.preventDefault();
-    setError(null);
-    setPending(true);
-    const res = await signIn(email, password);
-    setPending(false);
-    if (res.error) {
-      setError(res.error);
-      return;
-    }
-    navigate("/dashboard", { replace: true });
-  }
 
   return (
     <div>
@@ -36,7 +25,7 @@ export function SignIn() {
       <p className="mt-1 text-sm text-[var(--muted-foreground)]">
         Welcome back. Sign in to manage your keys and connections.
       </p>
-      <form className="mt-6 space-y-4" onSubmit={onSubmit}>
+      <form className="mt-6 space-y-4" onSubmit={form.onSubmit}>
         <div className="space-y-1.5">
           <Label htmlFor="email">Email</Label>
           <Input
@@ -45,8 +34,8 @@ export function SignIn() {
             type="email"
             autoComplete="email"
             required
-            value={email}
-            onChange={(e) => setEmail(e.target.value)}
+            value={form.email}
+            onChange={(e) => form.setEmail(e.target.value)}
           />
         </div>
         <div className="space-y-1.5">
@@ -65,13 +54,13 @@ export function SignIn() {
             type="password"
             autoComplete="current-password"
             required
-            value={password}
-            onChange={(e) => setPassword(e.target.value)}
+            value={form.password}
+            onChange={(e) => form.setPassword(e.target.value)}
           />
         </div>
-        {error && <p className="text-sm text-[var(--danger)]">{error}</p>}
-        <Button type="submit" disabled={pending} className="w-full">
-          {pending ? "Signing in…" : "Sign in"}
+        {form.error && <p className="text-sm text-[var(--danger)]">{form.error}</p>}
+        <Button type="submit" disabled={form.pending} className="w-full">
+          {form.pending ? "Signing in…" : "Sign in"}
         </Button>
       </form>
       <p className="mt-6 text-sm text-[var(--muted-foreground)]">
