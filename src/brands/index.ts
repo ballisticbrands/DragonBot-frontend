@@ -12,6 +12,7 @@ import { DRAGONBOT } from "./dragonbot";
 
 export type { BrandConfig } from "@ballisticbrands/frontend-shared";
 export { DRAGONBOT };
+export { META_PIXEL_ID } from "./dragonbot";
 
 /** The one brand this repo builds. */
 export function activeBrand() {

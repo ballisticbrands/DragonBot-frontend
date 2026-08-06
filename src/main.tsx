@@ -7,7 +7,7 @@ import {
   configureShared,
 } from "@ballisticbrands/frontend-shared";
 import App from "./App";
-import { activeBrand } from "./brands";
+import { activeBrand, META_PIXEL_ID } from "./brands";
 import { config } from "./lib/config";
 import "./globals.css";
 
@@ -38,8 +38,15 @@ function injectGa4(measurementId: string): void {
   document.head.appendChild(s);
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   (window as any).dataLayer = (window as any).dataLayer || [];
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  const gtag = function (...args: unknown[]) { (window as any).dataLayer.push(args); };
+  // gtag.js only processes the `arguments` object pushed to dataLayer.
+  // The previous shim pushed a rest-param *array*, which gtag.js silently
+  // ignores — so gtag('config') and every gtag('event') no-op'd and NO
+  // hits were ever sent (page_view, sign_up, etc. all dropped). Push the
+  // arguments object like the canonical snippet.
+  const gtag: (...args: unknown[]) => void = function () {
+    // eslint-disable-next-line prefer-rest-params, @typescript-eslint/no-explicit-any
+    (window as any).dataLayer.push(arguments);
+  };
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   (window as any).gtag = gtag;
   gtag("js", new Date());
@@ -63,8 +70,36 @@ function injectClarity(projectId: string): void {
   })(window, document, "clarity", "script", projectId);
 }
 
+// Meta Pixel base snippet. BrandConfig (owned by frontend-shared) has no
+// metaPixelId field, so the ID is a local export from ./brands — same
+// pattern as dragonreply-frontend. Without this loader every Meta call in
+// frontend-shared (CompleteRegistration, ConnectSeller, …) silently no-ops
+// behind its `typeof window.fbq === "function"` guard.
+function injectMetaPixel(pixelId: string): void {
+  if (!pixelId) return;
+  /* eslint-disable @typescript-eslint/no-explicit-any, prefer-rest-params */
+  const w = window as any;
+  if (w.fbq) return;
+  const n: any = (w.fbq = function () {
+    n.callMethod ? n.callMethod.apply(n, arguments) : n.queue.push(arguments);
+  });
+  if (!w._fbq) w._fbq = n;
+  n.push = n;
+  n.loaded = true;
+  n.version = "2.0";
+  n.queue = [];
+  const t = document.createElement("script");
+  t.async = true;
+  t.src = "https://connect.facebook.net/en_US/fbevents.js";
+  document.head.appendChild(t);
+  /* eslint-enable @typescript-eslint/no-explicit-any, prefer-rest-params */
+  w.fbq("init", pixelId);
+  w.fbq("track", "PageView");
+}
+
 injectGa4(brand.ga4MeasurementId);
 injectClarity(brand.clarityId);
+injectMetaPixel(META_PIXEL_ID);
 
 // Brand-aware tab title + meta description. index.html no longer
 // sets brand-specific text — swap in here so search-preview /
