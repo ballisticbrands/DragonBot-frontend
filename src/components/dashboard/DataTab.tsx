@@ -10,7 +10,7 @@ import {
   type SyncStatus,
 } from "@/lib/connections";
 import { useBrand } from "@ballisticbrands/frontend-shared";
-import { trackAccountConnected } from "@ballisticbrands/frontend-shared";
+import { reconcileConnectionActivations } from "@ballisticbrands/frontend-shared";
 import {
   ConnectAmazonAdsButton,
   ConnectAmazonButton,
@@ -28,22 +28,25 @@ export function DataTab() {
     setConnections(list);
   }, []);
 
-  // Fire an activation event + set a durable "serious user" property when
-  // a NEW account is connected, then refresh the list. Wired only to the
-  // connect buttons (not re-auth) so re-authentication doesn't count as a
-  // new activation.
+  // A NEW account connect refreshes the list first, then lets
+  // reconcileConnectionActivations() fire the activation event from server
+  // state (deduped per connection id). We no longer fire it directly here,
+  // and the reconciler derives seller vs ads from the API's provider field,
+  // so both handlers are the same call.
   const onSpApiConnected = useCallback(() => {
-    trackAccountConnected("amazon_seller");
-    void refresh();
+    // Fire from server state, not the (droppable) OAuth postMessage.
+    void refresh().then(() => reconcileConnectionActivations());
   }, [refresh]);
 
   const onAdsConnected = useCallback(() => {
-    trackAccountConnected("amazon_ads");
-    void refresh();
+    // Fire from server state, not the (droppable) OAuth postMessage.
+    void refresh().then(() => reconcileConnectionActivations());
   }, [refresh]);
 
+  // Reconcile on mount too, so a connection whose OAuth postMessage was
+  // lost still gets counted on the next dashboard visit.
   useEffect(() => {
-    void refresh();
+    void refresh().then(() => reconcileConnectionActivations());
   }, [refresh]);
 
   const amazons = (connections ?? []).filter((c) => c.provider === "amazon-selling-partner");
