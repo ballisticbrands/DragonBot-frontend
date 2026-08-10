@@ -1,26 +1,21 @@
 import { Link, NavLink } from "react-router-dom";
-import { useBrand } from "@ballisticbrands/frontend-shared";
 import { docs } from "@/docs/registry";
+import { BrandLockup } from "@/components/BrandLockup";
 
 // Public documentation shell: a brand header plus a left sidebar listing
 // every doc in the registry. Unlike AppLayout this has no auth guard —
 // docs are public. The active doc renders into `children` wrapped in the
 // .docs-prose container (see globals.css) for typographic styling.
 export function DocsLayout({ children }: { children: React.ReactNode }) {
-  const brand = useBrand();
   return (
     <div className="min-h-screen flex flex-col">
       <header className="border-b border-[var(--border)] bg-white">
         <div className="mx-auto flex max-w-6xl items-center justify-between px-6 py-3">
           <div className="flex items-center gap-8">
-            <Link
+            <BrandLockup
               to="/docs"
-              className="flex items-center gap-2 text-base font-semibold tracking-tight"
-            >
-              <img src="/DragonBot-logo.png" alt={brand.displayName} className="h-7 w-7 rounded" />
-              {brand.headerLabel}
-              <span className="text-[var(--muted-foreground)] font-normal">Docs</span>
-            </Link>
+              suffix={<span className="text-[var(--muted-foreground)] font-normal">Docs</span>}
+            />
           </div>
           <nav className="flex items-center gap-5 text-sm">
             <Link

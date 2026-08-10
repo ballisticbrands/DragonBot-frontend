@@ -1,13 +1,12 @@
 import { Link, useNavigate } from "react-router-dom";
 import { useSession } from "@ballisticbrands/frontend-shared";
 import { signOut } from "@ballisticbrands/frontend-shared";
-import { useBrand } from "@ballisticbrands/frontend-shared";
 import { VerifyEmailBanner } from "@ballisticbrands/frontend-shared";
+import { BrandLockup } from "@/components/BrandLockup";
 
 export function AppLayout({ children }: { children: React.ReactNode }) {
   const session = useSession();
   const navigate = useNavigate();
-  const brand = useBrand();
 
   // Route guard: bounce to /sign-in if not authenticated. Show a blank
   // shell while the /me probe is in flight (avoids a flash of the
@@ -31,20 +30,7 @@ export function AppLayout({ children }: { children: React.ReactNode }) {
           <div className="flex items-center gap-8">
             {/* Same logo treatment as the getdragonbot.com navbar: bobbing
                 dragon + "getDragonBot.com" with the green gradient on the name. */}
-            <Link to="/dashboard" className="flex items-center gap-2.5">
-              <img
-                src="/DragonBot-logo.png"
-                alt={brand.displayName}
-                className="logo-bob h-8 w-auto"
-              />
-              <span className="whitespace-nowrap text-[20px] font-bold leading-none tracking-tight">
-                get
-                <span className="bg-gradient-to-r from-[#2F7D4F] to-[#98CC65] bg-clip-text text-transparent">
-                  DragonBot
-                </span>
-                .com
-              </span>
-            </Link>
+            <BrandLockup to="/dashboard" />
             <nav className="flex items-center gap-5 text-sm">
               <Link to="/dashboard" className="text-[var(--foreground)]">
                 Dashboard

@@ -1,6 +1,16 @@
+/* Clash Display — the DragonBot wordmark face, matching getdragonbot.com's
+   navbar. Must precede the @tailwind directives: CSS requires @import to come
+   before any other rule. */
+@import url('https://api.fontshare.com/v2/css?f[]=clash-display@700&display=swap');
+
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
+
+/* Matches the .font-clash helper in DragonBotLP's globals.css. */
+.font-clash {
+  font-family: 'Clash Display', sans-serif;
+}
 
 :root {
   --background: #ffffff;

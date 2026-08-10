@@ -1,16 +1,13 @@
-import { Link } from "react-router-dom";
 import { config } from "@/lib/config";
 import { useBrand } from "@ballisticbrands/frontend-shared";
+import { BrandLockup } from "@/components/BrandLockup";
 
 export function AuthLayout({ children }: { children: React.ReactNode }) {
   const brand = useBrand();
   return (
     <div className="min-h-screen flex flex-col">
       <header className="flex items-center justify-between px-6 py-5">
-        <Link to="/" className="flex items-center gap-2 text-base font-semibold tracking-tight">
-          <img src="/DragonBot-logo.png" alt={brand.displayName} className="h-7 w-7 rounded" />
-          {brand.headerLabel}
-        </Link>
+        <BrandLockup to="/" />
         <a
           href={config.docsUrl}
           target="_blank"
