@@ -24,6 +24,7 @@ configureShared({
   apiUrl: config.apiUrl,
   brand,
   turnstileSiteKey: config.turnstileSiteKey,
+  googleClientId: config.googleClientId,
 });
 
 // Per-brand analytics injection. Moved out of index.html so a single
@@ -58,9 +59,12 @@ function injectClarity(projectId: string): void {
   // Verbatim port of the standard Clarity snippet.
   ((c, l, a, r, i) => {
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    (c as any)[a] = (c as any)[a] || function (...args: unknown[]) {
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      ((c as any)[a].q = (c as any)[a].q || []).push(args);
+    (c as any)[a] = (c as any)[a] || function () {
+      // Clarity's queue, like gtag's, expects the `arguments` object —
+      // pushing a rest-param array is silently ignored (same bug class
+      // as the injectGa4 shim above, fixed there 2026-08-06).
+      // eslint-disable-next-line prefer-rest-params, @typescript-eslint/no-explicit-any
+      ((c as any)[a].q = (c as any)[a].q || []).push(arguments);
     };
     const t = l.createElement(r) as HTMLScriptElement;
     t.async = true;

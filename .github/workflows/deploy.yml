@@ -43,8 +43,12 @@ jobs:
       - name: Build
         run: npm run build
         env:
-          VITE_BACKEND_URL: ${{ secrets.VITE_BACKEND_URL }}
+          # NOTE: the code reads VITE_API_URL (src/lib/config.ts) — this
+          # was VITE_BACKEND_URL for a while, which nothing read, so prod
+          # silently fell back to the hardcoded default API URL.
+          VITE_API_URL: ${{ secrets.VITE_API_URL }}
           VITE_TURNSTILE_SITE_KEY: ${{ secrets.VITE_TURNSTILE_SITE_KEY }}
+          VITE_GOOGLE_CLIENT_ID: ${{ secrets.VITE_GOOGLE_CLIENT_ID }}
 
       - name: Upload artifact
         uses: actions/upload-pages-artifact@v3

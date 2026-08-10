@@ -27,6 +27,13 @@ export const config = {
   // the Cloudflare Dashboard) so this stays a single value across all
   // brands.
   turnstileSiteKey: import.meta.env.VITE_TURNSTILE_SITE_KEY ?? "",
+  // Google OAuth Web client ID for "Sign in with Google". Paired with
+  // the backend's GOOGLE_CLIENT_ID (same value — it's public, not a
+  // secret). When empty (local dev without Google set up), the shared
+  // <GoogleSignInButton> renders nothing and the auth pages show only
+  // the email/password form. One Web client serves all brand apps;
+  // each app origin must be on its "Authorized JavaScript origins".
+  googleClientId: import.meta.env.VITE_GOOGLE_CLIENT_ID ?? "",
 };
 
 export const SESSION_KEY = "dragonbot_session";

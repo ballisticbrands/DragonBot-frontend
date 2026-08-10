@@ -2,13 +2,16 @@ import { useEffect, useState } from "react";
 import type { FormEvent } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import {
+  AuthDivider,
   Button,
+  GoogleSignInButton,
   Input,
   Label,
   Turnstile,
   useBrand,
   useSignUpForm,
 } from "@ballisticbrands/frontend-shared";
+import { config } from "@/lib/config";
 
 export function SignUp() {
   const navigate = useNavigate();
@@ -20,6 +23,7 @@ export function SignUp() {
   // hook and the backend only know about one password field.
   const [confirmPassword, setConfirmPassword] = useState("");
   const [mismatchError, setMismatchError] = useState<string | null>(null);
+  const [googleError, setGoogleError] = useState<string | null>(null);
 
   const onSubmit = (e: FormEvent<HTMLFormElement>) => {
     if (form.password !== confirmPassword) {
@@ -42,6 +46,22 @@ export function SignUp() {
         Seven days free. No credit card required.
       </p>
       <form className="mt-6 space-y-4" onSubmit={onSubmit}>
+        {/* Google path skips the whole form (and Turnstile — Google's
+            own bot defenses stand in; the backend doesn't require a
+            captcha on /v1/auth/google). */}
+        {config.googleClientId && (
+          <>
+            <GoogleSignInButton
+              text="signup_with"
+              onSuccess={() => navigate("/dashboard", { replace: true })}
+              onError={setGoogleError}
+            />
+            {googleError && (
+              <p className="text-center text-sm text-[var(--danger)]">{googleError}</p>
+            )}
+            <AuthDivider label="or sign up with email" />
+          </>
+        )}
         <div className="space-y-1.5">
           <Label htmlFor="name">Name</Label>
           <Input

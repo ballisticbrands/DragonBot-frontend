@@ -1,16 +1,20 @@
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import {
+  AuthDivider,
   Button,
+  GoogleSignInButton,
   Input,
   Label,
   useBrand,
   useSignInForm,
 } from "@ballisticbrands/frontend-shared";
+import { config } from "@/lib/config";
 
 export function SignIn() {
   const navigate = useNavigate();
   const brand = useBrand();
+  const [googleError, setGoogleError] = useState<string | null>(null);
   const form = useSignInForm({
     onSuccess: () => navigate("/dashboard", { replace: true }),
   });
@@ -25,7 +29,17 @@ export function SignIn() {
       <p className="mt-1 text-sm text-[var(--muted-foreground)]">
         Welcome back. Sign in to manage your keys and connections.
       </p>
-      <form className="mt-6 space-y-4" onSubmit={form.onSubmit}>
+      {config.googleClientId && (
+        <div className="mt-6">
+          <GoogleSignInButton
+            onSuccess={() => navigate("/dashboard", { replace: true })}
+            onError={setGoogleError}
+          />
+          {googleError && <p className="mt-2 text-sm text-[var(--danger)]">{googleError}</p>}
+          <AuthDivider label="or sign in with email" />
+        </div>
+      )}
+      <form className={`${config.googleClientId ? "" : "mt-6 "}space-y-4`} onSubmit={form.onSubmit}>
         <div className="space-y-1.5">
           <Label htmlFor="email">Email</Label>
           <Input
