@@ -135,3 +135,26 @@ body {
   border-top: 1px solid var(--border);
   margin: 2rem 0;
 }
+
+/* Navbar dragon bob — same motion as the LP navbar's framer-motion
+   `animate={{ y: [0, -4, 0] }}` (1.2s, ease-in-out, infinite). Done in
+   CSS because the app doesn't ship framer-motion. */
+@keyframes logo-bob {
+  0%,
+  100% {
+    transform: translateY(0);
+  }
+  50% {
+    transform: translateY(-4px);
+  }
+}
+
+.logo-bob {
+  animation: logo-bob 1.2s ease-in-out infinite;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .logo-bob {
+    animation: none;
+  }
+}
