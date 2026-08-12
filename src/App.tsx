@@ -4,7 +4,7 @@ import { useSession } from "@ballisticbrands/frontend-shared";
 import { useBrand } from "@ballisticbrands/frontend-shared";
 import { AuthLayout } from "@/components/layout/AuthLayout";
 import { AppLayout } from "@/components/layout/AppLayout";
-import { ForgotPasswordPage, VerifyEmailPage } from "@ballisticbrands/frontend-shared";
+import { ForgotPasswordPage, MagicLoginPage, VerifyEmailPage } from "@ballisticbrands/frontend-shared";
 import { Index } from "@/pages/Index";
 import { SignIn } from "@/pages/SignIn";
 import { SignUp } from "@/pages/SignUp";
@@ -95,6 +95,9 @@ export default function App() {
       <Route path="/docs/:slug" element={<Docs />} />
       {/* /verify is public — the token in the URL is the credential. */}
       <Route path="/verify" element={<VerifyEmailPage />} />
+      {/* /magic is public for the same reason: the emailed one-time
+          token IS the credential. Redeems it and lands on /dashboard. */}
+      <Route path="/magic" element={<MagicLoginPage />} />
       <Route path="*" element={<Navigate to="/" replace />} />
     </Routes>
   );
