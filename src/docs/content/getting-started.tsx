@@ -30,18 +30,19 @@ export function GettingStarted() {
       <h2 id="create-account">1. Create your DragonBot account</h2>
       <p>
         Head to the <Link to="/sign-up">sign-up page</Link> and create your
-        account. You'll start a free 7-day trial — no credit card required.
+        account. Free forever — no credit card, no trial timer.
       </p>
       <ol>
-        <li>Enter your name, work email, and a password (at least 8 characters).</li>
+        <li>Enter your work email (or use the Google button — no password either way).</li>
         <li>
-          Click <strong>Create account</strong>. You'll land straight on your
-          dashboard.
+          Click <strong>Send me my setup link</strong>. You'll land straight on
+          your dashboard, and the setup link arrives by email so you can finish
+          on any device.
         </li>
       </ol>
       <Screenshot
-        alt="The DragonBot sign-up form — name, work email, and password fields with a Create account button."
-        caption="The sign-up form at app.getdragonbot.com/sign-up"
+        alt="The DragonBot sign-up page — pick your AI, enter your work email, and get your setup link."
+        caption="The sign-up page at app.getdragonbot.com/sign-up"
       />
 
       {/* ---------------------------------------------------------------- */}

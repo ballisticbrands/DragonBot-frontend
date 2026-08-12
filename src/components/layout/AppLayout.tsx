@@ -1,7 +1,6 @@
 import { Link, useNavigate } from "react-router-dom";
 import { useSession } from "@ballisticbrands/frontend-shared";
 import { signOut } from "@ballisticbrands/frontend-shared";
-import { VerifyEmailBanner } from "@ballisticbrands/frontend-shared";
 import { BrandLockup } from "@/components/BrandLockup";
 
 export function AppLayout({ children }: { children: React.ReactNode }) {
@@ -19,12 +18,14 @@ export function AppLayout({ children }: { children: React.ReactNode }) {
     return null;
   }
 
-  const needsVerification =
-    session.user.emailVerifiedAt === null || session.user.emailVerifiedAt === undefined;
-
   return (
     <div className="min-h-screen flex flex-col">
-      {needsVerification && <VerifyEmailBanner email={session.user.email} />}
+      {/* No verify-email banner. Signup is email-only and passwordless in
+          practice, so an unverified address is the normal state rather
+          than a problem to nag about — and the banner was the first thing
+          a new user saw on a page whose job is to get them to connect
+          Amazon. The setup email carries the verify link as a P.S. for
+          anyone who wants it. Same decision as DragonRefunds-frontend. */}
       <header className="border-b border-[var(--border)] bg-white">
         <div className="mx-auto flex max-w-6xl items-center justify-between px-6 py-3">
           <div className="flex items-center gap-8">

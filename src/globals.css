@@ -25,6 +25,35 @@
   --card: #ffffff;
   --code-bg: #0b0f17;
   --code-fg: #e6edf3;
+
+  /* Dragon-suite greens — the LP renders "Free forever" and the trust
+     strip in these, so the signup + onboarding surfaces use them for the
+     same jobs (free/trust signals). --accent above stays the DragonBot
+     orange for product chrome. Same values as DragonRefunds-frontend and
+     the LPs' #2F7D4F → #98CC65 gradient. */
+  --brand-green: #2f7d4f;
+  --brand-green-light: #98cc65;
+
+  /* Setup-turnaround badge. Amber, and deliberately not --danger: the
+     badge is a delivery promise ("ready in ~2 minutes"), not a warning.
+     Values are AA-contrast on the white card. Same quad as
+     DragonRefunds-frontend's report-ETA badge. */
+  --eta-fg: #8a5a00;
+  --eta-strong: #6b4400;
+  --eta-bg: rgba(180, 83, 9, 0.08);
+  --eta-border: rgba(180, 83, 9, 0.3);
+}
+
+/* Setup-turnaround badge — used on /sign-up and the dashboard
+   onboarding checklist. */
+.eta-badge {
+  color: var(--eta-fg);
+  background-color: var(--eta-bg);
+  border-color: var(--eta-border);
+}
+
+.eta-badge .eta-badge-strong {
+  color: var(--eta-strong);
 }
 
 html,

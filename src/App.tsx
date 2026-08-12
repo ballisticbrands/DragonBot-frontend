@@ -67,7 +67,9 @@ export default function App() {
         path="/sign-up"
         element={
           <PublicOnly>
-            <AuthLayout>
+            {/* Widest column: /sign-up runs the AI chat preview and the
+                signup form as two side-by-side halves. */}
+            <AuthLayout width="xl">
               <SignUp />
             </AuthLayout>
           </PublicOnly>

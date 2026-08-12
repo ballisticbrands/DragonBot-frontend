@@ -1,4 +1,4 @@
-import { useEffect } from "react";
+import { useCallback, useEffect, useState } from "react";
 import { useSearchParams } from "react-router-dom";
 import { useSession } from "@ballisticbrands/frontend-shared";
 import { useBrand } from "@ballisticbrands/frontend-shared";
@@ -7,6 +7,8 @@ import { DataTab } from "@/components/dashboard/DataTab";
 import { KeysTab } from "@/components/dashboard/KeysTab";
 import { SettingsTab } from "@/components/dashboard/SettingsTab";
 import { SupportTab } from "@/components/dashboard/SupportTab";
+import { ConnectAmazonPrompt } from "@/components/dashboard/ConnectAmazonPrompt";
+import { listConnections, type Connection } from "@/lib/connections";
 
 const TAB_IDS: TabId[] = ["data", "keys", "settings", "support"];
 
@@ -14,6 +16,21 @@ export function Dashboard() {
   const [searchParams] = useSearchParams();
   const session = useSession();
   const brand = useBrand();
+  // Without at least one connected Amazon account (Seller Central OR
+  // Ads — DragonBot is usable Ads-only) the product has nothing to work
+  // with, so we replace the whole tabbed dashboard with a full-page
+  // onboarding prompt. `null` = still loading connections; distinguishes
+  // the "no data yet" flash from the confirmed empty state. Same gate
+  // as DragonRefunds-frontend's Dashboard.
+  const [connections, setConnections] = useState<Connection[] | null>(null);
+
+  const refresh = useCallback(async () => {
+    setConnections(await listConnections());
+  }, []);
+
+  useEffect(() => {
+    void refresh();
+  }, [refresh]);
 
   useEffect(() => {
     document.title = `Dashboard — ${brand.displayName}`;
@@ -25,6 +42,17 @@ export function Dashboard() {
   // AppLayout already gates on auth, so by the time we render here the
   // user object exists. Guard anyway to satisfy TypeScript narrowing.
   if (session.status !== "authenticated") return null;
+
+  // Loading gate: show a blank shell (matches AppLayout's loading
+  // pattern) instead of flashing the empty-state prompt while the
+  // /v1/connections call is in flight.
+  if (connections === null) {
+    return <div className="min-h-screen" />;
+  }
+
+  if (connections.length === 0) {
+    return <ConnectAmazonPrompt onConnected={refresh} />;
+  }
 
   return (
     <div className="mx-auto max-w-6xl px-6 py-8">
