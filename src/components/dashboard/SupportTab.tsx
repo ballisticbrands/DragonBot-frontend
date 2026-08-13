@@ -35,9 +35,6 @@ export function SupportTab() {
   const FAQ = buildFaq(brand.displayName);
   return (
     <div
-      id="dashboard-support-panel"
-      role="tabpanel"
-      aria-labelledby="dashboard-support-tab"
       className="space-y-6"
     >
       <Card>

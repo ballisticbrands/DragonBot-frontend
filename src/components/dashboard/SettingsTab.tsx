@@ -9,9 +9,6 @@ export function SettingsTab({ user }: { user: SessionUser }) {
   const trialEnds = user.trial_ends_at ? new Date(user.trial_ends_at) : null;
   return (
     <div
-      id="dashboard-settings-panel"
-      role="tabpanel"
-      aria-labelledby="dashboard-settings-tab"
       className="space-y-6"
     >
       <Card>

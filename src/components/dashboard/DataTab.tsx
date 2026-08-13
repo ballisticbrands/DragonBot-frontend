@@ -54,9 +54,6 @@ export function DataTab() {
 
   return (
     <div
-      id="dashboard-data-panel"
-      role="tabpanel"
-      aria-labelledby="dashboard-data-tab"
       className="space-y-6"
     >
       <Card>

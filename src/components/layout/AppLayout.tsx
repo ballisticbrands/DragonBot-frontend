@@ -1,7 +1,35 @@
 import { Link, useNavigate } from "react-router-dom";
-import { useSession } from "@ballisticbrands/frontend-shared";
-import { signOut } from "@ballisticbrands/frontend-shared";
+import {
+  AppShell,
+  ChartIcon,
+  DatabaseIcon,
+  KeyIcon,
+  LifebuoyIcon,
+  PlugIcon,
+  SettingsIcon,
+  signOut,
+  useSession,
+  type NavItem,
+} from "@ballisticbrands/frontend-shared";
 import { BrandLockup } from "@/components/BrandLockup";
+
+// Signed-in chrome. Was a top bar plus a four-tab strip inside the
+// dashboard page; now a left rail from the shared AppShell.
+//
+// Why the change: tabs gave Data / Keys / Settings / Support equal
+// weight, which is how you organise a settings panel. The two things a
+// seller should actually live in — their numbers and getting their AI
+// wired up — didn't exist as destinations at all. The rail separates
+// the product from the housekeeping and has room for both.
+
+const NAV: NavItem[] = [
+  { to: "/dashboard", label: "Dashboard", icon: <ChartIcon /> },
+  { to: "/connect-ai", label: "Connect your AI", icon: <PlugIcon /> },
+  { to: "/data", label: "Data sources", icon: <DatabaseIcon />, section: "Setup" },
+  { to: "/keys", label: "API keys", icon: <KeyIcon /> },
+  { to: "/settings", label: "Settings", icon: <SettingsIcon />, section: "Account" },
+  { to: "/support", label: "Support", icon: <LifebuoyIcon /> },
+];
 
 export function AppLayout({ children }: { children: React.ReactNode }) {
   const session = useSession();
@@ -18,50 +46,52 @@ export function AppLayout({ children }: { children: React.ReactNode }) {
     return null;
   }
 
+  const logOut = async () => {
+    await signOut();
+    navigate("/sign-in", { replace: true });
+  };
+
   return (
-    <div className="min-h-screen flex flex-col">
-      {/* No verify-email banner. Signup is email-only and passwordless in
-          practice, so an unverified address is the normal state rather
-          than a problem to nag about — and the banner was the first thing
-          a new user saw on a page whose job is to get them to connect
-          Amazon. The setup email carries the verify link as a P.S. for
-          anyone who wants it. Same decision as DragonRefunds-frontend. */}
-      <header className="border-b border-[var(--border)] bg-white">
-        <div className="mx-auto flex max-w-6xl items-center justify-between px-6 py-3">
-          <div className="flex items-center gap-8">
-            {/* Same logo treatment as the getdragonbot.com navbar: bobbing
-                dragon + "getDragonBot.com" with the green gradient on the name. */}
-            <BrandLockup to="/dashboard" />
-            <nav className="flex items-center gap-5 text-sm">
-              <Link to="/dashboard" className="text-[var(--foreground)]">
-                Dashboard
-              </Link>
-              <a
-                href="/docs"
-                className="text-[var(--muted-foreground)] hover:text-[var(--foreground)]"
-                target="_blank"
-                rel="noreferrer"
-              >
-                Docs
-              </a>
-            </nav>
-          </div>
-          <div className="flex items-center gap-3 text-sm">
-            <span className="text-[var(--muted-foreground)]">{session.user.email}</span>
+    <AppShell
+      items={NAV}
+      navHeader={<BrandLockup to="/dashboard" />}
+      navFooter={
+        <div className="flex flex-col gap-2">
+          <span
+            className="truncate text-[12px] text-[var(--muted-foreground)]"
+            title={session.user.email}
+          >
+            {session.user.email}
+          </span>
+          <div className="flex items-center gap-3 text-[12px]">
+            <Link
+              to="/docs"
+              target="_blank"
+              className="text-[var(--muted-foreground)] hover:text-[var(--foreground)]"
+            >
+              Docs
+            </Link>
             <button
               type="button"
-              onClick={async () => {
-                await signOut();
-                navigate("/sign-in", { replace: true });
-              }}
-              className="rounded-md border border-[var(--border)] px-3 py-1.5 hover:bg-[var(--muted)]"
+              onClick={() => void logOut()}
+              className="text-[var(--muted-foreground)] hover:text-[var(--foreground)]"
             >
               Log out
             </button>
           </div>
         </div>
-      </header>
-      <main className="flex-1">{children}</main>
-    </div>
+      }
+      mobileActions={
+        <button
+          type="button"
+          onClick={() => void logOut()}
+          className="rounded-md border border-[var(--border)] px-3 py-1.5 text-sm hover:bg-[var(--muted)]"
+        >
+          Log out
+        </button>
+      }
+    >
+      {children}
+    </AppShell>
   );
 }

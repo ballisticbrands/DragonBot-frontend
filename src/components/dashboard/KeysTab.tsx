@@ -18,9 +18,6 @@ export function KeysTab() {
 
   return (
     <div
-      id="dashboard-keys-panel"
-      role="tabpanel"
-      aria-labelledby="dashboard-keys-tab"
       className="space-y-6"
     >
       <Card>

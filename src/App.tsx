@@ -9,6 +9,7 @@ import { Index } from "@/pages/Index";
 import { SignIn } from "@/pages/SignIn";
 import { SignUp } from "@/pages/SignUp";
 import { Dashboard } from "@/pages/Dashboard";
+import { ConnectAi, DataSources, Keys, Settings, Support } from "@/pages/AppPages";
 import { Docs } from "@/pages/Docs";
 import { defaultDoc } from "@/docs/registry";
 
@@ -83,14 +84,16 @@ export default function App() {
           </AuthLayout>
         }
       />
-      <Route
-        path="/dashboard"
-        element={
-          <AppLayout>
-            <Dashboard />
-          </AppLayout>
-        }
-      />
+      {/* Signed-in app. Each of these was a `?tab=` on /dashboard; they
+          became routes when the tab strip became a left rail. The old
+          query-string URLs are redirected below so bookmarks and the
+          setup email's links keep working. */}
+      <Route path="/dashboard" element={<LegacyTabRedirect><AppLayout><Dashboard /></AppLayout></LegacyTabRedirect>} />
+      <Route path="/connect-ai" element={<AppLayout><ConnectAi /></AppLayout>} />
+      <Route path="/data" element={<AppLayout><DataSources /></AppLayout>} />
+      <Route path="/keys" element={<AppLayout><Keys /></AppLayout>} />
+      <Route path="/settings" element={<AppLayout><Settings /></AppLayout>} />
+      <Route path="/support" element={<AppLayout><Support /></AppLayout>} />
       <Route path="/docs" element={<Navigate to={`/docs/${defaultDoc.slug}`} replace />} />
       <Route path="/docs/:slug" element={<Docs />} />
       {/* /verify is public — the token in the URL is the credential. */}
@@ -101,6 +104,32 @@ export default function App() {
       <Route path="*" element={<Navigate to="/" replace />} />
     </Routes>
   );
+}
+
+/**
+ * The dashboard's sections used to be `?tab=` values on /dashboard.
+ * They're routes now, but the setup email, the docs and anyone's
+ * bookmarks still carry the old URLs — so translate them rather than
+ * silently dropping people on the wrong page.
+ *
+ * `?tab=data` is the interesting case: it was the DEFAULT tab, so a
+ * bare /dashboard and /dashboard?tab=data used to be the same page.
+ * They aren't any more — /dashboard is the numbers, /data is the
+ * connection manager — and an explicit `tab=data` meant the latter.
+ */
+const LEGACY_TABS: Record<string, string> = {
+  data: "/data",
+  keys: "/keys",
+  settings: "/settings",
+  support: "/support",
+};
+
+function LegacyTabRedirect({ children }: { children: React.ReactNode }) {
+  const { search } = useLocation();
+  const tab = new URLSearchParams(search).get("tab");
+  const target = tab ? LEGACY_TABS[tab] : undefined;
+  if (target) return <Navigate to={target} replace />;
+  return <>{children}</>;
 }
 
 /**
