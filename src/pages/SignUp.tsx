@@ -188,7 +188,7 @@ export function SignUp() {
           <p className="mt-3 text-[11.5px] leading-relaxed text-[var(--muted-foreground)]">
             That's the whole product: {aiName} answering from your real Amazon data — orders,
             ads, inventory, reviews, customer messages — with pre-built skills for PPC audits,
-            keyword research, forecasts, and more.
+            search-term analysis, forecasts, and more.
           </p>
         </div>
 
