@@ -643,7 +643,7 @@ function ConnectedCountBadge({ count }: { count: number }) {
 
 function PendingHint() {
   // Shown for fields populated from the first BigQuery sync. Until that
-  // runs, we can't display the value. Once Airbyte's initial sync
+  // runs, we can't display the value. Once the initial SP-API sync
   // completes (~10 min), the row gets enriched on the next reload.
   return (
     <span
